@@ -1,27 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
 import 'providers/ride_provider.dart';
 import 'screens/speedometer_screen.dart';
 import 'screens/map_screen.dart';
-import 'services/foreground_service.dart';
 import 'screens/history/history_screen.dart';
-import 'package:flutter/services.dart';
-import 'db/sample_data.dart';
-import 'package:intl/date_symbol_data_local.dart';
-
+import 'screens/goal_screen.dart';
+import 'screens/settings_screen.dart';
+import 'services/foreground_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  // 한국어
   await initializeDateFormatting('ko_KR', null);
 
   // 알림 초기화
   await ForegroundServiceHelper.initNotifications();
-
-  await SampleDataHelper.insertSampleData();
 
   // 네이버 지도 초기화
   await FlutterNaverMap().init(
@@ -63,7 +59,8 @@ class _MyAppState extends State<MyApp> {
 
   Future<void> _requestPermissions() async {
     // 1. 위치 권한
-    LocationPermission locationPermission = await Geolocator.checkPermission();
+    LocationPermission locationPermission =
+    await Geolocator.checkPermission();
     if (locationPermission == LocationPermission.denied ||
         locationPermission == LocationPermission.deniedForever) {
       await Geolocator.requestPermission();
@@ -83,6 +80,12 @@ class _MyAppState extends State<MyApp> {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
+        bottomNavigationBarTheme:
+        const BottomNavigationBarThemeData(
+          backgroundColor: Colors.black,
+          selectedItemColor: Colors.blue,
+          unselectedItemColor: Colors.grey,
+        ),
       ),
       home: const MainScreen(),
     );
@@ -109,7 +112,8 @@ class _MainScreenState extends State<MainScreen> {
 
         final now = DateTime.now();
         if (_lastBackPressed == null ||
-            now.difference(_lastBackPressed!) > const Duration(seconds: 2)) {
+            now.difference(_lastBackPressed!) >
+                const Duration(seconds: 2)) {
           _lastBackPressed = now;
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -119,7 +123,6 @@ class _MainScreenState extends State<MainScreen> {
             ),
           );
         } else {
-          // 2초 안에 두 번 누르면 종료
           SystemNavigator.pop();
         }
       },
@@ -130,14 +133,14 @@ class _MainScreenState extends State<MainScreen> {
             SpeedometerScreen(),
             MapScreen(),
             HistoryScreen(),
+            GoalScreen(),
+            SettingsScreen(),
           ],
         ),
         bottomNavigationBar: BottomNavigationBar(
-          backgroundColor: Colors.black,
-          selectedItemColor: Colors.blue,
-          unselectedItemColor: Colors.grey,
           currentIndex: _currentIndex,
-          onTap: (index) => setState(() => _currentIndex = index),
+          onTap: (index) =>
+              setState(() => _currentIndex = index),
           items: const [
             BottomNavigationBarItem(
               icon: Icon(Icons.speed),
@@ -150,6 +153,14 @@ class _MainScreenState extends State<MainScreen> {
             BottomNavigationBarItem(
               icon: Icon(Icons.history),
               label: '기록',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.flag),
+              label: '목표',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.settings),
+              label: '설정',
             ),
           ],
         ),
