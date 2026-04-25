@@ -120,11 +120,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     return Scaffold(
       backgroundColor: Colors.black,
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        title: const Text('설정',
-            style: TextStyle(color: Colors.white)),
-      ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [

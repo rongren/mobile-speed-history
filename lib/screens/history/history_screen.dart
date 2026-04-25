@@ -40,10 +40,7 @@ class _HistoryScreenState extends State<HistoryScreen>
       backgroundColor: Colors.black,
       appBar: AppBar(
         backgroundColor: Colors.black,
-        title: const Text(
-          '주행기록',
-          style: TextStyle(color: Colors.white),
-        ),
+        toolbarHeight: 0,
         bottom: TabBar(
           controller: _tabController,
           isScrollable: true,

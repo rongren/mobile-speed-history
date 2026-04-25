@@ -23,11 +23,6 @@ class _SpeedometerScreenState extends State<SpeedometerScreen> {
 
     return Scaffold(
       backgroundColor: Colors.black,
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        title: const Text('자전거 속도계',
-            style: TextStyle(color: Colors.white)),
-      ),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [

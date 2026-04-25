@@ -26,10 +26,6 @@ class _MapScreenState extends State<MapScreen> {
 
     return Scaffold(
       backgroundColor: Colors.black,
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        title: const Text('경로', style: TextStyle(color: Colors.white)),
-      ),
       body: Column(
         children: [
           // 지도
