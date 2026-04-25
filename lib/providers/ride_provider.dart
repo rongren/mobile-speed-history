@@ -123,9 +123,24 @@ class RideProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  static const double _maxAccuracyMeters = 25.0;  // 이 이상 오차면 무시
+  static const double _minMovementMeters = 3.0;   // 이 미만 이동은 드리프트로 간주
+  static const double _maxSpeedJumpRatio = 3.0;   // 이전 속도의 3배 이상 급등 시 무시
+  static const double _maxSpeedJumpMinKmh = 20.0; // 급등 필터 적용 최소 기준
+
   void _onPositionUpdate(Position position) {
+    // GPS 정확도가 낮으면 스킵
+    if (position.accuracy > _maxAccuracyMeters) return;
+
     double rawSpeed = position.speed * 3.6;
     if (rawSpeed < 0) rawSpeed = 0;
+
+    // 속도 스파이크 필터: 이전 속도 대비 3배 이상 급등 시 무시
+    if (rawSpeed > _maxSpeedJumpMinKmh &&
+        _targetSpeed > 0 &&
+        rawSpeed > _targetSpeed * _maxSpeedJumpRatio) {
+      return;
+    }
 
     _previousSpeed = _currentSpeed;
     _targetSpeed = rawSpeed;
@@ -134,10 +149,13 @@ class RideProvider extends ChangeNotifier {
     if (rawSpeed > _maxSpeed) _maxSpeed = rawSpeed;
 
     if (_lastPosition != null) {
-      double distanceInMeters = LocationService.calculateDistance(
+      final distanceInMeters = LocationService.calculateDistance(
         _lastPosition!, position,
       );
-      _totalDistance += distanceInMeters / 1000;
+      // 드리프트 방지: 최소 이동 거리 미만이면 거리 누적 안 함
+      if (distanceInMeters >= _minMovementMeters) {
+        _totalDistance += distanceInMeters / 1000;
+      }
     }
 
     pathPoints.add(position);
