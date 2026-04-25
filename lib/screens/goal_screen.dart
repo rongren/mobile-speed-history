@@ -7,9 +7,12 @@ class GoalScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      body: const Center(
-        child: Text('목표 화면 준비 중',
-            style: TextStyle(color: Colors.grey)),
+      body: const SafeArea(
+        bottom: false,
+        child: Center(
+          child: Text('목표 화면 준비 중',
+              style: TextStyle(color: Colors.grey)),
+        ),
       ),
     );
   }

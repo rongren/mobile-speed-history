@@ -26,7 +26,9 @@ class _MapScreenState extends State<MapScreen> {
 
     return Scaffold(
       backgroundColor: Colors.black,
-      body: Column(
+      body: SafeArea(
+        bottom: false,
+        child: Column(
         children: [
           // 지도
           Expanded(
@@ -97,6 +99,7 @@ class _MapScreenState extends State<MapScreen> {
             ),
           ),
         ],
+        ),
       ),
     );
   }

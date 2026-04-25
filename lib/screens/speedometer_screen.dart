@@ -23,7 +23,9 @@ class _SpeedometerScreenState extends State<SpeedometerScreen> {
 
     return Scaffold(
       backgroundColor: Colors.black,
-      body: Column(
+      body: SafeArea(
+        bottom: false,
+        child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const SizedBox(height: 12),
@@ -215,6 +217,7 @@ class _SpeedometerScreenState extends State<SpeedometerScreen> {
 
           const SizedBox(height: 20),
         ],
+        ),
       ),
     );
   }

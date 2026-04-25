@@ -120,7 +120,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     return Scaffold(
       backgroundColor: Colors.black,
-      body: ListView(
+      body: SafeArea(
+        bottom: false,
+        child: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           _sectionTitle('테마'),
@@ -192,6 +194,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             loadingColor: Colors.blue,
           ),
         ],
+        ),
       ),
     );
   }
