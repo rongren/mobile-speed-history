@@ -93,4 +93,9 @@ class DatabaseHelper {
     final db = await database;
     return await db.delete('ride_records', where: 'id = ?', whereArgs: [id]);
   }
+
+  Future<void> deleteAllRecords() async {
+    final db = await database;
+    await db.delete('ride_records');
+  }
 }

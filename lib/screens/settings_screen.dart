@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../db/database_helper.dart';
 import '../db/sample_data.dart';
 import '../providers/ride_provider.dart';
 
@@ -11,29 +12,28 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  bool _isLoading = false;
+  bool _isDeleting = false;
+  bool _isGenerating = false;
 
-  Future<void> _resetWithSampleData() async {
+  Future<void> _deleteAllData() async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: const Color(0xFF1e1e1e),
-        title: const Text('초기화 확인',
+        title: const Text('데이터 제거 확인',
             style: TextStyle(color: Colors.white)),
         content: const Text(
-          '모든 기록을 삭제하고 임시 데이터를 넣을까요?\n되돌릴 수 없어요.',
+          '모든 기록을 삭제합니다.\n되돌릴 수 없어요.',
           style: TextStyle(color: Colors.grey),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('취소',
-                style: TextStyle(color: Colors.grey)),
+            child: const Text('취소', style: TextStyle(color: Colors.grey)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('초기화',
-                style: TextStyle(color: Colors.red)),
+            child: const Text('삭제', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -41,14 +41,55 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     if (confirmed != true) return;
 
-    setState(() => _isLoading = true);
+    setState(() => _isDeleting = true);
+    await DatabaseHelper.instance.deleteAllRecords();
+    if (mounted) {
+      await context.read<RideProvider>().loadRecords();
+      setState(() => _isDeleting = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('모든 기록이 삭제되었습니다'),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
+  Future<void> _generateSampleData() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1e1e1e),
+        title: const Text('데이터 생성 확인',
+            style: TextStyle(color: Colors.white)),
+        content: const Text(
+          '기존 기록을 모두 지우고 임시 데이터를 생성합니다.\n되돌릴 수 없어요.',
+          style: TextStyle(color: Colors.grey),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('취소', style: TextStyle(color: Colors.grey)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('생성', style: TextStyle(color: Colors.blue)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    setState(() => _isGenerating = true);
     await SampleDataHelper.insertSampleData();
     if (mounted) {
       await context.read<RideProvider>().loadRecords();
-      setState(() => _isLoading = false);
+      setState(() => _isGenerating = false);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('임시 데이터로 초기화 완료'),
+          content: Text('임시 데이터 생성 완료'),
           backgroundColor: Colors.green,
           duration: Duration(seconds: 2),
         ),
@@ -70,22 +111,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
         children: [
           _sectionTitle('개발'),
           _settingTile(
-            icon: Icons.refresh,
-            iconColor: Colors.orange,
-            title: 'DB 초기화 + 임시 데이터',
-            subtitle: '전체 기록 삭제 후 샘플 데이터 삽입',
-            onTap: _isLoading ? null : _resetWithSampleData,
-            trailing: _isLoading
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.orange,
-                    ),
-                  )
-                : const Icon(Icons.chevron_right,
-                    color: Colors.grey, size: 20),
+            icon: Icons.delete_outline,
+            iconColor: Colors.red,
+            title: '데이터 제거',
+            subtitle: '전체 기록 삭제',
+            onTap: (_isDeleting || _isGenerating) ? null : _deleteAllData,
+            isLoading: _isDeleting,
+            loadingColor: Colors.red,
+          ),
+          const SizedBox(height: 10),
+          _settingTile(
+            icon: Icons.add_chart,
+            iconColor: Colors.blue,
+            title: '데이터 생성',
+            subtitle: '임시 샘플 데이터 삽입',
+            onTap: (_isDeleting || _isGenerating) ? null : _generateSampleData,
+            isLoading: _isGenerating,
+            loadingColor: Colors.blue,
           ),
         ],
       ),
@@ -113,52 +155,65 @@ class _SettingsScreenState extends State<SettingsScreen> {
     required String title,
     required String subtitle,
     required VoidCallback? onTap,
-    required Widget trailing,
+    required bool isLoading,
+    required Color loadingColor,
   }) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-            horizontal: 16, vertical: 14),
-        decoration: BoxDecoration(
-          color: Colors.grey[900],
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: iconColor.withOpacity(0.15),
-                borderRadius: BorderRadius.circular(10),
+      child: Opacity(
+        opacity: onTap == null ? 0.5 : 1.0,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            color: Colors.grey[900],
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: iconColor.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(icon, color: iconColor, size: 20),
               ),
-              child: Icon(icon, color: iconColor, size: 20),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    subtitle,
-                    style: const TextStyle(
-                        color: Colors.grey, fontSize: 12),
-                  ),
-                ],
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: const TextStyle(
+                          color: Colors.grey, fontSize: 12),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            trailing,
-          ],
+              isLoading
+                  ? SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: loadingColor,
+                      ),
+                    )
+                  : const Icon(Icons.chevron_right,
+                      color: Colors.grey, size: 20),
+            ],
+          ),
         ),
       ),
     );
