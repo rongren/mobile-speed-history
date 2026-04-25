@@ -14,6 +14,7 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   bool _isDeleting = false;
   bool _isGenerating = false;
+  ThemeMode _selectedTheme = ThemeMode.dark;
 
   Future<void> _deleteAllData() async {
     final confirmed = await showDialog<bool>(
@@ -109,6 +110,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          _sectionTitle('테마'),
+          _themeSelector(),
+          const SizedBox(height: 24),
           _sectionTitle('개발'),
           _settingTile(
             icon: Icons.delete_outline,
@@ -130,6 +134,82 @@ class _SettingsScreenState extends State<SettingsScreen> {
             loadingColor: Colors.blue,
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _themeSelector() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: Colors.grey[900],
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: Colors.purple.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: const Icon(Icons.palette_outlined,
+                color: Colors.purple, size: 20),
+          ),
+          const SizedBox(width: 14),
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('테마',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold)),
+                SizedBox(height: 2),
+                Text('앱 색상 테마 선택',
+                    style: TextStyle(color: Colors.grey, fontSize: 12)),
+              ],
+            ),
+          ),
+          _themeButton(ThemeMode.dark, Icons.dark_mode_outlined, 'Dark'),
+          const SizedBox(width: 8),
+          _themeButton(ThemeMode.light, Icons.light_mode_outlined, 'Light'),
+        ],
+      ),
+    );
+  }
+
+  Widget _themeButton(ThemeMode mode, IconData icon, String label) {
+    final isSelected = _selectedTheme == mode;
+    return GestureDetector(
+      onTap: () => setState(() => _selectedTheme = mode),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? Colors.blue.withOpacity(0.15)
+              : Colors.grey[800],
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: isSelected ? Colors.blue : Colors.grey[700]!,
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(icon,
+                color: isSelected ? Colors.blue : Colors.grey, size: 16),
+            const SizedBox(width: 4),
+            Text(
+              label,
+              style: TextStyle(
+                color: isSelected ? Colors.blue : Colors.grey,
+                fontSize: 12,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
