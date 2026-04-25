@@ -66,16 +66,16 @@ class _HistoryDailyScreenState extends State<HistoryDailyScreen>
     return result;
   }
 
-  Widget _recentButton(String label, int? days) {
+  Widget _recentButton(String label, int days) {
     final isSelected = _recentDays == days;
     return GestureDetector(
       onTap: () => setState(() {
-        _recentDays = days;
+        _recentDays = isSelected ? null : days;
         _selectedIndex = -1;
       }),
       child: Container(
-        padding: const EdgeInsets.symmetric(
-            horizontal: 10, vertical: 6),
+        height: 32,
+        alignment: Alignment.center,
         decoration: BoxDecoration(
           color: isSelected
               ? Colors.orange.withOpacity(0.2)
@@ -198,26 +198,15 @@ class _HistoryDailyScreenState extends State<HistoryDailyScreen>
               horizontal: 16, vertical: 8),
           child: Row(
             children: [
-              const Text(
-                '기간',
-                style: TextStyle(
-                  color: Colors.orange,
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(width: 8),
-              _recentButton('전체', null),
+              Expanded(child: _recentButton('7일', 7)),
               const SizedBox(width: 6),
-              _recentButton('7일', 7),
+              Expanded(child: _recentButton('30일', 30)),
               const SizedBox(width: 6),
-              _recentButton('30일', 30),
+              Expanded(child: _recentButton('90일', 90)),
               const SizedBox(width: 6),
-              _recentButton('90일', 90),
+              Expanded(child: _recentButton('180일', 180)),
               const SizedBox(width: 6),
-              _recentButton('180일', 180),
-              const SizedBox(width: 6),
-              _recentButton('365일', 365),
+              Expanded(child: _recentButton('365일', 365)),
             ],
           ),
         ),

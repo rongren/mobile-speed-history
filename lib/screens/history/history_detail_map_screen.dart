@@ -74,7 +74,34 @@ class _HistoryDetailMapScreenState extends State<HistoryDetailMapScreen> {
           // 지도
           Expanded(
             child: NaverMap(
-              // 기존 코드 동일
+              options: NaverMapViewOptions(
+                initialCameraPosition: NCameraPosition(
+                  target: initialPosition,
+                  zoom: 15,
+                ),
+              ),
+              onMapReady: (controller) async {
+                _mapController = controller;
+
+                if (points.length >= 2) {
+                  final polyline = NPolylineOverlay(
+                    id: 'history_path',
+                    coords: points,
+                    color: Colors.blue,
+                    width: 5,
+                  );
+                  await controller.addOverlay(polyline);
+
+                  // 경로 전체가 보이도록 카메라 이동
+                  final bounds = NLatLngBounds.from(points);
+                  await controller.updateCamera(
+                    NCameraUpdate.fitBounds(
+                      bounds,
+                      padding: EdgeInsets.all(40),
+                    ),
+                  );
+                }
+              },
             ),
           ),
 

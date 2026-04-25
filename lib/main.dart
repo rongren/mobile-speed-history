@@ -80,11 +80,21 @@ class _MyAppState extends State<MyApp> {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
-        bottomNavigationBarTheme:
-        const BottomNavigationBarThemeData(
+        navigationBarTheme: NavigationBarThemeData(
           backgroundColor: Colors.black,
-          selectedItemColor: Colors.blue,
-          unselectedItemColor: Colors.grey,
+          indicatorColor: Colors.blue.withOpacity(0.2),
+          iconTheme: WidgetStateProperty.resolveWith((states) {
+            if (states.contains(WidgetState.selected)) {
+              return const IconThemeData(color: Colors.blue);
+            }
+            return const IconThemeData(color: Colors.grey);
+          }),
+          labelTextStyle: WidgetStateProperty.resolveWith((states) {
+            if (states.contains(WidgetState.selected)) {
+              return const TextStyle(color: Colors.blue, fontSize: 12);
+            }
+            return const TextStyle(color: Colors.grey, fontSize: 12);
+          }),
         ),
       ),
       home: const MainScreen(),
@@ -137,28 +147,29 @@ class _MainScreenState extends State<MainScreen> {
             SettingsScreen(),
           ],
         ),
-        bottomNavigationBar: BottomNavigationBar(
-          currentIndex: _currentIndex,
-          onTap: (index) =>
+        bottomNavigationBar: NavigationBar(
+          backgroundColor: Colors.black,
+          selectedIndex: _currentIndex,
+          onDestinationSelected: (index) =>
               setState(() => _currentIndex = index),
-          items: const [
-            BottomNavigationBarItem(
+          destinations: const [
+            NavigationDestination(
               icon: Icon(Icons.speed),
               label: '속도계',
             ),
-            BottomNavigationBarItem(
+            NavigationDestination(
               icon: Icon(Icons.map),
               label: '지도',
             ),
-            BottomNavigationBarItem(
+            NavigationDestination(
               icon: Icon(Icons.history),
               label: '기록',
             ),
-            BottomNavigationBarItem(
+            NavigationDestination(
               icon: Icon(Icons.flag),
               label: '목표',
             ),
-            BottomNavigationBarItem(
+            NavigationDestination(
               icon: Icon(Icons.settings),
               label: '설정',
             ),

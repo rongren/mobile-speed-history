@@ -18,6 +18,7 @@ class RideProvider extends ChangeNotifier {
   static const int _interpolationSteps = 5;
 
   DateTime? _startTime;
+  int _lastDuration = 0;
   Timer? _durationTimer;
 
   List<Position> pathPoints = [];
@@ -31,8 +32,10 @@ class RideProvider extends ChangeNotifier {
   bool get isRiding => _isRiding;
 
   int get duration {
-    if (_startTime == null) return 0;
-    return DateTime.now().difference(_startTime!).inSeconds;
+    if (_isRiding && _startTime != null) {
+      return DateTime.now().difference(_startTime!).inSeconds;
+    }
+    return _lastDuration;
   }
 
   String get formattedDuration {
@@ -77,6 +80,7 @@ class RideProvider extends ChangeNotifier {
     _previousSpeed = 0.0;
     _maxSpeed = 0.0;
     _totalDistance = 0.0;
+    _lastDuration = 0;
     _interpolationStep = 0;
     _startTime = DateTime.now();
     pathPoints.clear();
@@ -167,6 +171,7 @@ class RideProvider extends ChangeNotifier {
     await loadRecords();
     await ForegroundServiceHelper.stop();
 
+    _lastDuration = durationSeconds;
     _startTime = null;
     notifyListeners();
   }

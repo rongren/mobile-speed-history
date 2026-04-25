@@ -30,6 +30,7 @@ class BarChartWidget extends StatefulWidget {
 class _BarChartWidgetState extends State<BarChartWidget>
     with SingleTickerProviderStateMixin {
   ChartDataType _selectedType = ChartDataType.distance;
+  bool _showAverage = false;
   final ScrollController _scrollController = ScrollController();
 
   static const double barWidth = 22.0;
@@ -158,12 +159,40 @@ class _BarChartWidgetState extends State<BarChartWidget>
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              _typeButton('거리', ChartDataType.distance),
-              _typeButton('시간', ChartDataType.duration),
-              _typeButton('최고속도', ChartDataType.maxSpeed),
-              _typeButton('평균속도', ChartDataType.avgSpeed),
+              Expanded(child: _typeButton('거리', ChartDataType.distance)),
+              const SizedBox(width: 5),
+              Expanded(child: _typeButton('시간', ChartDataType.duration)),
+              const SizedBox(width: 5),
+              Expanded(child: _typeButton('최고속도', ChartDataType.maxSpeed)),
+              const SizedBox(width: 5),
+              Expanded(child: _typeButton('평균속도', ChartDataType.avgSpeed)),
+              const SizedBox(width: 8),
+              Container(width: 1, height: 26, color: Colors.grey[800]),
+              const SizedBox(width: 8),
+              GestureDetector(
+                onTap: () => setState(() => _showAverage = !_showAverage),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                  decoration: BoxDecoration(
+                    color: _showAverage
+                        ? Colors.orange.withOpacity(0.15)
+                        : Colors.grey[850],
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: _showAverage ? Colors.orange : Colors.grey[700]!,
+                    ),
+                  ),
+                  child: Text(
+                    '평균',
+                    style: TextStyle(
+                      color: _showAverage ? Colors.orange : Colors.grey,
+                      fontSize: 12,
+                      fontWeight: _showAverage ? FontWeight.bold : FontWeight.normal,
+                    ),
+                  ),
+                ),
+              ),
             ],
           ),
         ),
@@ -199,7 +228,8 @@ class _BarChartWidgetState extends State<BarChartWidget>
         });
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+        height: 34,
+        alignment: Alignment.center,
         decoration: BoxDecoration(
           color: isSelected ? Colors.blue : Colors.grey[900],
           borderRadius: BorderRadius.circular(16),
@@ -266,7 +296,6 @@ class _BarChartWidgetState extends State<BarChartWidget>
                     data: data,
                     labels: widget.labels,
                     maxValue: animatedMax,
-                    // 보간된 값
                     visibleStart: _visibleStart,
                     visibleEnd: _visibleEnd,
                     barWidth: barWidth,
@@ -276,6 +305,7 @@ class _BarChartWidgetState extends State<BarChartWidget>
                     valueHeight: valueHeight,
                     formatValue: _formatValue,
                     selectedIndex: widget.selectedIndex,
+                    showAverage: _showAverage,
                   ),
                 );
               },
@@ -300,6 +330,7 @@ class BarChartPainter extends CustomPainter {
   final double valueHeight;
   final String Function(double) formatValue;
   final int selectedIndex;
+  final bool showAverage;
 
   BarChartPainter({
     required this.data,
@@ -314,6 +345,7 @@ class BarChartPainter extends CustomPainter {
     required this.valueHeight,
     required this.formatValue,
     this.selectedIndex = -1,
+    this.showAverage = false,
   });
 
   @override
@@ -407,7 +439,7 @@ class BarChartPainter extends CustomPainter {
       );
     }
     // 평균선 그리기
-    if (data.isNotEmpty) {
+    if (showAverage && data.isNotEmpty) {
       final avg = data.reduce((a, b) => a + b) / data.length;
       final avgRatio = maxValue > 0 ? (avg / maxValue).clamp(0.0, 1.0) : 0.0;
       final avgY = valueHeight + chartHeight - (chartHeight * avgRatio);
@@ -439,7 +471,27 @@ class BarChartPainter extends CustomPainter {
         textDirection: TextDirection.ltr,
       )..layout();
 
-      avgText.paint(canvas, Offset(4, avgY - avgText.height - 2));
+      const labelPadH = 5.0;
+      const labelPadV = 2.0;
+      final labelLeft = 4.0;
+      final labelTop = avgY - avgText.height - labelPadV * 2 - 2;
+      final bgRect = RRect.fromRectAndRadius(
+        Rect.fromLTWH(
+          labelLeft,
+          labelTop,
+          avgText.width + labelPadH * 2,
+          avgText.height + labelPadV * 2,
+        ),
+        const Radius.circular(4),
+      );
+      canvas.drawRRect(
+        bgRect,
+        Paint()..color = const Color(0xCC1a1a1a),
+      );
+      avgText.paint(
+        canvas,
+        Offset(labelLeft + labelPadH, labelTop + labelPadV),
+      );
     }
 
     // 구분선
@@ -461,7 +513,8 @@ class BarChartPainter extends CustomPainter {
     return oldDelegate.maxValue != maxValue ||
         oldDelegate.visibleStart != visibleStart ||
         oldDelegate.visibleEnd != visibleEnd ||
-        oldDelegate.data != data;
-    oldDelegate.selectedIndex != selectedIndex;
+        oldDelegate.data != data ||
+        oldDelegate.selectedIndex != selectedIndex ||
+        oldDelegate.showAverage != showAverage;
   }
 }

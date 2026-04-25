@@ -43,23 +43,110 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> with Automati
   Future<void> _pickDateFromCalendar() async {
     final records = context.read<RideProvider>().records;
 
-    // 기록 있는 날짜 Set
-    final recordedDays = records.map((r) =>
-        DateTime(r.year, r.month, r.day)).toSet();
+    final recordedDays = records
+        .map((r) => DateTime(r.year, r.month, r.day))
+        .toSet();
+    final recordYears = records.map((r) => r.year).toSet().toList()..sort();
+    if (recordYears.isEmpty) recordYears.add(DateTime.now().year);
+
+    final firstDay = recordedDays.isEmpty
+        ? DateTime(DateTime.now().year)
+        : recordedDays.reduce((a, b) => a.isBefore(b) ? a : b);
 
     await showModalBottomSheet(
       context: context,
       backgroundColor: const Color(0xFF1e1e1e),
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-            top: Radius.circular(16)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
       builder: (ctx) {
         DateTime focusedDay = _selectedDate;
 
         return StatefulBuilder(
           builder: (context, setModalState) {
+            void showYearMonthPicker() {
+              int tempYear = focusedDay.year;
+              int tempMonth = focusedDay.month;
+
+              showDialog(
+                context: ctx,
+                builder: (dialogCtx) => StatefulBuilder(
+                  builder: (dialogCtx, setDialogState) {
+                    return AlertDialog(
+                      backgroundColor: const Color(0xFF1e1e1e),
+                      title: const Text(
+                        '연도 / 월 선택',
+                        style: TextStyle(color: Colors.white, fontSize: 15),
+                      ),
+                      content: Row(
+                        children: [
+                          Expanded(
+                            child: DropdownButton<int>(
+                              value: tempYear,
+                              isExpanded: true,
+                              dropdownColor: const Color(0xFF2a2a2a),
+                              style: const TextStyle(color: Colors.white),
+                              underline: const SizedBox(),
+                              items: recordYears
+                                  .map((y) => DropdownMenuItem(
+                                        value: y,
+                                        child: Text('$y년'),
+                                      ))
+                                  .toList(),
+                              onChanged: (v) {
+                                if (v != null) {
+                                  setDialogState(() => tempYear = v);
+                                }
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: DropdownButton<int>(
+                              value: tempMonth,
+                              isExpanded: true,
+                              dropdownColor: const Color(0xFF2a2a2a),
+                              style: const TextStyle(color: Colors.white),
+                              underline: const SizedBox(),
+                              items: List.generate(12, (i) => i + 1)
+                                  .map((m) => DropdownMenuItem(
+                                        value: m,
+                                        child: Text('$m월'),
+                                      ))
+                                  .toList(),
+                              onChanged: (v) {
+                                if (v != null) {
+                                  setDialogState(() => tempMonth = v);
+                                }
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(dialogCtx),
+                          child: const Text('취소',
+                              style: TextStyle(color: Colors.grey)),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            setModalState(() {
+                              focusedDay = DateTime(tempYear, tempMonth, 1);
+                            });
+                            Navigator.pop(dialogCtx);
+                          },
+                          child: const Text('이동',
+                              style: TextStyle(color: Colors.blue)),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              );
+            }
+
             return SafeArea(
               child: Padding(
                 padding: const EdgeInsets.all(16),
@@ -77,44 +164,63 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> with Automati
                     const SizedBox(height: 12),
                     TableCalendar(
                       locale: 'ko_KR',
-                      firstDay: DateTime(2020),
+                      firstDay: firstDay,
                       lastDay: DateTime.now(),
                       focusedDay: focusedDay,
+                      sixWeekMonthsEnforced: true,
                       selectedDayPredicate: (day) =>
                           isSameDay(day, _selectedDate),
                       onDaySelected: (selected, focused) {
-                        setState(() {
-                          _selectedDate = selected;
-                        });
+                        setState(() => _selectedDate = selected);
                         _loadDayRecords();
                         Navigator.pop(ctx);
                       },
                       onPageChanged: (focused) {
-                        setModalState(() {
-                          focusedDay = focused;
-                        });
+                        setModalState(() => focusedDay = focused);
                       },
+                      calendarBuilders: CalendarBuilders(
+                        headerTitleBuilder: (context, day) {
+                          return GestureDetector(
+                            onTap: showYearMonthPicker,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  '${day.year}년 ${day.month}월',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(width: 2),
+                                const Icon(
+                                  Icons.arrow_drop_down,
+                                  color: Colors.white,
+                                  size: 22,
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
                       calendarStyle: CalendarStyle(
-                        // 기본 날짜
-                        defaultTextStyle: const TextStyle(
-                            color: Colors.white),
-                        weekendTextStyle: const TextStyle(
-                            color: Colors.white),
-                        outsideTextStyle: TextStyle(
-                            color: Colors.grey[700]),
-                        // 선택된 날짜
+                        defaultTextStyle:
+                            const TextStyle(color: Colors.white),
+                        weekendTextStyle:
+                            const TextStyle(color: Colors.white),
+                        outsideTextStyle:
+                            TextStyle(color: Colors.grey[700]),
                         selectedDecoration: const BoxDecoration(
                           color: Colors.blue,
                           shape: BoxShape.circle,
                         ),
-                        // 오늘
                         todayDecoration: BoxDecoration(
                           color: Colors.blue.withOpacity(0.3),
                           shape: BoxShape.circle,
                         ),
-                        todayTextStyle: const TextStyle(
-                            color: Colors.white),
-                        // 기록 있는 날 점 표시
+                        todayTextStyle:
+                            const TextStyle(color: Colors.white),
                         markerDecoration: const BoxDecoration(
                           color: Colors.orange,
                           shape: BoxShape.circle,
@@ -124,34 +230,19 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> with Automati
                       headerStyle: const HeaderStyle(
                         formatButtonVisible: false,
                         titleCentered: true,
-                        titleTextStyle: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
                         leftChevronIcon: Icon(
-                            Icons.chevron_left,
-                            color: Colors.white),
+                            Icons.chevron_left, color: Colors.white),
                         rightChevronIcon: Icon(
-                            Icons.chevron_right,
-                            color: Colors.white),
+                            Icons.chevron_right, color: Colors.white),
                       ),
                       daysOfWeekStyle: const DaysOfWeekStyle(
-                        weekdayStyle: TextStyle(
-                            color: Colors.grey),
-                        weekendStyle: TextStyle(
-                            color: Colors.grey),
+                        weekdayStyle: TextStyle(color: Colors.grey),
+                        weekendStyle: TextStyle(color: Colors.grey),
                       ),
-                      // 기록 있는 날 마커 표시
                       eventLoader: (day) {
-                        final key = DateTime(
-                          day.year,
-                          day.month,
-                          day.day,
-                        );
-                        return recordedDays.contains(key)
-                            ? [true]
-                            : [];
+                        final key =
+                            DateTime(day.year, day.month, day.day);
+                        return recordedDays.contains(key) ? [true] : [];
                       },
                     ),
                   ],
@@ -169,8 +260,9 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> with Automati
     int tempMonth = _selectedDate.month;
     int tempDay = _selectedDate.day;
 
-    final years = List.generate(
-        DateTime.now().year - 2019, (i) => 2020 + i);
+    final records = context.read<RideProvider>().records;
+    final years = records.map((r) => r.year).toSet().toList()..sort();
+    if (years.isEmpty) years.add(DateTime.now().year);
     final months = List.generate(12, (i) => i + 1);
 
     showModalBottomSheet(

@@ -26,7 +26,7 @@ class _HistoryTotalScreenState extends State<HistoryTotalScreen>
   @override
   bool get wantKeepAlive => true;
 
-  int? _filterYear;
+  int? _filterYear = DateTime.now().year;
   int? _filterMonth;
   int? _filterDay;
 
@@ -255,8 +255,7 @@ class _HistoryTotalScreenState extends State<HistoryTotalScreen>
     final records = context.watch<RideProvider>().records;
     final filtered = _sortedRecords(_filteredRecords(records));
 
-    final currentYear = DateTime.now().year;
-    final years = List.generate(currentYear - 2019, (i) => 2020 + i);
+    final years = records.map((r) => r.year).toSet().toList()..sort();
     final months = List.generate(12, (i) => i + 1);
     final days = List.generate(31, (i) => i + 1);
 
