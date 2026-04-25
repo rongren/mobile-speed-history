@@ -350,21 +350,9 @@ class BarChartPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final barPaint = Paint()..color = Colors.blue;
     final linePaint = Paint()
       ..color = Colors.grey[700]!
       ..strokeWidth = 1;
-
-    final valuePainterStyle = TextStyle(
-      color: Colors.white,
-      fontSize: 9,
-      fontWeight: FontWeight.bold,
-    );
-
-    final labelPainterStyle = const TextStyle(
-      color: Color(0xFF9E9E9E),
-      fontSize: 10,
-    );
 
     // 보이는 범위만 그리기
     final renderStart = (visibleStart - 5).clamp(0, data.length - 1);
@@ -494,12 +482,6 @@ class BarChartPainter extends CustomPainter {
       );
     }
 
-    // 구분선
-    canvas.drawLine(
-      Offset(0, valueHeight + chartHeight),
-      Offset(size.width, valueHeight + chartHeight),
-      linePaint,
-    );
     // 구분선
     canvas.drawLine(
       Offset(0, valueHeight + chartHeight),

@@ -4,6 +4,7 @@ import '../../models/ride_record.dart';
 import '../../providers/ride_provider.dart';
 import 'history_detail_map_screen.dart';
 import '../../widgets/record_badges.dart';
+import '../../utils/format_utils.dart';
 
 enum SortType {
   dateDesc,
@@ -32,15 +33,6 @@ class _HistoryTotalScreenState extends State<HistoryTotalScreen>
 
   final Set<int> _pendingDeleteIds = {};
   SortType _sortType = SortType.dateDesc;
-
-  String _formatDuration(int seconds) {
-    int h = seconds ~/ 3600;
-    int m = (seconds % 3600) ~/ 60;
-    int s = seconds % 60;
-    return '${h.toString().padLeft(2, '0')}:'
-        '${m.toString().padLeft(2, '0')}:'
-        '${s.toString().padLeft(2, '0')}';
-  }
 
   String get _sortLabel {
     switch (_sortType) {
@@ -271,7 +263,7 @@ class _HistoryTotalScreenState extends State<HistoryTotalScreen>
                 children: [
                   _filterBox(
                     label: '년',
-                    value: _filterYear,
+                    value: years.contains(_filterYear) ? _filterYear : null,
                     items: years,
                     onChanged: (v) => setState(() {
                       _filterYear = v;
@@ -488,7 +480,7 @@ class _HistoryTotalScreenState extends State<HistoryTotalScreen>
                                         ),
                                         _statItem(
                                           '시간',
-                                          _formatDuration(record.duration),
+                                          formatDuration(record.duration),
                                         ),
                                         _statItem(
                                           '최고속도',

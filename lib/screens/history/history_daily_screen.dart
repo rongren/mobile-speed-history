@@ -6,6 +6,7 @@ import '../../providers/ride_provider.dart';
 import '../../widgets/bar_chart_widget.dart';
 import '../../widgets/record_badges.dart';
 import 'history_detail_map_screen.dart';
+import '../../utils/format_utils.dart';
 
 class HistoryDailyScreen extends StatefulWidget {
   const HistoryDailyScreen({super.key});
@@ -23,15 +24,6 @@ class _HistoryDailyScreenState extends State<HistoryDailyScreen>
   int _selectedIndex = -1;
   int? _recentDays;
   bool _showWeekdayStats = true;
-
-  String _formatDuration(int seconds) {
-    int h = seconds ~/ 3600;
-    int m = (seconds % 3600) ~/ 60;
-    int s = seconds % 60;
-    return '${h.toString().padLeft(2, '0')}:'
-        '${m.toString().padLeft(2, '0')}:'
-        '${s.toString().padLeft(2, '0')}';
-  }
 
   Map<int, Map<String, double>> _getWeekdayStats(
       Map<String, List<RideRecord>> grouped) {
@@ -424,7 +416,7 @@ class _HistoryDailyScreenState extends State<HistoryDailyScreen>
                                 '${totalDistance.toStringAsFixed(2)} km',
                                 isBlue: true),
                             _statItem('총 시간',
-                                _formatDuration(
+                                formatDuration(
                                     totalDuration),
                                 isBlue: true),
                             _statItem('최고속도',
@@ -540,7 +532,7 @@ class _HistoryDailyScreenState extends State<HistoryDailyScreen>
                                     '${record.totalDistance.toStringAsFixed(2)} km'),
                                 _statItem(
                                     '시간',
-                                    _formatDuration(
+                                    formatDuration(
                                         record.duration)),
                                 _statItem(
                                     '최고속도',

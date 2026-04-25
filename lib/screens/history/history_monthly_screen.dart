@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../models/ride_record.dart';
 import '../../providers/ride_provider.dart';
 import '../../widgets/bar_chart_widget.dart';
+import '../../utils/format_utils.dart';
 
 class HistoryMonthlyScreen extends StatefulWidget {
   const HistoryMonthlyScreen({super.key});
@@ -20,15 +21,6 @@ class _HistoryMonthlyScreenState extends State<HistoryMonthlyScreen>
 
   int _selectedIndex = -1;
   bool _showHeatmap = true;
-
-  String _formatDuration(int seconds) {
-    int h = seconds ~/ 3600;
-    int m = (seconds % 3600) ~/ 60;
-    int s = seconds % 60;
-    return '${h.toString().padLeft(2, '0')}:'
-        '${m.toString().padLeft(2, '0')}:'
-        '${s.toString().padLeft(2, '0')}';
-  }
 
   // 히트맵 색상 계산
   Color _heatmapColor(double value, double maxValue) {
@@ -185,7 +177,7 @@ class _HistoryMonthlyScreenState extends State<HistoryMonthlyScreen>
                                 '${totalDistance.toStringAsFixed(2)} km',
                                 isBlue: true),
                             _statItem('총 시간',
-                                _formatDuration(
+                                formatDuration(
                                     totalDuration),
                                 isBlue: true),
                             _statItem('최고속도',
@@ -406,7 +398,7 @@ class _HistoryMonthlyScreenState extends State<HistoryMonthlyScreen>
                       _statItem('거리',
                           '${distance.toStringAsFixed(2)} km'),
                       _statItem('시간',
-                          _formatDuration(duration)),
+                          formatDuration(duration)),
                       _statItem('최고속도',
                           '${maxSpeed.toStringAsFixed(1)} km/h'),
                       _statItem('평균속도',

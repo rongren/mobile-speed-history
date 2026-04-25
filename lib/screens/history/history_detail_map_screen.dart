@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
 import '../../models/ride_record.dart';
+import '../../utils/format_utils.dart';
 
 class HistoryDetailMapScreen extends StatefulWidget {
   final RideRecord record;
@@ -26,15 +27,6 @@ class _HistoryDetailMapScreenState extends State<HistoryDetailMapScreen> {
     } catch (e) {
       return [];
     }
-  }
-
-  String _formatDuration(int seconds) {
-    int h = seconds ~/ 3600;
-    int m = (seconds % 3600) ~/ 60;
-    int s = seconds % 60;
-    return '${h.toString().padLeft(2, '0')}:'
-        '${m.toString().padLeft(2, '0')}:'
-        '${s.toString().padLeft(2, '0')}';
   }
 
   @override
@@ -118,7 +110,7 @@ class _HistoryDetailMapScreenState extends State<HistoryDetailMapScreen> {
                       '${record.totalDistance.toStringAsFixed(2)} km'),
                   _divider(),
                   _statCard('시간',
-                      _formatDuration(record.duration)),
+                      formatDuration(record.duration)),
                   _divider(),
                   _statCard('최고속도',
                       '${record.maxSpeed.toStringAsFixed(1)} km/h'),

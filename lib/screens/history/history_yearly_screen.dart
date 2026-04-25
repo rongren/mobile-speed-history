@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../models/ride_record.dart';
 import '../../providers/ride_provider.dart';
 import '../../widgets/bar_chart_widget.dart';
+import '../../utils/format_utils.dart';
 
 class HistoryYearlyScreen extends StatefulWidget {
   const HistoryYearlyScreen({super.key});
@@ -20,15 +21,6 @@ class _HistoryYearlyScreenState extends State<HistoryYearlyScreen>
 
   int _selectedIndex = -1;
   bool _showMonthlyBreakdown = true;
-
-  String _formatDuration(int seconds) {
-    int h = seconds ~/ 3600;
-    int m = (seconds % 3600) ~/ 60;
-    int s = seconds % 60;
-    return '${h.toString().padLeft(2, '0')}:'
-        '${m.toString().padLeft(2, '0')}:'
-        '${s.toString().padLeft(2, '0')}';
-  }
 
   Map<int, Map<String, double>> _getMonthlyStats(
       List<RideRecord> records) {
@@ -182,7 +174,7 @@ class _HistoryYearlyScreenState extends State<HistoryYearlyScreen>
                                 '${totalDistance.toStringAsFixed(2)} km',
                                 isBlue: true),
                             _statItem('총 시간',
-                                _formatDuration(
+                                formatDuration(
                                     totalDuration),
                                 isBlue: true),
                             _statItem('최고속도',
@@ -329,7 +321,7 @@ class _HistoryYearlyScreenState extends State<HistoryYearlyScreen>
                                           '${distance.toStringAsFixed(2)} km'),
                                       _statItem(
                                           '시간',
-                                          _formatDuration(duration)),
+                                          formatDuration(duration)),
                                       _statItem(
                                           '최고속도',
                                           '${maxSpd.toStringAsFixed(1)} km/h'),

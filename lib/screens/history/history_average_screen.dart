@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/ride_provider.dart';
+import '../../utils/format_utils.dart';
 
 class HistoryAverageScreen extends StatelessWidget {
   const HistoryAverageScreen({super.key});
@@ -24,7 +25,7 @@ class HistoryAverageScreen extends StatelessWidget {
         children: [
           _sectionTitle('1회 평균'),
           _statRow('평균 거리', '${avgDistance.toStringAsFixed(2)} km'),
-          _statRow('평균 시간', _formatDuration(avgDuration)),
+          _statRow('평균 시간', formatDuration(avgDuration)),
           _statRow('평균 최고속도', '${avgMaxSpeed.toStringAsFixed(1)} km/h'),
           _statRow('평균 속도', '${avgAvgSpeed.toStringAsFixed(1)} km/h'),
           const SizedBox(height: 24),
@@ -33,7 +34,7 @@ class HistoryAverageScreen extends StatelessWidget {
           _statRow('총 거리',
               '${records.fold(0.0, (s, r) => s + r.totalDistance).toStringAsFixed(2)} km'),
           _statRow('총 시간',
-              _formatDuration(records.fold(0, (s, r) => s + r.duration))),
+              formatDuration(records.fold(0, (s, r) => s + r.duration))),
           _statRow('최고 속도',
               '${records.map((r) => r.maxSpeed).reduce((a, b) => a > b ? a : b).toStringAsFixed(1)} km/h'),
         ],
@@ -79,15 +80,6 @@ class HistoryAverageScreen extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  String _formatDuration(int seconds) {
-    int h = seconds ~/ 3600;
-    int m = (seconds % 3600) ~/ 60;
-    int s = seconds % 60;
-    return '${h.toString().padLeft(2, '0')}:'
-        '${m.toString().padLeft(2, '0')}:'
-        '${s.toString().padLeft(2, '0')}';
   }
 
   Widget _emptyWidget() {

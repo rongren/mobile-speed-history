@@ -5,6 +5,7 @@ import '../../providers/ride_provider.dart';
 import 'history_detail_map_screen.dart';
 import 'package:table_calendar/table_calendar.dart';
 import '../../widgets/record_badges.dart';
+import '../../utils/format_utils.dart';
 
 class HistoryDetailScreen extends StatefulWidget {
   const HistoryDetailScreen({super.key});
@@ -18,27 +19,6 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> with Automati
   bool get wantKeepAlive => true;
 
   DateTime _selectedDate = DateTime.now();
-  List<RideRecord> _dayRecords = [];
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadDayRecords();
-    });
-  }
-
-  void _loadDayRecords() {
-    final records = context.read<RideProvider>().records;
-    final filtered = records.where((r) =>
-    r.year == _selectedDate.year &&
-        r.month == _selectedDate.month &&
-        r.day == _selectedDate.day,
-    ).toList();
-
-    // setState 없이 그냥 반환값만 사용
-    _dayRecords = filtered;
-  }
 
   Future<void> _pickDateFromCalendar() async {
     final records = context.read<RideProvider>().records;
@@ -172,7 +152,6 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> with Automati
                           isSameDay(day, _selectedDate),
                       onDaySelected: (selected, focused) {
                         setState(() => _selectedDate = selected);
-                        _loadDayRecords();
                         Navigator.pop(ctx);
                       },
                       onPageChanged: (focused) {
@@ -346,7 +325,6 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> with Automati
                               tempDay,
                             );
                           });
-                          _loadDayRecords();
                           Navigator.pop(context);
                         },
                         child: Container(
@@ -408,39 +386,29 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> with Automati
     );
   }
 
-  String _formatDuration(int seconds) {
-    int h = seconds ~/ 3600;
-    int m = (seconds % 3600) ~/ 60;
-    int s = seconds % 60;
-    return '${h.toString().padLeft(2, '0')}:'
-        '${m.toString().padLeft(2, '0')}:'
-        '${s.toString().padLeft(2, '0')}';
-  }
-
   @override
   Widget build(BuildContext context) {
     super.build(context);
 
-    // watch 로 변경 감지 후 필터링
     final records = context.watch<RideProvider>().records;
-    _dayRecords = records.where((r) =>
+    final dayRecords = records.where((r) =>
     r.year == _selectedDate.year &&
         r.month == _selectedDate.month &&
         r.day == _selectedDate.day,
     ).toList();
 
-    final totalDistance = _dayRecords.fold(
+    final totalDistance = dayRecords.fold(
         0.0, (s, r) => s + r.totalDistance);
-    final totalDuration = _dayRecords.fold(
+    final totalDuration = dayRecords.fold(
         0, (s, r) => s + r.duration);
-    final maxSpeed = _dayRecords.isEmpty
+    final maxSpeed = dayRecords.isEmpty
         ? 0.0
-        : _dayRecords.map((r) => r.maxSpeed)
+        : dayRecords.map((r) => r.maxSpeed)
         .reduce((a, b) => a > b ? a : b);
-    final avgSpeed = _dayRecords.isEmpty
+    final avgSpeed = dayRecords.isEmpty
         ? 0.0
-        : _dayRecords.fold(0.0, (s, r) => s + r.avgSpeed) /
-        _dayRecords.length;
+        : dayRecords.fold(0.0, (s, r) => s + r.avgSpeed) /
+        dayRecords.length;
 
     return Scaffold(
       backgroundColor: Colors.black,
@@ -462,7 +430,6 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> with Automati
                         _selectedDate = _selectedDate
                             .subtract(const Duration(days: 1));
                       });
-                      _loadDayRecords();
                     },
                     child: Container(
                       width: 32,
@@ -509,7 +476,6 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> with Automati
                         _selectedDate = _selectedDate
                             .add(const Duration(days: 1));
                       });
-                      _loadDayRecords();
                     },
                     child: Container(
                       width: 32,
@@ -590,7 +556,7 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> with Automati
             ),
 
             // 하루 합계 요약
-            if (_dayRecords.isNotEmpty)
+            if (dayRecords.isNotEmpty)
               Container(
                 margin: const EdgeInsets.all(16),
                 padding: const EdgeInsets.all(16),
@@ -607,7 +573,7 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> with Automati
                     _summaryItem('총 거리',
                         '${totalDistance.toStringAsFixed(2)} km'),
                     _summaryItem('총 시간',
-                        _formatDuration(totalDuration)),
+                        formatDuration(totalDuration)),
                     _summaryItem('최고속도',
                         '${maxSpeed.toStringAsFixed(1)} km/h'),
                     _summaryItem('평균속도',
@@ -618,7 +584,7 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> with Automati
 
             // 기록 목록
             Expanded(
-              child: _dayRecords.isEmpty
+              child: dayRecords.isEmpty
                   ? const Center(
                 child: Text(
                   '해당 날짜에 주행기록이 없어요',
@@ -629,9 +595,9 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> with Automati
                   : ListView.builder(
                 padding: const EdgeInsets.symmetric(
                     horizontal: 16),
-                itemCount: _dayRecords.length,
+                itemCount: dayRecords.length,
                 itemBuilder: (context, index) {
-                  final record = _dayRecords[index];
+                  final record = dayRecords[index];
                   final bestIds = context.read<RideProvider>().bestRecordIds;
                   final time =
                   DateTime.fromMillisecondsSinceEpoch(
@@ -712,7 +678,7 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> with Automati
                               _statItem('거리',
                                   '${record.totalDistance.toStringAsFixed(2)} km'),
                               _statItem('시간',
-                                  _formatDuration(record.duration)),
+                                  formatDuration(record.duration)),
                               _statItem('최고속도',
                                   '${record.maxSpeed.toStringAsFixed(1)} km/h'),
                               _statItem('평균속도',

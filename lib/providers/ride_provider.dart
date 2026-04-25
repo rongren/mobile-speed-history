@@ -7,6 +7,7 @@ import '../models/ride_record.dart';
 import '../db/database_helper.dart';
 import '../services/location_service.dart';
 import '../services/foreground_service.dart';
+import '../utils/format_utils.dart';
 
 class RideProvider extends ChangeNotifier {
   double _currentSpeed = 0.0;
@@ -39,15 +40,7 @@ class RideProvider extends ChangeNotifier {
     return _lastDuration;
   }
 
-  String get formattedDuration {
-    final totalSeconds = duration;
-    int h = totalSeconds ~/ 3600;
-    int m = (totalSeconds % 3600) ~/ 60;
-    int s = totalSeconds % 60;
-    return '${h.toString().padLeft(2, '0')}:'
-        '${m.toString().padLeft(2, '0')}:'
-        '${s.toString().padLeft(2, '0')}';
-  }
+  String get formattedDuration => formatDuration(duration);
 
   Map<String, int?> get bestRecordIds {
     if (records.isEmpty) return {};
@@ -183,12 +176,4 @@ class RideProvider extends ChangeNotifier {
     await loadRecords();
   }
 
-  String _formatDuration(int seconds) {
-    int h = seconds ~/ 3600;
-    int m = (seconds % 3600) ~/ 60;
-    int s = seconds % 60;
-    return '${h.toString().padLeft(2, '0')}:'
-        '${m.toString().padLeft(2, '0')}:'
-        '${s.toString().padLeft(2, '0')}';
-  }
 }
