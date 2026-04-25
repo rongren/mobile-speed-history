@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 import '../models/ride_record.dart';
 import '../db/database_helper.dart';
 import '../services/location_service.dart';
@@ -99,6 +100,7 @@ class RideProvider extends ChangeNotifier {
           notifyListeners();
         });
 
+    await WakelockPlus.enable();
     await ForegroundServiceHelper.start();
     notifyListeners();
   }
@@ -169,6 +171,7 @@ class RideProvider extends ChangeNotifier {
 
     await DatabaseHelper.instance.insertRecord(record);
     await loadRecords();
+    await WakelockPlus.disable();
     await ForegroundServiceHelper.stop();
 
     _lastDuration = durationSeconds;

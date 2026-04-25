@@ -58,6 +58,9 @@ dependencies:
   ## 로딩 화면
   flutter_native_splash: ^2.4.0
 
+  # 화면 켜짐 유지
+  wakelock_plus: ^1.2.10
+
   # 달력
   table_calendar: ^3.1.2
 
