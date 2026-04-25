@@ -6,3 +6,13 @@ String formatDuration(int seconds) {
       '${m.toString().padLeft(2, '0')}:'
       '${s.toString().padLeft(2, '0')}';
 }
+
+double convertSpeed(double kmh, bool useKmh) =>
+    useKmh ? kmh : kmh * 0.621371;
+
+double convertDistance(double km, bool useKmh) =>
+    useKmh ? km : km * 0.621371;
+
+String speedUnit(bool useKmh) => useKmh ? 'km/h' : 'mph';
+
+String distanceUnit(bool useKmh) => useKmh ? 'km' : 'mi';

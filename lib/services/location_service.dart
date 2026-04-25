@@ -11,12 +11,14 @@ class LocationService {
         permission == LocationPermission.whileInUse;
   }
 
-  static Stream<Position> getPositionStream() {
+  static Stream<Position> getPositionStream({bool highAccuracy = true}) {
+    final accuracy =
+        highAccuracy ? LocationAccuracy.high : LocationAccuracy.low;
     if (Platform.isAndroid) {
       return Geolocator.getPositionStream(
         locationSettings: AndroidSettings(
-          accuracy: LocationAccuracy.high,
-          intervalDuration: const Duration(milliseconds: 1000), // 1초 강제
+          accuracy: accuracy,
+          intervalDuration: const Duration(milliseconds: 1000),
           distanceFilter: 0,
           forceLocationManager: false,
         ),
@@ -24,7 +26,7 @@ class LocationService {
     } else {
       return Geolocator.getPositionStream(
         locationSettings: AppleSettings(
-          accuracy: LocationAccuracy.high,
+          accuracy: accuracy,
           distanceFilter: 0,
           pauseLocationUpdatesAutomatically: false,
           activityType: ActivityType.fitness,

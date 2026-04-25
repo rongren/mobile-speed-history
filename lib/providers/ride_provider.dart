@@ -23,6 +23,15 @@ class RideProvider extends ChangeNotifier {
   int _lastDuration = 0;
   Timer? _durationTimer;
 
+  // 자동 일시정지
+  bool _autoPauseEnabled = false;
+  bool _isAutoPaused = false;
+  DateTime? _autoPausedAt;
+  int _totalPausedMs = 0;
+  int _lowSpeedCount = 0;
+  static const double _autoPauseSpeedThreshold = 2.0;
+  static const int _autoPauseCountThreshold = 3;
+
   List<Position> pathPoints = [];
   List<RideRecord> records = [];
   Position? _lastPosition;
@@ -32,10 +41,16 @@ class RideProvider extends ChangeNotifier {
   double get maxSpeed => _maxSpeed;
   double get totalDistance => _totalDistance;
   bool get isRiding => _isRiding;
+  bool get isAutoPaused => _isAutoPaused;
 
   int get duration {
     if (_isRiding && _startTime != null) {
-      return DateTime.now().difference(_startTime!).inSeconds;
+      final elapsed = DateTime.now().difference(_startTime!).inMilliseconds;
+      var paused = _totalPausedMs;
+      if (_isAutoPaused && _autoPausedAt != null) {
+        paused += DateTime.now().difference(_autoPausedAt!).inMilliseconds;
+      }
+      return ((elapsed - paused) / 1000).floor().clamp(0, 999999);
     }
     return _lastDuration;
   }
@@ -64,7 +79,10 @@ class RideProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> startRide() async {
+  Future<void> startRide({
+    bool gpsHighAccuracy = true,
+    bool autoPause = false,
+  }) async {
     final hasPermission = await LocationService.requestPermission();
     if (!hasPermission) return;
 
@@ -80,9 +98,16 @@ class RideProvider extends ChangeNotifier {
     pathPoints.clear();
     _lastPosition = null;
 
+    _autoPauseEnabled = autoPause;
+    _isAutoPaused = false;
+    _autoPausedAt = null;
+    _totalPausedMs = 0;
+    _lowSpeedCount = 0;
+
     // GPS 스트림
     _positionSubscription =
-        LocationService.getPositionStream().listen((position) {
+        LocationService.getPositionStream(highAccuracy: gpsHighAccuracy)
+            .listen((position) {
           _onPositionUpdate(position);
         });
 
@@ -117,6 +142,25 @@ class RideProvider extends ChangeNotifier {
 
     pathPoints.add(position);
     _lastPosition = position;
+
+    // 자동 일시정지
+    if (_autoPauseEnabled) {
+      if (rawSpeed < _autoPauseSpeedThreshold) {
+        _lowSpeedCount++;
+        if (_lowSpeedCount >= _autoPauseCountThreshold && !_isAutoPaused) {
+          _isAutoPaused = true;
+          _autoPausedAt = DateTime.now();
+        }
+      } else {
+        _lowSpeedCount = 0;
+        if (_isAutoPaused) {
+          _isAutoPaused = false;
+          _totalPausedMs +=
+              DateTime.now().difference(_autoPausedAt!).inMilliseconds;
+          _autoPausedAt = null;
+        }
+      }
+    }
   }
 
   void _interpolateSpeed() {
@@ -130,11 +174,25 @@ class RideProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> stopRide() async {
+  // 저장됐으면 true, 최소거리 미달로 스킵됐으면 false
+  Future<bool> stopRide({double minRecordDistanceKm = 0.0}) async {
     final durationSeconds = duration; // _isRiding 변경 전에 캡처
     _isRiding = false;
+    _isAutoPaused = false;
     _positionSubscription?.cancel();
     _durationTimer?.cancel();
+
+    final startedAt = _startTime?.millisecondsSinceEpoch;
+    await WakelockPlus.disable();
+    await ForegroundServiceHelper.stop();
+    _lastDuration = durationSeconds;
+    _startTime = null;
+
+    // 최소 기록 거리 미달 시 저장 안 함
+    if (_totalDistance < minRecordDistanceKm) {
+      notifyListeners();
+      return false;
+    }
 
     final pathJson = jsonEncode(
       pathPoints.map((p) => {
@@ -157,18 +215,13 @@ class RideProvider extends ChangeNotifier {
       avgSpeed: avgSpeed,
       duration: durationSeconds,
       pathPoints: pathJson,
-      createdAt: _startTime?.millisecondsSinceEpoch ??
-          now.millisecondsSinceEpoch,
+      createdAt: startedAt ?? now.millisecondsSinceEpoch,
     );
 
     await DatabaseHelper.instance.insertRecord(record);
     await loadRecords();
-    await WakelockPlus.disable();
-    await ForegroundServiceHelper.stop();
-
-    _lastDuration = durationSeconds;
-    _startTime = null;
     notifyListeners();
+    return true;
   }
 
   Future<void> deleteRecord(int id) async {

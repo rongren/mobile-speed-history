@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../models/ride_record.dart';
 import '../../providers/ride_provider.dart';
 import 'history_detail_map_screen.dart';
 import 'package:table_calendar/table_calendar.dart';

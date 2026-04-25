@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import '../db/database_helper.dart';
 import '../db/sample_data.dart';
 import '../providers/ride_provider.dart';
+import '../providers/settings_provider.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -15,6 +17,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _isDeleting = false;
   bool _isGenerating = false;
   ThemeMode _selectedTheme = ThemeMode.dark;
+  String _appVersion = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAppVersion();
+  }
+
+  Future<void> _loadAppVersion() async {
+    final info = await PackageInfo.fromPlatform();
+    if (mounted) {
+      setState(() => _appVersion = info.version);
+    }
+  }
 
   Future<void> _deleteAllData() async {
     final confirmed = await showDialog<bool>(
@@ -100,6 +116,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final settings = context.watch<SettingsProvider>();
+
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
@@ -113,6 +131,51 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _sectionTitle('테마'),
           _themeSelector(),
           const SizedBox(height: 24),
+
+          _sectionTitle('주행'),
+          _toggleTile(
+            icon: Icons.speed,
+            iconColor: Colors.blue,
+            title: '단위',
+            subtitle: '속도/거리 표시 단위',
+            leftLabel: 'km/h',
+            rightLabel: 'mph',
+            isLeft: settings.useKmh,
+            onToggle: (v) => settings.setUseKmh(v),
+          ),
+          const SizedBox(height: 10),
+          _toggleTile(
+            icon: Icons.gps_fixed,
+            iconColor: Colors.green,
+            title: 'GPS 정확도',
+            subtitle: '고정밀 모드는 배터리를 더 소모해요',
+            leftLabel: '고정밀',
+            rightLabel: '배터리 절약',
+            isLeft: settings.gpsHighAccuracy,
+            onToggle: (v) => settings.setGpsHighAccuracy(v),
+          ),
+          const SizedBox(height: 10),
+          _minDistanceTile(settings),
+          const SizedBox(height: 10),
+          _switchTile(
+            icon: Icons.pause_circle_outline,
+            iconColor: Colors.orange,
+            title: '자동 일시정지',
+            subtitle: '정지 감지 시 타이머 자동 일시정지',
+            value: settings.autoPause,
+            onChanged: (v) => settings.setAutoPause(v),
+          ),
+          const SizedBox(height: 24),
+
+          _sectionTitle('앱 정보'),
+          _infoTile(
+            icon: Icons.info_outline,
+            iconColor: Colors.grey,
+            title: '버전',
+            value: _appVersion.isEmpty ? '-' : 'v$_appVersion',
+          ),
+          const SizedBox(height: 24),
+
           _sectionTitle('개발'),
           _settingTile(
             icon: Icons.delete_outline,
@@ -133,6 +196,257 @@ class _SettingsScreenState extends State<SettingsScreen> {
             isLoading: _isGenerating,
             loadingColor: Colors.blue,
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _toggleTile({
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    required String subtitle,
+    required String leftLabel,
+    required String rightLabel,
+    required bool isLeft,
+    required void Function(bool) onToggle,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: Colors.grey[900],
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: iconColor.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: iconColor, size: 20),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title,
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold)),
+                const SizedBox(height: 2),
+                Text(subtitle,
+                    style:
+                        const TextStyle(color: Colors.grey, fontSize: 12)),
+              ],
+            ),
+          ),
+          _twoStateButton(leftLabel, isLeft, () => onToggle(true)),
+          const SizedBox(width: 6),
+          _twoStateButton(rightLabel, !isLeft, () => onToggle(false)),
+        ],
+      ),
+    );
+  }
+
+  Widget _twoStateButton(String label, bool isSelected, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? Colors.blue.withOpacity(0.15)
+              : Colors.grey[800],
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: isSelected ? Colors.blue : Colors.grey[700]!,
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isSelected ? Colors.blue : Colors.grey,
+            fontSize: 12,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _minDistanceTile(SettingsProvider settings) {
+    const options = [0.0, 0.1, 0.5, 1.0];
+    const labels = ['없음', '0.1 km', '0.5 km', '1.0 km'];
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: Colors.grey[900],
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: Colors.purple.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.straighten,
+                    color: Colors.purple, size: 20),
+              ),
+              const SizedBox(width: 14),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('최소 기록 거리',
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold)),
+                    SizedBox(height: 2),
+                    Text('미달 시 주행 종료 후 저장 안 됨',
+                        style:
+                            TextStyle(color: Colors.grey, fontSize: 12)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: List.generate(options.length, (i) {
+              final isSelected = settings.minRecordDistanceKm == options[i];
+              return Expanded(
+                child: GestureDetector(
+                  onTap: () =>
+                      settings.setMinRecordDistanceKm(options[i]),
+                  child: Container(
+                    margin: EdgeInsets.only(right: i < options.length - 1 ? 6 : 0),
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? Colors.blue.withOpacity(0.15)
+                          : Colors.grey[800],
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: isSelected ? Colors.blue : Colors.grey[700]!,
+                      ),
+                    ),
+                    child: Text(
+                      labels[i],
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: isSelected ? Colors.blue : Colors.grey,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            }),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _switchTile({
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    required String subtitle,
+    required bool value,
+    required void Function(bool) onChanged,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: Colors.grey[900],
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: iconColor.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: iconColor, size: 20),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title,
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold)),
+                const SizedBox(height: 2),
+                Text(subtitle,
+                    style:
+                        const TextStyle(color: Colors.grey, fontSize: 12)),
+              ],
+            ),
+          ),
+          Switch(
+            value: value,
+            onChanged: onChanged,
+            activeThumbColor: Colors.blue,
+            activeTrackColor: Colors.blue.withOpacity(0.4),
+            inactiveTrackColor: Colors.grey[700],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _infoTile({
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    required String value,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: Colors.grey[900],
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: iconColor.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: iconColor, size: 20),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Text(title,
+                style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold)),
+          ),
+          Text(value,
+              style: const TextStyle(color: Colors.grey, fontSize: 13)),
         ],
       ),
     );

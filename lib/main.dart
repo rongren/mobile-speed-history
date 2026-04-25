@@ -5,6 +5,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
 import 'providers/ride_provider.dart';
+import 'providers/settings_provider.dart';
 import 'screens/speedometer_screen.dart';
 import 'screens/map_screen.dart';
 import 'screens/history/history_screen.dart';
@@ -35,9 +36,15 @@ void main() async {
         }
       });
 
+  final settings = SettingsProvider();
+  await settings.load();
+
   runApp(
-    ChangeNotifierProvider(
-      create: (_) => RideProvider(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => settings),
+        ChangeNotifierProvider(create: (_) => RideProvider()),
+      ],
       child: const MyApp(),
     ),
   );

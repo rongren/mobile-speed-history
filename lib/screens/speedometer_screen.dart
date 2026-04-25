@@ -2,6 +2,8 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/ride_provider.dart';
+import '../providers/settings_provider.dart';
+import '../utils/format_utils.dart';
 
 class SpeedometerScreen extends StatefulWidget {
   const SpeedometerScreen({super.key});
@@ -16,6 +18,8 @@ class _SpeedometerScreenState extends State<SpeedometerScreen> {
   @override
   Widget build(BuildContext context) {
     final ride = context.watch<RideProvider>();
+    final settings = context.watch<SettingsProvider>();
+    final useKmh = settings.useKmh;
 
     return Scaffold(
       backgroundColor: Colors.black,
@@ -82,16 +86,17 @@ class _SpeedometerScreenState extends State<SpeedometerScreen> {
                     children: [
                       const SizedBox(height: 150),
                       Text(
-                        ride.currentSpeed.toStringAsFixed(1),
+                        convertSpeed(ride.currentSpeed, useKmh)
+                            .toStringAsFixed(1),
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 64,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const Text(
-                        'km/h',
-                        style: TextStyle(
+                      Text(
+                        speedUnit(useKmh),
+                        style: const TextStyle(
                           color: Colors.grey,
                           fontSize: 18,
                         ),
@@ -117,27 +122,71 @@ class _SpeedometerScreenState extends State<SpeedometerScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  _statCard('거리',
-                      '${ride.totalDistance.toStringAsFixed(2)} km'),
+                  _statCard(
+                    '거리',
+                    '${convertDistance(ride.totalDistance, useKmh).toStringAsFixed(2)} ${distanceUnit(useKmh)}',
+                  ),
                   _divider(),
                   _statCard('시간', ride.formattedDuration),
                   _divider(),
-                  _statCard('최고속도',
-                      '${ride.maxSpeed.toStringAsFixed(1)} km/h'),
+                  _statCard(
+                    '최고속도',
+                    '${convertSpeed(ride.maxSpeed, useKmh).toStringAsFixed(1)} ${speedUnit(useKmh)}',
+                  ),
                 ],
               ),
             ),
           ),
 
-          const SizedBox(height: 30),
+          const SizedBox(height: 16),
+
+          // 자동 일시정지 표시
+          if (ride.isRiding && ride.isAutoPaused)
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 24),
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.orange.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: Colors.orange.withOpacity(0.5)),
+              ),
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.pause_circle_outline,
+                      color: Colors.orange, size: 16),
+                  SizedBox(width: 6),
+                  Text('자동 일시정지 중',
+                      style: TextStyle(color: Colors.orange, fontSize: 13)),
+                ],
+              ),
+            ),
+
+          const SizedBox(height: 14),
 
           // 시작/정지 버튼
           GestureDetector(
-            onTap: () {
+            onTap: () async {
               if (ride.isRiding) {
-                ride.stopRide();
+                final saved = await ride.stopRide(
+                  minRecordDistanceKm: settings.minRecordDistanceKm,
+                );
+                if (!saved && context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        '거리 부족 (최소 ${settings.minRecordDistanceKm.toStringAsFixed(1)} km) — 저장 안 됨',
+                      ),
+                      backgroundColor: Colors.orange,
+                      duration: const Duration(seconds: 3),
+                    ),
+                  );
+                }
               } else {
-                ride.startRide();
+                ride.startRide(
+                  gpsHighAccuracy: settings.gpsHighAccuracy,
+                  autoPause: settings.autoPause,
+                );
               }
             },
             child: Container(
@@ -158,6 +207,7 @@ class _SpeedometerScreenState extends State<SpeedometerScreen> {
               child: Center(
                 child: Text(
                   ride.isRiding ? '정지' : '시작',
+
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 22,
