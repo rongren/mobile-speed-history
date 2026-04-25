@@ -138,6 +138,7 @@ class RideProvider extends ChangeNotifier {
   }
 
   Future<void> stopRide() async {
+    final durationSeconds = duration; // _isRiding 변경 전에 캡처
     _isRiding = false;
     _positionSubscription?.cancel();
     _durationTimer?.cancel();
@@ -148,9 +149,7 @@ class RideProvider extends ChangeNotifier {
         'lng': p.longitude,
       }).toList(),
     );
-
-    final durationSeconds = duration;
-    final durationHours = durationSeconds / 3600;
+    final durationHours = durationSeconds / 3600.0;
     final avgSpeed = durationHours > 0
         ? _totalDistance / durationHours
         : 0.0;
