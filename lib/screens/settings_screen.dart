@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import '../db/database_helper.dart';
@@ -312,7 +313,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               final isLast = s == speeds.last;
               return Expanded(
                 child: GestureDetector(
-                  onTap: () => settings.setDefaultGaugeSpeed(s),
+                  onTap: () {
+                    SystemSound.play(SystemSoundType.click);
+                    settings.setDefaultGaugeSpeed(s);
+                  },
                   child: Container(
                     margin: EdgeInsets.only(right: isLast ? 0 : 6),
                     padding: const EdgeInsets.symmetric(vertical: 8),
@@ -397,7 +401,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               final isLast = i == items.length - 1;
               return Expanded(
                 child: GestureDetector(
-                  onTap: () => setter(!isOn),
+                  onTap: () {
+                    SystemSound.play(SystemSoundType.click);
+                    setter(!isOn);
+                  },
                   child: Container(
                     margin: EdgeInsets.only(right: isLast ? 0 : 6),
                     padding: const EdgeInsets.symmetric(vertical: 8),
@@ -473,7 +480,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               GestureDetector(
-                onTap: () => settings.setWeightKg((settings.weightKg ?? 70) - 1),
+                onTap: () {
+                  SystemSound.play(SystemSoundType.click);
+                  settings.setWeightKg((settings.weightKg ?? 70) - 1);
+                },
                 child: Container(
                   width: 40,
                   height: 40,
@@ -487,6 +497,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               const SizedBox(width: 20),
               GestureDetector(
                 onTap: () async {
+                  SystemSound.play(SystemSoundType.click);
                   final result = await NumberInputDialog.show(
                     context,
                     title: '체중 입력',
@@ -524,7 +535,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               const SizedBox(width: 20),
               GestureDetector(
-                onTap: () => settings.setWeightKg((settings.weightKg ?? 70) + 1),
+                onTap: () {
+                  SystemSound.play(SystemSoundType.click);
+                  settings.setWeightKg((settings.weightKg ?? 70) + 1);
+                },
                 child: Container(
                   width: 40,
                   height: 40,
@@ -621,7 +635,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     required Color btnTextOff,
   }) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: () {
+        SystemSound.play(SystemSoundType.click);
+        onTap();
+      },
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 8),
         decoration: BoxDecoration(
@@ -693,7 +710,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               final isSelected = settings.minRecordDistanceKm == options[i];
               return Expanded(
                 child: GestureDetector(
-                  onTap: () => settings.setMinRecordDistanceKm(options[i]),
+                  onTap: () {
+                    SystemSound.play(SystemSoundType.click);
+                    settings.setMinRecordDistanceKm(options[i]);
+                  },
                   child: Container(
                     margin: EdgeInsets.only(right: i < options.length - 1 ? 6 : 0),
                     padding: const EdgeInsets.symmetric(vertical: 8),
@@ -771,7 +791,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               final isSelected = settings.minRecordDurationSec == options[i];
               return Expanded(
                 child: GestureDetector(
-                  onTap: () => settings.setMinRecordDurationSec(options[i]),
+                  onTap: () {
+                    SystemSound.play(SystemSoundType.click);
+                    settings.setMinRecordDurationSec(options[i]);
+                  },
                   child: Container(
                     margin: EdgeInsets.only(right: i < options.length - 1 ? 6 : 0),
                     padding: const EdgeInsets.symmetric(vertical: 8),
@@ -845,6 +868,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               Switch(
                 value: isOn,
                 onChanged: (v) {
+                  SystemSound.play(SystemSoundType.click);
                   if (v) {
                     settings.setSpeedAlertKmh(currentKmh.toDouble());
                   } else {
@@ -864,6 +888,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               children: [
                 GestureDetector(
                   onTap: () {
+                    SystemSound.play(SystemSoundType.click);
                     final next = (currentKmh - 5).clamp(1, 999);
                     settings.setSpeedAlertKmh(next.toDouble());
                   },
@@ -880,6 +905,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 const SizedBox(width: 20),
                 GestureDetector(
                   onTap: () async {
+                    SystemSound.play(SystemSoundType.click);
                     final result = await NumberInputDialog.show(
                       context,
                       title: '속도 알림 기준',
@@ -912,6 +938,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 const SizedBox(width: 20),
                 GestureDetector(
                   onTap: () {
+                    SystemSound.play(SystemSoundType.click);
                     final next = (currentKmh + 5).clamp(1, 999);
                     settings.setSpeedAlertKmh(next.toDouble());
                   },
@@ -982,7 +1009,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               final isSelected = settings.mapType == options[i];
               return Expanded(
                 child: GestureDetector(
-                  onTap: () => settings.setMapType(options[i]),
+                  onTap: () {
+                    SystemSound.play(SystemSoundType.click);
+                    settings.setMapType(options[i]);
+                  },
                   child: Container(
                     margin: EdgeInsets.only(right: i < options.length - 1 ? 6 : 0),
                     padding: const EdgeInsets.symmetric(vertical: 8),
@@ -1058,7 +1088,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           Switch(
             value: value,
-            onChanged: onChanged,
+            onChanged: (v) {
+              SystemSound.play(SystemSoundType.click);
+              onChanged(v);
+            },
             activeThumbColor: Colors.blue,
             activeTrackColor: Colors.blue.withOpacity(0.4),
             inactiveTrackColor: isDark ? Colors.grey[700] : Colors.grey[300],
@@ -1174,7 +1207,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }) {
     final isSelected = settings.appTheme == theme;
     return GestureDetector(
-      onTap: () => settings.setAppTheme(theme),
+      onTap: () {
+        SystemSound.play(SystemSoundType.click);
+        settings.setAppTheme(theme);
+      },
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 8),
         decoration: BoxDecoration(
@@ -1231,7 +1267,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     required Color subtitleColor,
   }) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: onTap == null ? null : () {
+        SystemSound.play(SystemSoundType.click);
+        onTap();
+      },
       child: Opacity(
         opacity: onTap == null ? 0.5 : 1.0,
         child: Container(
