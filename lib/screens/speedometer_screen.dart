@@ -34,9 +34,20 @@ class _SpeedometerScreenState extends State<SpeedometerScreen> {
     final ride = context.watch<RideProvider>();
     final settings = context.watch<SettingsProvider>();
     final useKmh = settings.useKmh;
+    final isDark = settings.appTheme == 'dark';
+
+    final bgColor = isDark ? Colors.black : const Color(0xFFF2F4F7);
+    final panelColor = isDark ? Colors.grey[900]! : Colors.white;
+    final speedTextColor = isDark ? Colors.white : Colors.black87;
+    final unitTextColor = isDark ? Colors.grey : Colors.grey[600]!;
+    final selectorBgColor = isDark ? Colors.grey[900]! : Colors.grey[200]!;
+    final selectorBorderColor = isDark ? Colors.grey[700]! : Colors.grey[300]!;
+    final selectorTextColor = isDark ? Colors.grey : Colors.grey[600]!;
+    final dividerColor = isDark ? Colors.grey[700]! : Colors.grey[300]!;
+    final statLabelColor = isDark ? Colors.grey : Colors.grey[600]!;
 
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: bgColor,
       resizeToAvoidBottomInset: false,
       body: SafeArea(
         bottom: false,
@@ -56,17 +67,17 @@ class _SpeedometerScreenState extends State<SpeedometerScreen> {
                   width: 70,
                   height: 36,
                   decoration: BoxDecoration(
-                    color: isSelected ? Colors.blue : Colors.grey[900],
+                    color: isSelected ? Colors.blue : selectorBgColor,
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: isSelected ? Colors.blue : Colors.grey[700]!,
+                      color: isSelected ? Colors.blue : selectorBorderColor,
                     ),
                   ),
-                  child: Center(  // 이거 추가
+                  child: Center(
                     child: Text(
                       '$speed',
                       style: TextStyle(
-                        color: isSelected ? Colors.white : Colors.grey,
+                        color: isSelected ? Colors.white : selectorTextColor,
                         fontSize: 14,
                         fontWeight: isSelected
                             ? FontWeight.bold
@@ -90,6 +101,7 @@ class _SpeedometerScreenState extends State<SpeedometerScreen> {
                 painter: SpeedometerPainter(
                   speed: ride.currentSpeed,
                   maxSpeed: _maxSpeed,
+                  isDark: isDark,
                 ),
                 child: Center(
                   child: Column(
@@ -98,16 +110,16 @@ class _SpeedometerScreenState extends State<SpeedometerScreen> {
                       const SizedBox(height: 150),
                       Text(
                         formatSpeed(ride.currentSpeed, useKmh),
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: TextStyle(
+                          color: speedTextColor,
                           fontSize: 64,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       Text(
                         speedUnit(useKmh),
-                        style: const TextStyle(
-                          color: Colors.grey,
+                        style: TextStyle(
+                          color: unitTextColor,
                           fontSize: 18,
                         ),
                       ),
@@ -121,7 +133,11 @@ class _SpeedometerScreenState extends State<SpeedometerScreen> {
           const SizedBox(height: 16),
 
           // 통계 카드 (표시 항목 설정 반영)
-          _buildStatsRow(ride, settings, useKmh),
+          _buildStatsRow(ride, settings, useKmh,
+              panelColor: panelColor,
+              dividerColor: dividerColor,
+              labelColor: statLabelColor,
+              valueColor: speedTextColor),
 
           const SizedBox(height: 16),
 
@@ -198,7 +214,6 @@ class _SpeedometerScreenState extends State<SpeedometerScreen> {
               child: Center(
                 child: Text(
                   ride.isRiding ? '정지' : '시작',
-
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 22,
@@ -428,7 +443,12 @@ class _SpeedometerScreenState extends State<SpeedometerScreen> {
   }
 
   Widget _buildStatsRow(
-      RideProvider ride, SettingsProvider settings, bool useKmh) {
+      RideProvider ride, SettingsProvider settings, bool useKmh, {
+      required Color panelColor,
+      required Color dividerColor,
+      required Color labelColor,
+      required Color valueColor,
+  }) {
     final currentAvgSpeed = ride.duration > 0
         ? ride.totalDistance / (ride.duration / 3600.0)
         : 0.0;
@@ -453,14 +473,17 @@ class _SpeedometerScreenState extends State<SpeedometerScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 20),
         decoration: BoxDecoration(
-          color: Colors.grey[900],
+          color: panelColor,
           borderRadius: BorderRadius.circular(16),
+          boxShadow: panelColor == Colors.white
+              ? [BoxShadow(color: Colors.black12, blurRadius: 8, offset: const Offset(0, 2))]
+              : null,
         ),
         child: Row(
           children: [
             for (int i = 0; i < items.length; i++) ...[
-              if (i > 0) _divider(),
-              Expanded(child: _statCard(items[i].$1, items[i].$2)),
+              if (i > 0) _divider(dividerColor),
+              Expanded(child: _statCard(items[i].$1, items[i].$2, labelColor: labelColor, valueColor: valueColor)),
             ],
           ],
         ),
@@ -468,13 +491,13 @@ class _SpeedometerScreenState extends State<SpeedometerScreen> {
     );
   }
 
-  Widget _statCard(String label, String value) {
+  Widget _statCard(String label, String value, {required Color labelColor, required Color valueColor}) {
     return Column(
       children: [
         Text(
           value,
-          style: const TextStyle(
-            color: Colors.white,
+          style: TextStyle(
+            color: valueColor,
             fontSize: 16,
             fontWeight: FontWeight.bold,
           ),
@@ -482,17 +505,17 @@ class _SpeedometerScreenState extends State<SpeedometerScreen> {
         const SizedBox(height: 4),
         Text(
           label,
-          style: const TextStyle(color: Colors.grey, fontSize: 13),
+          style: TextStyle(color: labelColor, fontSize: 13),
         ),
       ],
     );
   }
 
-  Widget _divider() {
+  Widget _divider(Color color) {
     return Container(
       height: 36,
       width: 1,
-      color: Colors.grey[700],
+      color: color,
     );
   }
 }
@@ -500,8 +523,9 @@ class _SpeedometerScreenState extends State<SpeedometerScreen> {
 class SpeedometerPainter extends CustomPainter {
   final double speed;
   final double maxSpeed;
+  final bool isDark;
 
-  SpeedometerPainter({required this.speed, required this.maxSpeed});
+  SpeedometerPainter({required this.speed, required this.maxSpeed, this.isDark = true});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -513,7 +537,7 @@ class SpeedometerPainter extends CustomPainter {
 
     // 배경 호 (회색)
     final bgPaint = Paint()
-      ..color = Colors.grey[800]!
+      ..color = isDark ? Colors.grey[800]! : Colors.grey[300]!
       ..style = PaintingStyle.stroke
       ..strokeWidth = 14
       ..strokeCap = StrokeCap.round;
@@ -558,18 +582,18 @@ class SpeedometerPainter extends CustomPainter {
     }
 
     // 눈금
-    _drawTicks(canvas, center, radius, startAngle, sweepTotal);
+    _drawTicks(canvas, center, radius, startAngle, sweepTotal, isDark);
 
     // 바늘
-    _drawNeedle(canvas, center, radius, speedRatio, startAngle, sweepTotal);
+    _drawNeedle(canvas, center, radius, speedRatio, startAngle, sweepTotal, isDark);
 
     // 중심 원
-    canvas.drawCircle(center, 10, Paint()..color = Colors.white);
-    canvas.drawCircle(center, 6, Paint()..color = Colors.grey[900]!);
+    canvas.drawCircle(center, 10, Paint()..color = isDark ? Colors.white : Colors.black87);
+    canvas.drawCircle(center, 6, Paint()..color = isDark ? Colors.grey[900]! : const Color(0xFFF2F4F7));
   }
 
   void _drawTicks(Canvas canvas, Offset center, double radius,
-      double startAngle, double sweepTotal) {
+      double startAngle, double sweepTotal, bool isDark) {
     const totalTicks = 24;
     const majorTickInterval = 4;
 
@@ -579,7 +603,9 @@ class SpeedometerPainter extends CustomPainter {
 
       final tickLength = isMajor ? 14.0 : 7.0;
       final tickWidth = isMajor ? 2.0 : 1.0;
-      final tickColor = isMajor ? Colors.white : Colors.grey[600]!;
+      final tickColor = isMajor
+          ? (isDark ? Colors.white : Colors.black87)
+          : (isDark ? Colors.grey[600]! : Colors.grey[400]!);
 
       final outerR = radius - 18;
       final innerR = outerR - tickLength;
@@ -614,8 +640,8 @@ class SpeedometerPainter extends CustomPainter {
         final textPainter = TextPainter(
           text: TextSpan(
             text: speedLabel,
-            style: const TextStyle(
-              color: Colors.grey,
+            style: TextStyle(
+              color: isDark ? Colors.grey : Colors.grey[600],
               fontSize: 11,
             ),
           ),
@@ -632,7 +658,7 @@ class SpeedometerPainter extends CustomPainter {
   }
 
   void _drawNeedle(Canvas canvas, Offset center, double radius,
-      double speedRatio, double startAngle, double sweepTotal) {
+      double speedRatio, double startAngle, double sweepTotal, bool isDark) {
     final needleAngle = startAngle + sweepTotal * speedRatio;
     final needleLength = radius - 35;
 
@@ -649,7 +675,7 @@ class SpeedometerPainter extends CustomPainter {
       tailEnd,
       needleEnd,
       Paint()
-        ..color = Colors.white
+        ..color = isDark ? Colors.white : Colors.black87
         ..strokeWidth = 3
         ..strokeCap = StrokeCap.round,
     );
@@ -657,6 +683,8 @@ class SpeedometerPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(SpeedometerPainter oldDelegate) {
-    return oldDelegate.speed != speed || oldDelegate.maxSpeed != maxSpeed;
+    return oldDelegate.speed != speed ||
+        oldDelegate.maxSpeed != maxSpeed ||
+        oldDelegate.isDark != isDark;
   }
 }

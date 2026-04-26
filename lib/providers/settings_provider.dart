@@ -12,6 +12,7 @@ class SettingsProvider extends ChangeNotifier {
   static const _keyShowDuration = 'show_duration';
   static const _keyShowMaxSpeed = 'show_max_speed';
   static const _keyShowAvgSpeed = 'show_avg_speed';
+  static const _keyAppTheme = 'app_theme';
 
   bool _useKmh = true;
   bool _gpsHighAccuracy = true;
@@ -23,6 +24,7 @@ class SettingsProvider extends ChangeNotifier {
   bool _showDuration = true;
   bool _showMaxSpeed = true;
   bool _showAvgSpeed = true;
+  String _appTheme = 'dark';
 
   bool get useKmh => _useKmh;
   bool get gpsHighAccuracy => _gpsHighAccuracy;
@@ -34,6 +36,7 @@ class SettingsProvider extends ChangeNotifier {
   bool get showDuration => _showDuration;
   bool get showMaxSpeed => _showMaxSpeed;
   bool get showAvgSpeed => _showAvgSpeed;
+  String get appTheme => _appTheme;
 
   Future<void> load() async {
     final prefs = await SharedPreferences.getInstance();
@@ -47,6 +50,7 @@ class SettingsProvider extends ChangeNotifier {
     _showDuration = prefs.getBool(_keyShowDuration) ?? true;
     _showMaxSpeed = prefs.getBool(_keyShowMaxSpeed) ?? true;
     _showAvgSpeed = prefs.getBool(_keyShowAvgSpeed) ?? true;
+    _appTheme = prefs.getString(_keyAppTheme) ?? 'dark';
     notifyListeners();
   }
 
@@ -122,5 +126,12 @@ class SettingsProvider extends ChangeNotifier {
     notifyListeners();
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_keyShowAvgSpeed, value);
+  }
+
+  Future<void> setAppTheme(String value) async {
+    _appTheme = value;
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_keyAppTheme, value);
   }
 }

@@ -17,7 +17,6 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   bool _isDeleting = false;
   bool _isGenerating = false;
-  ThemeMode _selectedTheme = ThemeMode.dark;
   String _appVersion = '';
 
   @override
@@ -118,114 +117,151 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final settings = context.watch<SettingsProvider>();
+    final isDark = settings.appTheme == 'dark';
+
+    final bgColor = isDark ? Colors.black : const Color(0xFFF2F4F7);
+    final panelColor = isDark ? Colors.grey[900]! : Colors.white;
+    final titleColor = isDark ? Colors.white : Colors.black87;
+    final subtitleColor = isDark ? Colors.grey : Colors.grey[600]!;
+    final sectionColor = isDark ? Colors.grey : Colors.grey[500]!;
+    final btnBgOff = isDark ? Colors.grey[800]! : Colors.grey[200]!;
+    final btnBorderOff = isDark ? Colors.grey[700]! : Colors.grey[300]!;
+    final btnTextOff = isDark ? Colors.grey : Colors.grey[600]!;
 
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: bgColor,
       body: SafeArea(
         bottom: false,
         child: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          _sectionTitle('테마'),
-          _themeSelector(),
-          const SizedBox(height: 24),
+          padding: const EdgeInsets.all(16),
+          children: [
+            _sectionTitle('테마', sectionColor),
+            _themeSelector(settings, isDark, panelColor, titleColor, subtitleColor, btnBgOff, btnBorderOff, btnTextOff),
+            const SizedBox(height: 24),
 
-          _sectionTitle('주행'),
-          _toggleTile(
-            icon: Icons.speed,
-            iconColor: Colors.blue,
-            title: '단위',
-            subtitle: '속도/거리 표시 단위',
-            leftLabel: 'km/h',
-            rightLabel: 'mph',
-            isLeft: settings.useKmh,
-            onToggle: (v) => settings.setUseKmh(v),
-          ),
-          const SizedBox(height: 10),
-          _toggleTile(
-            icon: Icons.gps_fixed,
-            iconColor: Colors.green,
-            title: 'GPS 정확도',
-            subtitle: '고정밀 모드는 배터리를 더 소모해요',
-            leftLabel: '고정밀',
-            rightLabel: '배터리 절약',
-            isLeft: settings.gpsHighAccuracy,
-            onToggle: (v) => settings.setGpsHighAccuracy(v),
-          ),
-          const SizedBox(height: 10),
-          _minDistanceTile(settings),
-          const SizedBox(height: 10),
-          _switchTile(
-            icon: Icons.pause_circle_outline,
-            iconColor: Colors.orange,
-            title: '자동 일시정지',
-            subtitle: '정지 감지 시 타이머 자동 일시정지',
-            value: settings.autoPause,
-            onChanged: (v) => settings.setAutoPause(v),
-          ),
-          const SizedBox(height: 24),
+            _sectionTitle('주행', sectionColor),
+            _toggleTile(
+              icon: Icons.speed,
+              iconColor: Colors.blue,
+              title: '단위',
+              subtitle: '속도/거리 표시 단위',
+              leftLabel: 'km/h',
+              rightLabel: 'mph',
+              isLeft: settings.useKmh,
+              onToggle: (v) => settings.setUseKmh(v),
+              panelColor: panelColor,
+              titleColor: titleColor,
+              subtitleColor: subtitleColor,
+              btnBgOff: btnBgOff,
+              btnBorderOff: btnBorderOff,
+              btnTextOff: btnTextOff,
+            ),
+            const SizedBox(height: 10),
+            _toggleTile(
+              icon: Icons.gps_fixed,
+              iconColor: Colors.green,
+              title: 'GPS 정확도',
+              subtitle: '고정밀 모드는 배터리를 더 소모해요',
+              leftLabel: '고정밀',
+              rightLabel: '배터리 절약',
+              isLeft: settings.gpsHighAccuracy,
+              onToggle: (v) => settings.setGpsHighAccuracy(v),
+              panelColor: panelColor,
+              titleColor: titleColor,
+              subtitleColor: subtitleColor,
+              btnBgOff: btnBgOff,
+              btnBorderOff: btnBorderOff,
+              btnTextOff: btnTextOff,
+            ),
+            const SizedBox(height: 10),
+            _minDistanceTile(settings, panelColor, titleColor, subtitleColor, btnBgOff, btnBorderOff, btnTextOff),
+            const SizedBox(height: 10),
+            _switchTile(
+              icon: Icons.pause_circle_outline,
+              iconColor: Colors.orange,
+              title: '자동 일시정지',
+              subtitle: '정지 감지 시 타이머 자동 일시정지',
+              value: settings.autoPause,
+              onChanged: (v) => settings.setAutoPause(v),
+              panelColor: panelColor,
+              titleColor: titleColor,
+              subtitleColor: subtitleColor,
+            ),
+            const SizedBox(height: 24),
 
-          _sectionTitle('주행 화면'),
-          _gaugeSpeedTile(settings),
-          const SizedBox(height: 10),
-          _displayItemsTile(settings),
-          const SizedBox(height: 10),
-          _weightTile(settings),
-          const SizedBox(height: 24),
+            _sectionTitle('주행 화면', sectionColor),
+            _gaugeSpeedTile(settings, panelColor, titleColor, subtitleColor, btnBgOff, btnBorderOff, btnTextOff),
+            const SizedBox(height: 10),
+            _displayItemsTile(settings, panelColor, titleColor, subtitleColor, btnBgOff, btnBorderOff, btnTextOff),
+            const SizedBox(height: 10),
+            _weightTile(settings, panelColor, titleColor, subtitleColor, btnBgOff),
+            const SizedBox(height: 24),
 
-          _sectionTitle('데이터'),
-          _settingTile(
-            icon: Icons.upload_file,
-            iconColor: Colors.teal,
-            title: '백업 / 내보내기',
-            subtitle: '주행 기록을 파일로 저장',
-            onTap: null,
-            isLoading: false,
-            loadingColor: Colors.teal,
-          ),
-          const SizedBox(height: 24),
+            _sectionTitle('데이터', sectionColor),
+            _settingTile(
+              icon: Icons.upload_file,
+              iconColor: Colors.teal,
+              title: '백업 / 내보내기',
+              subtitle: '주행 기록을 파일로 저장',
+              onTap: null,
+              isLoading: false,
+              loadingColor: Colors.teal,
+              panelColor: panelColor,
+              titleColor: titleColor,
+              subtitleColor: subtitleColor,
+            ),
+            const SizedBox(height: 24),
 
-          _sectionTitle('앱 정보'),
-          _infoTile(
-            icon: Icons.info_outline,
-            iconColor: Colors.grey,
-            title: '버전',
-            value: _appVersion.isEmpty ? '-' : 'v$_appVersion',
-          ),
-          const SizedBox(height: 24),
+            _sectionTitle('앱 정보', sectionColor),
+            _infoTile(
+              icon: Icons.info_outline,
+              iconColor: Colors.grey,
+              title: '버전',
+              value: _appVersion.isEmpty ? '-' : 'v$_appVersion',
+              panelColor: panelColor,
+              titleColor: titleColor,
+            ),
+            const SizedBox(height: 24),
 
-          _sectionTitle('개발'),
-          _settingTile(
-            icon: Icons.delete_outline,
-            iconColor: Colors.red,
-            title: '데이터 제거',
-            subtitle: '전체 기록 삭제',
-            onTap: (_isDeleting || _isGenerating) ? null : _deleteAllData,
-            isLoading: _isDeleting,
-            loadingColor: Colors.red,
-          ),
-          const SizedBox(height: 10),
-          _settingTile(
-            icon: Icons.add_chart,
-            iconColor: Colors.blue,
-            title: '데이터 생성',
-            subtitle: '임시 샘플 데이터 삽입',
-            onTap: (_isDeleting || _isGenerating) ? null : _generateSampleData,
-            isLoading: _isGenerating,
-            loadingColor: Colors.blue,
-          ),
-        ],
+            _sectionTitle('개발', sectionColor),
+            _settingTile(
+              icon: Icons.delete_outline,
+              iconColor: Colors.red,
+              title: '데이터 제거',
+              subtitle: '전체 기록 삭제',
+              onTap: (_isDeleting || _isGenerating) ? null : _deleteAllData,
+              isLoading: _isDeleting,
+              loadingColor: Colors.red,
+              panelColor: panelColor,
+              titleColor: titleColor,
+              subtitleColor: subtitleColor,
+            ),
+            const SizedBox(height: 10),
+            _settingTile(
+              icon: Icons.add_chart,
+              iconColor: Colors.blue,
+              title: '데이터 생성',
+              subtitle: '임시 샘플 데이터 삽입',
+              onTap: (_isDeleting || _isGenerating) ? null : _generateSampleData,
+              isLoading: _isGenerating,
+              loadingColor: Colors.blue,
+              panelColor: panelColor,
+              titleColor: titleColor,
+              subtitleColor: subtitleColor,
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _gaugeSpeedTile(SettingsProvider settings) {
+  Widget _gaugeSpeedTile(SettingsProvider settings, Color panelColor,
+      Color titleColor, Color subtitleColor, Color btnBgOff, Color btnBorderOff, Color btnTextOff) {
     const speeds = [60, 120, 180, 240];
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
-        color: Colors.grey[900],
+        color: panelColor,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -243,18 +279,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 child: const Icon(Icons.speed, color: Colors.blue, size: 20),
               ),
               const SizedBox(width: 14),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('게이지 최대속도 기본값',
                         style: TextStyle(
-                            color: Colors.white,
+                            color: titleColor,
                             fontSize: 14,
                             fontWeight: FontWeight.bold)),
-                    SizedBox(height: 2),
+                    const SizedBox(height: 2),
                     Text('속도계 실행 시 기본 최대 눈금',
-                        style: TextStyle(color: Colors.grey, fontSize: 12)),
+                        style: TextStyle(color: subtitleColor, fontSize: 12)),
                   ],
                 ),
               ),
@@ -272,23 +308,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     margin: EdgeInsets.only(right: isLast ? 0 : 6),
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     decoration: BoxDecoration(
-                      color: isSelected
-                          ? Colors.blue.withOpacity(0.15)
-                          : Colors.grey[800],
+                      color: isSelected ? Colors.blue.withOpacity(0.15) : btnBgOff,
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
-                        color: isSelected ? Colors.blue : Colors.grey[700]!,
+                        color: isSelected ? Colors.blue : btnBorderOff,
                       ),
                     ),
                     child: Text(
                       '$s',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        color: isSelected ? Colors.blue : Colors.grey,
+                        color: isSelected ? Colors.blue : btnTextOff,
                         fontSize: 13,
-                        fontWeight: isSelected
-                            ? FontWeight.bold
-                            : FontWeight.normal,
+                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                       ),
                     ),
                   ),
@@ -301,7 +333,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _displayItemsTile(SettingsProvider settings) {
+  Widget _displayItemsTile(SettingsProvider settings, Color panelColor,
+      Color titleColor, Color subtitleColor, Color btnBgOff, Color btnBorderOff, Color btnTextOff) {
     final items = [
       ('거리', settings.showDistance, settings.setShowDistance),
       ('시간', settings.showDuration, settings.setShowDuration),
@@ -311,7 +344,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
-        color: Colors.grey[900],
+        color: panelColor,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -330,18 +363,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     color: Colors.indigo, size: 20),
               ),
               const SizedBox(width: 14),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('주행 중 표시 항목',
                         style: TextStyle(
-                            color: Colors.white,
+                            color: titleColor,
                             fontSize: 14,
                             fontWeight: FontWeight.bold)),
-                    SizedBox(height: 2),
+                    const SizedBox(height: 2),
                     Text('속도계 하단에 표시할 통계 선택',
-                        style: TextStyle(color: Colors.grey, fontSize: 12)),
+                        style: TextStyle(color: subtitleColor, fontSize: 12)),
                   ],
                 ),
               ),
@@ -360,22 +393,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     margin: EdgeInsets.only(right: isLast ? 0 : 6),
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     decoration: BoxDecoration(
-                      color: isOn
-                          ? Colors.indigo.withOpacity(0.15)
-                          : Colors.grey[800],
+                      color: isOn ? Colors.indigo.withOpacity(0.15) : btnBgOff,
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
-                        color: isOn ? Colors.indigo : Colors.grey[700]!,
+                        color: isOn ? Colors.indigo : btnBorderOff,
                       ),
                     ),
                     child: Text(
                       label,
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        color: isOn ? Colors.indigo : Colors.grey,
+                        color: isOn ? Colors.indigo : btnTextOff,
                         fontSize: 12,
-                        fontWeight:
-                            isOn ? FontWeight.bold : FontWeight.normal,
+                        fontWeight: isOn ? FontWeight.bold : FontWeight.normal,
                       ),
                     ),
                   ),
@@ -388,11 +418,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _weightTile(SettingsProvider settings) {
+  Widget _weightTile(SettingsProvider settings, Color panelColor,
+      Color titleColor, Color subtitleColor, Color btnBgOff) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
-        color: Colors.grey[900],
+        color: panelColor,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -411,19 +442,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     color: Colors.pink, size: 20),
               ),
               const SizedBox(width: 14),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('체중',
                         style: TextStyle(
-                            color: Colors.white,
+                            color: titleColor,
                             fontSize: 14,
                             fontWeight: FontWeight.bold)),
-                    SizedBox(height: 2),
+                    const SizedBox(height: 2),
                     Text('칼로리 추정에 사용됩니다',
-                        style:
-                            TextStyle(color: Colors.grey, fontSize: 12)),
+                        style: TextStyle(color: subtitleColor, fontSize: 12)),
                   ],
                 ),
               ),
@@ -434,17 +464,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               GestureDetector(
-                onTap: () => settings
-                    .setWeightKg((settings.weightKg ?? 70) - 1),
+                onTap: () => settings.setWeightKg((settings.weightKg ?? 70) - 1),
                 child: Container(
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: Colors.grey[800],
+                    color: btnBgOff,
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Icon(Icons.remove,
-                      color: Colors.white, size: 20),
+                  child: Icon(Icons.remove, color: titleColor, size: 20),
                 ),
               ),
               const SizedBox(width: 20),
@@ -469,7 +497,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   width: 80,
                   padding: const EdgeInsets.symmetric(vertical: 8),
                   decoration: BoxDecoration(
-                    color: Colors.grey[800],
+                    color: btnBgOff,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
@@ -478,9 +506,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         : '--',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      color: settings.weightKg != null
-                          ? Colors.white
-                          : Colors.grey,
+                      color: settings.weightKg != null ? titleColor : subtitleColor,
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
                     ),
@@ -489,17 +515,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               const SizedBox(width: 20),
               GestureDetector(
-                onTap: () => settings
-                    .setWeightKg((settings.weightKg ?? 70) + 1),
+                onTap: () => settings.setWeightKg((settings.weightKg ?? 70) + 1),
                 child: Container(
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: Colors.grey[800],
+                    color: btnBgOff,
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Icon(Icons.add,
-                      color: Colors.white, size: 20),
+                  child: Icon(Icons.add, color: titleColor, size: 20),
                 ),
               ),
             ],
@@ -518,11 +542,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
     required String rightLabel,
     required bool isLeft,
     required void Function(bool) onToggle,
+    required Color panelColor,
+    required Color titleColor,
+    required Color subtitleColor,
+    required Color btnBgOff,
+    required Color btnBorderOff,
+    required Color btnTextOff,
   }) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
-        color: Colors.grey[900],
+        color: panelColor,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -545,14 +575,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(title,
-                        style: const TextStyle(
-                            color: Colors.white,
+                        style: TextStyle(
+                            color: titleColor,
                             fontSize: 14,
                             fontWeight: FontWeight.bold)),
                     const SizedBox(height: 2),
                     Text(subtitle,
-                        style: const TextStyle(
-                            color: Colors.grey, fontSize: 12)),
+                        style: TextStyle(color: subtitleColor, fontSize: 12)),
                   ],
                 ),
               ),
@@ -562,13 +591,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
           Row(
             children: [
               Expanded(
-                child: _twoStateButton(
-                    leftLabel, isLeft, () => onToggle(true)),
+                child: _twoStateButton(leftLabel, isLeft, () => onToggle(true),
+                    btnBgOff: btnBgOff, btnBorderOff: btnBorderOff, btnTextOff: btnTextOff),
               ),
               const SizedBox(width: 6),
               Expanded(
-                child: _twoStateButton(
-                    rightLabel, !isLeft, () => onToggle(false)),
+                child: _twoStateButton(rightLabel, !isLeft, () => onToggle(false),
+                    btnBgOff: btnBgOff, btnBorderOff: btnBorderOff, btnTextOff: btnTextOff),
               ),
             ],
           ),
@@ -577,42 +606,44 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _twoStateButton(String label, bool isSelected, VoidCallback onTap) {
+  Widget _twoStateButton(String label, bool isSelected, VoidCallback onTap, {
+    required Color btnBgOff,
+    required Color btnBorderOff,
+    required Color btnTextOff,
+  }) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected
-              ? Colors.blue.withOpacity(0.15)
-              : Colors.grey[800],
+          color: isSelected ? Colors.blue.withOpacity(0.15) : btnBgOff,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
-            color: isSelected ? Colors.blue : Colors.grey[700]!,
+            color: isSelected ? Colors.blue : btnBorderOff,
           ),
         ),
         child: Text(
           label,
           textAlign: TextAlign.center,
           style: TextStyle(
-            color: isSelected ? Colors.blue : Colors.grey,
+            color: isSelected ? Colors.blue : btnTextOff,
             fontSize: 13,
-            fontWeight:
-                isSelected ? FontWeight.bold : FontWeight.normal,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
           ),
         ),
       ),
     );
   }
 
-  Widget _minDistanceTile(SettingsProvider settings) {
+  Widget _minDistanceTile(SettingsProvider settings, Color panelColor,
+      Color titleColor, Color subtitleColor, Color btnBgOff, Color btnBorderOff, Color btnTextOff) {
     const options = [0.0, 0.1, 0.5, 1.0];
     const labels = ['없음', '0.1 km', '0.5 km', '1.0 km'];
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
-        color: Colors.grey[900],
+        color: panelColor,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -627,23 +658,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   color: Colors.purple.withOpacity(0.15),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(Icons.straighten,
-                    color: Colors.purple, size: 20),
+                child: const Icon(Icons.straighten, color: Colors.purple, size: 20),
               ),
               const SizedBox(width: 14),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('최소 기록 거리',
                         style: TextStyle(
-                            color: Colors.white,
+                            color: titleColor,
                             fontSize: 14,
                             fontWeight: FontWeight.bold)),
-                    SizedBox(height: 2),
+                    const SizedBox(height: 2),
                     Text('미달 시 주행 종료 후 저장 안 됨',
-                        style:
-                            TextStyle(color: Colors.grey, fontSize: 12)),
+                        style: TextStyle(color: subtitleColor, fontSize: 12)),
                   ],
                 ),
               ),
@@ -655,25 +684,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
               final isSelected = settings.minRecordDistanceKm == options[i];
               return Expanded(
                 child: GestureDetector(
-                  onTap: () =>
-                      settings.setMinRecordDistanceKm(options[i]),
+                  onTap: () => settings.setMinRecordDistanceKm(options[i]),
                   child: Container(
                     margin: EdgeInsets.only(right: i < options.length - 1 ? 6 : 0),
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     decoration: BoxDecoration(
-                      color: isSelected
-                          ? Colors.blue.withOpacity(0.15)
-                          : Colors.grey[800],
+                      color: isSelected ? Colors.blue.withOpacity(0.15) : btnBgOff,
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
-                        color: isSelected ? Colors.blue : Colors.grey[700]!,
+                        color: isSelected ? Colors.blue : btnBorderOff,
                       ),
                     ),
                     child: Text(
                       labels[i],
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        color: isSelected ? Colors.blue : Colors.grey,
+                        color: isSelected ? Colors.blue : btnTextOff,
                         fontSize: 12,
                       ),
                     ),
@@ -694,11 +720,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
     required String subtitle,
     required bool value,
     required void Function(bool) onChanged,
+    required Color panelColor,
+    required Color titleColor,
+    required Color subtitleColor,
   }) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
-        color: Colors.grey[900],
+        color: panelColor,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -718,14 +747,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(title,
-                    style: const TextStyle(
-                        color: Colors.white,
+                    style: TextStyle(
+                        color: titleColor,
                         fontSize: 14,
                         fontWeight: FontWeight.bold)),
                 const SizedBox(height: 2),
                 Text(subtitle,
-                    style:
-                        const TextStyle(color: Colors.grey, fontSize: 12)),
+                    style: TextStyle(color: subtitleColor, fontSize: 12)),
               ],
             ),
           ),
@@ -746,11 +774,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
     required Color iconColor,
     required String title,
     required String value,
+    required Color panelColor,
+    required Color titleColor,
   }) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
-        color: Colors.grey[900],
+        color: panelColor,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -767,8 +797,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           const SizedBox(width: 14),
           Expanded(
             child: Text(title,
-                style: const TextStyle(
-                    color: Colors.white,
+                style: TextStyle(
+                    color: titleColor,
                     fontSize: 14,
                     fontWeight: FontWeight.bold)),
           ),
@@ -779,11 +809,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _themeSelector() {
+  Widget _themeSelector(SettingsProvider settings, bool isDark,
+      Color panelColor, Color titleColor, Color subtitleColor,
+      Color btnBgOff, Color btnBorderOff, Color btnTextOff) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
-        color: Colors.grey[900],
+        color: panelColor,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -802,19 +834,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     color: Colors.purple, size: 20),
               ),
               const SizedBox(width: 14),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('테마',
                         style: TextStyle(
-                            color: Colors.white,
+                            color: titleColor,
                             fontSize: 14,
                             fontWeight: FontWeight.bold)),
-                    SizedBox(height: 2),
-                    Text('앱 색상 테마 선택',
-                        style:
-                            TextStyle(color: Colors.grey, fontSize: 12)),
+                    const SizedBox(height: 2),
+                    Text('속도계 화면 색상 테마',
+                        style: TextStyle(color: subtitleColor, fontSize: 12)),
                   ],
                 ),
               ),
@@ -824,12 +855,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
           Row(
             children: [
               Expanded(
-                  child: _themeButton(
-                      ThemeMode.dark, Icons.dark_mode_outlined, 'Dark')),
+                  child: _themeButton(settings, 'dark', Icons.dark_mode_outlined, 'Dark',
+                      btnBgOff: btnBgOff, btnBorderOff: btnBorderOff, btnTextOff: btnTextOff)),
               const SizedBox(width: 6),
               Expanded(
-                  child: _themeButton(
-                      ThemeMode.light, Icons.light_mode_outlined, 'Light')),
+                  child: _themeButton(settings, 'light', Icons.light_mode_outlined, 'Light',
+                      btnBgOff: btnBgOff, btnBorderOff: btnBorderOff, btnTextOff: btnTextOff)),
             ],
           ),
         ],
@@ -837,35 +868,34 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _themeButton(ThemeMode mode, IconData icon, String label) {
-    final isSelected = _selectedTheme == mode;
+  Widget _themeButton(SettingsProvider settings, String theme, IconData icon, String label, {
+    required Color btnBgOff,
+    required Color btnBorderOff,
+    required Color btnTextOff,
+  }) {
+    final isSelected = settings.appTheme == theme;
     return GestureDetector(
-      onTap: () => setState(() => _selectedTheme = mode),
+      onTap: () => settings.setAppTheme(theme),
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected
-              ? Colors.blue.withOpacity(0.15)
-              : Colors.grey[800],
+          color: isSelected ? Colors.blue.withOpacity(0.15) : btnBgOff,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
-            color: isSelected ? Colors.blue : Colors.grey[700]!,
+            color: isSelected ? Colors.blue : btnBorderOff,
           ),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon,
-                color: isSelected ? Colors.blue : Colors.grey, size: 16),
+            Icon(icon, color: isSelected ? Colors.blue : btnTextOff, size: 16),
             const SizedBox(width: 6),
             Text(
               label,
               style: TextStyle(
-                color: isSelected ? Colors.blue : Colors.grey,
+                color: isSelected ? Colors.blue : btnTextOff,
                 fontSize: 13,
-                fontWeight: isSelected
-                    ? FontWeight.bold
-                    : FontWeight.normal,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
               ),
             ),
           ],
@@ -874,13 +904,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _sectionTitle(String title) {
+  Widget _sectionTitle(String title, Color color) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8, left: 4),
       child: Text(
         title,
-        style: const TextStyle(
-          color: Colors.grey,
+        style: TextStyle(
+          color: color,
           fontSize: 12,
           fontWeight: FontWeight.bold,
           letterSpacing: 1.0,
@@ -897,6 +927,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     required VoidCallback? onTap,
     required bool isLoading,
     required Color loadingColor,
+    required Color panelColor,
+    required Color titleColor,
+    required Color subtitleColor,
   }) {
     return GestureDetector(
       onTap: onTap,
@@ -905,7 +938,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           decoration: BoxDecoration(
-            color: Colors.grey[900],
+            color: panelColor,
             borderRadius: BorderRadius.circular(12),
           ),
           child: Row(
@@ -926,8 +959,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   children: [
                     Text(
                       title,
-                      style: const TextStyle(
-                        color: Colors.white,
+                      style: TextStyle(
+                        color: titleColor,
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
                       ),
@@ -935,8 +968,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     const SizedBox(height: 2),
                     Text(
                       subtitle,
-                      style: const TextStyle(
-                          color: Colors.grey, fontSize: 12),
+                      style: TextStyle(color: subtitleColor, fontSize: 12),
                     ),
                   ],
                 ),

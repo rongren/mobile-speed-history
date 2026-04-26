@@ -17,10 +17,8 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting('ko_KR', null);
 
-  // 알림 초기화
   await ForegroundServiceHelper.initNotifications();
 
-  // 네이버 지도 초기화
   await FlutterNaverMap().init(
       clientId: 'ua4rpblyze',
       onAuthFailed: (ex) {
@@ -65,15 +63,12 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<void> _requestPermissions() async {
-    // 1. 위치 권한
-    LocationPermission locationPermission =
-    await Geolocator.checkPermission();
+    LocationPermission locationPermission = await Geolocator.checkPermission();
     if (locationPermission == LocationPermission.denied ||
         locationPermission == LocationPermission.deniedForever) {
       await Geolocator.requestPermission();
     }
 
-    // 2. 알림 권한
     final isAllowed = await ForegroundServiceHelper.isAllowed();
     if (!isAllowed) {
       await ForegroundServiceHelper.requestPermission();
@@ -82,25 +77,29 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = context.watch<SettingsProvider>().appTheme == 'dark';
+    final navBg = isDark ? Colors.black : Colors.white;
+    final unselectedColor = isDark ? Colors.grey : Colors.grey[600]!;
+
     return MaterialApp(
       title: '모바일 속도계',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
         navigationBarTheme: NavigationBarThemeData(
-          backgroundColor: Colors.black,
+          backgroundColor: navBg,
           indicatorColor: Colors.blue.withOpacity(0.2),
           iconTheme: WidgetStateProperty.resolveWith((states) {
             if (states.contains(WidgetState.selected)) {
               return const IconThemeData(color: Colors.blue);
             }
-            return const IconThemeData(color: Colors.grey);
+            return IconThemeData(color: unselectedColor);
           }),
           labelTextStyle: WidgetStateProperty.resolveWith((states) {
             if (states.contains(WidgetState.selected)) {
               return const TextStyle(color: Colors.blue, fontSize: 12);
             }
-            return const TextStyle(color: Colors.grey, fontSize: 12);
+            return TextStyle(color: unselectedColor, fontSize: 12);
           }),
         ),
       ),
@@ -122,15 +121,15 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = context.watch<SettingsProvider>().appTheme == 'dark';
+
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
-
         final now = DateTime.now();
         if (_lastBackPressed == null ||
-            now.difference(_lastBackPressed!) >
-                const Duration(seconds: 2)) {
+            now.difference(_lastBackPressed!) > const Duration(seconds: 2)) {
           _lastBackPressed = now;
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -144,6 +143,7 @@ class _MainScreenState extends State<MainScreen> {
         }
       },
       child: Scaffold(
+        backgroundColor: isDark ? Colors.black : const Color(0xFFF2F4F7),
         body: IndexedStack(
           index: _currentIndex,
           children: const [
@@ -155,7 +155,6 @@ class _MainScreenState extends State<MainScreen> {
           ],
         ),
         bottomNavigationBar: NavigationBar(
-          backgroundColor: Colors.black,
           selectedIndex: _currentIndex,
           onDestinationSelected: (index) =>
               setState(() => _currentIndex = index),
