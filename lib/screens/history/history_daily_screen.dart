@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../models/ride_record.dart';
@@ -320,7 +320,7 @@ class _HistoryDailyScreenState extends State<HistoryDailyScreen>
                         const SizedBox(height: 4),
                         Text(
                           avgDist > 0
-                              ? convertDistance(avgDist, useKmh).toStringAsFixed(1)
+                              ? formatDistance(avgDist, useKmh, decimals: 1)
                               : '-',
                           style: const TextStyle(
                             color: Colors.white,
@@ -417,14 +417,14 @@ class _HistoryDailyScreenState extends State<HistoryDailyScreen>
                               .spaceAround,
                           children: [
                             _statItem('총 거리',
-                                '${convertDistance(totalDistance, useKmh).toStringAsFixed(2)} ${distanceUnit(useKmh)}',
+                                '${formatDistance(totalDistance, useKmh)} ${distanceUnit(useKmh)}',
                                 isBlue: true),
                             _statItem('총 시간',
                                 formatDuration(
                                     totalDuration),
                                 isBlue: true),
                             _statItem('최고속도',
-                                '${convertSpeed(maxSpeed, useKmh).toStringAsFixed(1)} ${speedUnit(useKmh)}',
+                                '${formatSpeed(maxSpeed, useKmh)} ${speedUnit(useKmh)}',
                                 isBlue: true),
                             if (weightKg != null)
                               _statItem('칼로리',
@@ -432,13 +432,13 @@ class _HistoryDailyScreenState extends State<HistoryDailyScreen>
                                   isBlue: true)
                             else
                               _statItem('평균속도',
-                                  '${convertSpeed(avgSpeed, useKmh).toStringAsFixed(1)} ${speedUnit(useKmh)}',
+                                  '${formatSpeed(avgSpeed, useKmh)} ${speedUnit(useKmh)}',
                                   isBlue: true),
                           ],
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          '총 ${selectedRecords.length}회 주행',
+                          '총 ${formatNumber(selectedRecords.length)}회 주행',
                           style: const TextStyle(
                               color: Colors.blue,
                               fontSize: 12),
@@ -538,17 +538,17 @@ class _HistoryDailyScreenState extends State<HistoryDailyScreen>
                               children: [
                                 _statItem(
                                     '거리',
-                                    '${convertDistance(record.totalDistance, useKmh).toStringAsFixed(2)} ${distanceUnit(useKmh)}'),
+                                    '${formatDistance(record.totalDistance, useKmh)} ${distanceUnit(useKmh)}'),
                                 _statItem(
                                     '시간',
                                     formatDuration(
                                         record.duration)),
                                 _statItem(
                                     '최고속도',
-                                    '${convertSpeed(record.maxSpeed, useKmh).toStringAsFixed(1)} ${speedUnit(useKmh)}'),
+                                    '${formatSpeed(record.maxSpeed, useKmh)} ${speedUnit(useKmh)}'),
                                 _statItem(
                                     '평균속도',
-                                    '${convertSpeed(record.avgSpeed, useKmh).toStringAsFixed(1)} ${speedUnit(useKmh)}'),
+                                    '${formatSpeed(record.avgSpeed, useKmh)} ${speedUnit(useKmh)}'),
                               ],
                             ),
                             if (weightKg != null ||

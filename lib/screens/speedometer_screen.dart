@@ -1,4 +1,4 @@
-import 'dart:math';
+﻿import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/ride_provider.dart';
@@ -97,8 +97,7 @@ class _SpeedometerScreenState extends State<SpeedometerScreen> {
                     children: [
                       const SizedBox(height: 150),
                       Text(
-                        convertSpeed(ride.currentSpeed, useKmh)
-                            .toStringAsFixed(1),
+                        formatSpeed(ride.currentSpeed, useKmh),
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 64,
@@ -165,7 +164,7 @@ class _SpeedometerScreenState extends State<SpeedometerScreen> {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(
-                        '거리 부족 (최소 ${minDist.toStringAsFixed(1)} km) — 저장 안 됨',
+                        '거리 부족 (최소 ${formatDouble(minDist, 1)} km) — 저장 안 됨',
                       ),
                       backgroundColor: Colors.orange,
                       duration: const Duration(seconds: 3),
@@ -258,19 +257,19 @@ class _SpeedometerScreenState extends State<SpeedometerScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
                       _summaryStatCard('거리',
-                          '${convertDistance(record.totalDistance, useKmh).toStringAsFixed(2)}',
+                          '${formatDistance(record.totalDistance, useKmh)}',
                           distanceUnit(useKmh)),
                       _summaryStatCard(
                           '시간', formatDuration(record.duration), ''),
                       _summaryStatCard('최고속도',
-                          '${convertSpeed(record.maxSpeed, useKmh).toStringAsFixed(1)}',
+                          '${formatSpeed(record.maxSpeed, useKmh)}',
                           speedUnit(useKmh)),
                       if (calories != null)
                         _summaryStatCard(
                             '칼로리', formatNumber(calories), 'kcal')
                       else
                         _summaryStatCard('평균속도',
-                            '${convertSpeed(record.avgSpeed, useKmh).toStringAsFixed(1)}',
+                            '${formatSpeed(record.avgSpeed, useKmh)}',
                             speedUnit(useKmh)),
                     ],
                   ),
@@ -437,14 +436,14 @@ class _SpeedometerScreenState extends State<SpeedometerScreen> {
     final items = <(String, String)>[
       if (settings.showDistance)
         ('거리',
-            '${convertDistance(ride.totalDistance, useKmh).toStringAsFixed(2)} ${distanceUnit(useKmh)}'),
+            '${formatDistance(ride.totalDistance, useKmh)} ${distanceUnit(useKmh)}'),
       if (settings.showDuration) ('시간', ride.formattedDuration),
       if (settings.showMaxSpeed)
         ('최고속도',
-            '${convertSpeed(ride.maxSpeed, useKmh).toStringAsFixed(1)} ${speedUnit(useKmh)}'),
+            '${formatSpeed(ride.maxSpeed, useKmh)} ${speedUnit(useKmh)}'),
       if (settings.showAvgSpeed)
         ('평균속도',
-            '${convertSpeed(currentAvgSpeed, useKmh).toStringAsFixed(1)} ${speedUnit(useKmh)}'),
+            '${formatSpeed(currentAvgSpeed, useKmh)} ${speedUnit(useKmh)}'),
     ];
 
     if (items.isEmpty) return const SizedBox.shrink();

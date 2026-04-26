@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:provider/provider.dart';
@@ -83,7 +83,7 @@ class _MapScreenState extends State<MapScreen> {
               children: [
                 _statCard(
                   '거리',
-                  '${convertDistance(ride.totalDistance, useKmh).toStringAsFixed(2)} ${distanceUnit(useKmh)}',
+                  '${formatDistance(ride.totalDistance, useKmh)} ${distanceUnit(useKmh)}',
                   Icons.straighten,
                 ),
                 _divider(),
@@ -95,7 +95,7 @@ class _MapScreenState extends State<MapScreen> {
                 _divider(),
                 _statCard(
                   '최고속도',
-                  '${convertSpeed(ride.maxSpeed, useKmh).toStringAsFixed(1)} ${speedUnit(useKmh)}',
+                  '${formatSpeed(ride.maxSpeed, useKmh)} ${speedUnit(useKmh)}',
                   Icons.speed,
                 ),
               ],

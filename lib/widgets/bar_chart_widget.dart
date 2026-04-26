@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../utils/format_utils.dart';
 
@@ -144,14 +144,14 @@ class _BarChartWidgetState extends State<BarChartWidget>
     final useKmh = widget.useKmh;
     switch (_selectedType) {
       case ChartDataType.distance:
-        return '${convertDistance(value, useKmh).toStringAsFixed(1)} ${distanceUnit(useKmh)}';
+        return '${formatDistance(value, useKmh, decimals: 1)} ${distanceUnit(useKmh)}';
       case ChartDataType.duration:
         final h = (value / 3600).floor();
         final m = ((value % 3600) / 60).floor();
         return h > 0 ? '${h}h${m}m' : '${m}m';
       case ChartDataType.maxSpeed:
       case ChartDataType.avgSpeed:
-        return '${convertSpeed(value, useKmh).toStringAsFixed(1)}';
+        return '${formatSpeed(value, useKmh)}';
     }
   }
 

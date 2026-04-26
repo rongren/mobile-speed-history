@@ -1,4 +1,4 @@
-import 'dart:convert';
+﻿import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:provider/provider.dart';
@@ -110,16 +110,16 @@ class _HistoryDetailMapScreenState extends State<HistoryDetailMapScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   _statCard('거리',
-                      '${convertDistance(record.totalDistance, useKmh).toStringAsFixed(2)} ${distanceUnit(useKmh)}'),
+                      '${formatDistance(record.totalDistance, useKmh)} ${distanceUnit(useKmh)}'),
                   _divider(),
                   _statCard('시간',
                       formatDuration(record.duration)),
                   _divider(),
                   _statCard('최고속도',
-                      '${convertSpeed(record.maxSpeed, useKmh).toStringAsFixed(1)} ${speedUnit(useKmh)}'),
+                      '${formatSpeed(record.maxSpeed, useKmh)} ${speedUnit(useKmh)}'),
                   _divider(),
                   _statCard('평균속도',
-                      '${convertSpeed(record.avgSpeed, useKmh).toStringAsFixed(1)} ${speedUnit(useKmh)}'),
+                      '${formatSpeed(record.avgSpeed, useKmh)} ${speedUnit(useKmh)}'),
                 ],
               ),
             ),

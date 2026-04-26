@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/ride_record.dart';
 import '../../providers/ride_provider.dart';
@@ -575,17 +575,17 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> with Automati
                   MainAxisAlignment.spaceAround,
                   children: [
                     _summaryItem('총 거리',
-                        '${convertDistance(totalDistance, useKmh).toStringAsFixed(2)} ${distanceUnit(useKmh)}'),
+                        '${formatDistance(totalDistance, useKmh)} ${distanceUnit(useKmh)}'),
                     _summaryItem('총 시간',
                         formatDuration(totalDuration)),
                     _summaryItem('최고속도',
-                        '${convertSpeed(maxSpeed, useKmh).toStringAsFixed(1)} ${speedUnit(useKmh)}'),
+                        '${formatSpeed(maxSpeed, useKmh)} ${speedUnit(useKmh)}'),
                     if (weightKg != null)
                       _summaryItem('칼로리',
                           '${formatNumber(calcCalories(totalDistance, weightKg)!)} kcal')
                     else
                       _summaryItem('평균속도',
-                          '${convertSpeed(avgSpeed, useKmh).toStringAsFixed(1)} ${speedUnit(useKmh)}'),
+                          '${formatSpeed(avgSpeed, useKmh)} ${speedUnit(useKmh)}'),
                   ],
                 ),
               ),
@@ -658,13 +658,13 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> with Automati
                                 .spaceAround,
                             children: [
                               _statItem('거리',
-                                  '${convertDistance(record.totalDistance, useKmh).toStringAsFixed(2)} ${distanceUnit(useKmh)}'),
+                                  '${formatDistance(record.totalDistance, useKmh)} ${distanceUnit(useKmh)}'),
                               _statItem('시간',
                                   formatDuration(record.duration)),
                               _statItem('최고속도',
-                                  '${convertSpeed(record.maxSpeed, useKmh).toStringAsFixed(1)} ${speedUnit(useKmh)}'),
+                                  '${formatSpeed(record.maxSpeed, useKmh)} ${speedUnit(useKmh)}'),
                               _statItem('평균속도',
-                                  '${convertSpeed(record.avgSpeed, useKmh).toStringAsFixed(1)} ${speedUnit(useKmh)}'),
+                                  '${formatSpeed(record.avgSpeed, useKmh)} ${speedUnit(useKmh)}'),
                             ],
                           ),
                           if (weightKg != null ||
@@ -773,18 +773,18 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> with Automati
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
                       _detailStat('거리',
-                          '${convertDistance(record.totalDistance, useKmh).toStringAsFixed(2)}',
+                          '${formatDistance(record.totalDistance, useKmh)}',
                           distanceUnit(useKmh)),
                       _detailStat(
                           '시간', formatDuration(record.duration), ''),
                       _detailStat('최고속도',
-                          '${convertSpeed(record.maxSpeed, useKmh).toStringAsFixed(1)}',
+                          '${formatSpeed(record.maxSpeed, useKmh)}',
                           speedUnit(useKmh)),
                       if (calories != null)
                         _detailStat('칼로리', formatNumber(calories), 'kcal')
                       else
                         _detailStat('평균속도',
-                            '${convertSpeed(record.avgSpeed, useKmh).toStringAsFixed(1)}',
+                            '${formatSpeed(record.avgSpeed, useKmh)}',
                             speedUnit(useKmh)),
                     ],
                   ),

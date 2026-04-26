@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../models/ride_record.dart';
@@ -174,23 +174,23 @@ class _HistoryYearlyScreenState extends State<HistoryYearlyScreen>
                               .spaceAround,
                           children: [
                             _statItem('총 거리',
-                                '${convertDistance(totalDistance, useKmh).toStringAsFixed(2)} ${distanceUnit(useKmh)}',
+                                '${formatDistance(totalDistance, useKmh)} ${distanceUnit(useKmh)}',
                                 isBlue: true),
                             _statItem('총 시간',
                                 formatDuration(
                                     totalDuration),
                                 isBlue: true),
                             _statItem('최고속도',
-                                '${convertSpeed(maxSpeed, useKmh).toStringAsFixed(1)} ${speedUnit(useKmh)}',
+                                '${formatSpeed(maxSpeed, useKmh)} ${speedUnit(useKmh)}',
                                 isBlue: true),
                             _statItem('평균속도',
-                                '${convertSpeed(avgSpeed, useKmh).toStringAsFixed(1)} ${speedUnit(useKmh)}',
+                                '${formatSpeed(avgSpeed, useKmh)} ${speedUnit(useKmh)}',
                                 isBlue: true),
                           ],
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          '총 ${selectedRecords.length}회 주행',
+                          '총 ${formatNumber(selectedRecords.length)}회 주행',
                           style: const TextStyle(
                               color: Colors.blue,
                               fontSize: 12),
@@ -321,16 +321,16 @@ class _HistoryYearlyScreenState extends State<HistoryYearlyScreen>
                                     children: [
                                       _statItem(
                                           '거리',
-                                          '${convertDistance(distance, useKmh).toStringAsFixed(2)} ${distanceUnit(useKmh)}'),
+                                          '${formatDistance(distance, useKmh)} ${distanceUnit(useKmh)}'),
                                       _statItem(
                                           '시간',
                                           formatDuration(duration)),
                                       _statItem(
                                           '최고속도',
-                                          '${convertSpeed(maxSpd, useKmh).toStringAsFixed(1)} ${speedUnit(useKmh)}'),
+                                          '${formatSpeed(maxSpd, useKmh)} ${speedUnit(useKmh)}'),
                                       _statItem(
                                           '평균속도',
-                                          '${convertSpeed(avgSpd, useKmh).toStringAsFixed(1)} ${speedUnit(useKmh)}'),
+                                          '${formatSpeed(avgSpd, useKmh)} ${speedUnit(useKmh)}'),
                                     ],
                                   ),
                                 ],

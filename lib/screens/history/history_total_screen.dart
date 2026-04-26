@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/ride_record.dart';
 import '../../providers/ride_provider.dart';
@@ -342,7 +342,7 @@ class _HistoryTotalScreenState extends State<HistoryTotalScreen>
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    '총 ${filtered.length}개',
+                    '총 ${formatNumber(filtered.length)}개',
                     style: const TextStyle(color: Colors.grey, fontSize: 13),
                   ),
                   // 정렬 버튼
@@ -458,7 +458,7 @@ class _HistoryTotalScreenState extends State<HistoryTotalScreen>
                                       children: [
                                         _statItem(
                                           '거리',
-                                          '${convertDistance(record.totalDistance, useKmh).toStringAsFixed(2)} ${distanceUnit(useKmh)}',
+                                          '${formatDistance(record.totalDistance, useKmh)} ${distanceUnit(useKmh)}',
                                         ),
                                         _statItem(
                                           '시간',
@@ -466,11 +466,11 @@ class _HistoryTotalScreenState extends State<HistoryTotalScreen>
                                         ),
                                         _statItem(
                                           '최고속도',
-                                          '${convertSpeed(record.maxSpeed, useKmh).toStringAsFixed(1)} ${speedUnit(useKmh)}',
+                                          '${formatSpeed(record.maxSpeed, useKmh)} ${speedUnit(useKmh)}',
                                         ),
                                         _statItem(
                                           '평균속도',
-                                          '${convertSpeed(record.avgSpeed, useKmh).toStringAsFixed(1)} ${speedUnit(useKmh)}',
+                                          '${formatSpeed(record.avgSpeed, useKmh)} ${speedUnit(useKmh)}',
                                         ),
                                       ],
                                     ),
@@ -650,18 +650,18 @@ class _HistoryTotalScreenState extends State<HistoryTotalScreen>
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
                       _detailStat('거리',
-                          '${convertDistance(record.totalDistance, useKmh).toStringAsFixed(2)}',
+                          '${formatDistance(record.totalDistance, useKmh)}',
                           distanceUnit(useKmh)),
                       _detailStat(
                           '시간', formatDuration(record.duration), ''),
                       _detailStat('최고속도',
-                          '${convertSpeed(record.maxSpeed, useKmh).toStringAsFixed(1)}',
+                          '${formatSpeed(record.maxSpeed, useKmh)}',
                           speedUnit(useKmh)),
                       if (calories != null)
                         _detailStat('칼로리', formatNumber(calories), 'kcal')
                       else
                         _detailStat('평균속도',
-                            '${convertSpeed(record.avgSpeed, useKmh).toStringAsFixed(1)}',
+                            '${formatSpeed(record.avgSpeed, useKmh)}',
                             speedUnit(useKmh)),
                     ],
                   ),
