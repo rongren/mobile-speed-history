@@ -187,7 +187,7 @@ class _SpeedometerScreenState extends State<SpeedometerScreen> {
                     ),
                   );
                 } else {
-                  _showRideSummary(context, savedRecord, useKmh, weightKg);
+                  _showRideSummary(context, savedRecord, useKmh, weightKg, isDark);
                 }
               } else {
                 ride.startRide(
@@ -232,17 +232,25 @@ class _SpeedometerScreenState extends State<SpeedometerScreen> {
   }
 
   void _showRideSummary(BuildContext context, RideRecord record,
-      bool useKmh, double? weightKg) {
+      bool useKmh, double? weightKg, bool isDark) {
     final ctrl = TextEditingController();
     final ride = context.read<RideProvider>();
     final int? calories = calcCalories(record.totalDistance, weightKg);
+
+    final dialogBg = isDark ? const Color(0xFF1e1e1e) : Colors.white;
+    final memoBoxColor = isDark ? Colors.grey[900]! : Colors.grey[100]!;
+    final titleTextColor = isDark ? Colors.white : Colors.black87;
+    final memoTextColor = isDark ? Colors.white : Colors.black87;
+    final memoHintColor = isDark ? Colors.grey[600]! : Colors.grey[400]!;
+    final bsContainerColor = isDark ? const Color(0xFF1e1e1e) : Colors.white;
+    final bsFieldFillColor = isDark ? Colors.grey[900]! : Colors.grey[100]!;
 
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDialogState) => Dialog(
-          backgroundColor: const Color(0xFF1e1e1e),
+          backgroundColor: dialogBg,
           shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(20)),
           insetPadding:
@@ -252,10 +260,10 @@ class _SpeedometerScreenState extends State<SpeedometerScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text(
+                Text(
                   '주행 완료',
                   style: TextStyle(
-                      color: Colors.white,
+                      color: titleTextColor,
                       fontSize: 18,
                       fontWeight: FontWeight.bold),
                 ),
@@ -265,27 +273,26 @@ class _SpeedometerScreenState extends State<SpeedometerScreen> {
                   decoration: BoxDecoration(
                     color: Colors.blue.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
-                    border:
-                        Border.all(color: Colors.blue.withOpacity(0.3)),
+                    border: Border.all(color: Colors.blue.withOpacity(0.3)),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
                       _summaryStatCard('거리',
                           '${formatDistance(record.totalDistance, useKmh)}',
-                          distanceUnit(useKmh)),
+                          distanceUnit(useKmh), titleTextColor),
                       _summaryStatCard(
-                          '시간', formatDuration(record.duration), ''),
+                          '시간', formatDuration(record.duration), '', titleTextColor),
                       _summaryStatCard('최고속도',
                           '${formatSpeed(record.maxSpeed, useKmh)}',
-                          speedUnit(useKmh)),
+                          speedUnit(useKmh), titleTextColor),
                       if (calories != null)
                         _summaryStatCard(
-                            '칼로리', formatNumber(calories), 'kcal')
+                            '칼로리', formatNumber(calories), 'kcal', titleTextColor)
                       else
                         _summaryStatCard('평균속도',
                             '${formatSpeed(record.avgSpeed, useKmh)}',
-                            speedUnit(useKmh)),
+                            speedUnit(useKmh), titleTextColor),
                     ],
                   ),
                 ),
@@ -302,9 +309,9 @@ class _SpeedometerScreenState extends State<SpeedometerScreen> {
                         padding: EdgeInsets.only(
                             bottom: MediaQuery.of(bsCtx).viewInsets.bottom),
                         child: Container(
-                          decoration: const BoxDecoration(
-                            color: Color(0xFF1e1e1e),
-                            borderRadius: BorderRadius.vertical(
+                          decoration: BoxDecoration(
+                            color: bsContainerColor,
+                            borderRadius: const BorderRadius.vertical(
                                 top: Radius.circular(20)),
                           ),
                           padding: const EdgeInsets.all(24),
@@ -312,9 +319,9 @@ class _SpeedometerScreenState extends State<SpeedometerScreen> {
                             mainAxisSize: MainAxisSize.min,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text('메모',
+                              Text('메모',
                                   style: TextStyle(
-                                      color: Colors.white,
+                                      color: titleTextColor,
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold)),
                               const SizedBox(height: 12),
@@ -324,18 +331,16 @@ class _SpeedometerScreenState extends State<SpeedometerScreen> {
                                 maxLength: 80,
                                 maxLines: 5,
                                 minLines: 3,
-                                style: const TextStyle(
-                                    color: Colors.white, fontSize: 14),
+                                style: TextStyle(
+                                    color: memoTextColor, fontSize: 14),
                                 decoration: InputDecoration(
                                   hintText: '메모를 남겨보세요',
                                   hintStyle: TextStyle(
-                                      color: Colors.grey[600],
-                                      fontSize: 14),
+                                      color: memoHintColor, fontSize: 14),
                                   filled: true,
-                                  fillColor: Colors.grey[900],
+                                  fillColor: bsFieldFillColor,
                                   border: OutlineInputBorder(
-                                    borderRadius:
-                                        BorderRadius.circular(10),
+                                    borderRadius: BorderRadius.circular(10),
                                     borderSide: BorderSide.none,
                                   ),
                                   counterStyle: const TextStyle(
@@ -364,7 +369,7 @@ class _SpeedometerScreenState extends State<SpeedometerScreen> {
                                           fontSize: 16,
                                           fontWeight: FontWeight.bold)),
                                 ),
-                              ),
+              ),
                             ],
                           ),
                         ),
@@ -377,16 +382,14 @@ class _SpeedometerScreenState extends State<SpeedometerScreen> {
                     constraints: const BoxConstraints(minHeight: 70),
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Colors.grey[900],
+                      color: memoBoxColor,
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: ctrl.text.isEmpty
                         ? Text('메모를 남겨보세요 (탭하여 입력)',
-                            style: TextStyle(
-                                color: Colors.grey[600], fontSize: 14))
+                            style: TextStyle(color: memoHintColor, fontSize: 14))
                         : Text(ctrl.text,
-                            style: const TextStyle(
-                                color: Colors.white, fontSize: 14)),
+                            style: TextStyle(color: memoTextColor, fontSize: 14)),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -421,23 +424,20 @@ class _SpeedometerScreenState extends State<SpeedometerScreen> {
     );
   }
 
-  Widget _summaryStatCard(String label, String value, String unit) {
+  Widget _summaryStatCard(String label, String value, String unit, Color textColor) {
     return Column(
       children: [
         Text(
           value,
-          style: const TextStyle(
-              color: Colors.white,
+          style: TextStyle(
+              color: textColor,
               fontSize: 16,
               fontWeight: FontWeight.bold),
         ),
         if (unit.isNotEmpty)
-          Text(unit,
-              style:
-                  const TextStyle(color: Colors.blue, fontSize: 11)),
+          Text(unit, style: const TextStyle(color: Colors.blue, fontSize: 11)),
         const SizedBox(height: 4),
-        Text(label,
-            style: const TextStyle(color: Colors.grey, fontSize: 11)),
+        Text(label, style: const TextStyle(color: Colors.grey, fontSize: 11)),
       ],
     );
   }

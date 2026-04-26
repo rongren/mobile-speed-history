@@ -20,7 +20,12 @@ class _MapScreenState extends State<MapScreen> {
   @override
   Widget build(BuildContext context) {
     final ride = context.watch<RideProvider>();
-    final useKmh = context.watch<SettingsProvider>().useKmh;
+    final settings = context.watch<SettingsProvider>();
+    final useKmh = settings.useKmh;
+    final isDark = settings.appTheme == 'dark';
+    final cardColor = isDark ? Colors.grey[900]! : Colors.white;
+    final textColor = isDark ? Colors.white : Colors.black87;
+    final dividerColor = isDark ? Colors.grey[700]! : Colors.grey[300]!;
 
     if (_mapController != null && ride.pathPoints.isNotEmpty) {
       _drawPath(ride.pathPoints);
@@ -28,7 +33,7 @@ class _MapScreenState extends State<MapScreen> {
     }
 
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: isDark ? Colors.black : const Color(0xFFF2F4F7),
       body: SafeArea(
         bottom: false,
         child: Column(
@@ -76,7 +81,7 @@ class _MapScreenState extends State<MapScreen> {
 
           // 하단 통계
           Container(
-            color: Colors.grey[900],
+            color: cardColor,
             padding: const EdgeInsets.symmetric(vertical: 16),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -85,18 +90,21 @@ class _MapScreenState extends State<MapScreen> {
                   '거리',
                   '${formatDistance(ride.totalDistance, useKmh)} ${distanceUnit(useKmh)}',
                   Icons.straighten,
+                  textColor,
                 ),
-                _divider(),
+                _divider(dividerColor),
                 _statCard(
                   '시간',
                   ride.formattedDuration,
                   Icons.timer,
+                  textColor,
                 ),
-                _divider(),
+                _divider(dividerColor),
                 _statCard(
                   '최고속도',
                   '${formatSpeed(ride.maxSpeed, useKmh)} ${speedUnit(useKmh)}',
                   Icons.speed,
+                  textColor,
                 ),
               ],
             ),
@@ -131,7 +139,7 @@ class _MapScreenState extends State<MapScreen> {
     _mapController!.addOverlay(polyline);
   }
 
-  Widget _statCard(String label, String value, IconData icon) {
+  Widget _statCard(String label, String value, IconData icon, Color textColor) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -139,8 +147,8 @@ class _MapScreenState extends State<MapScreen> {
         const SizedBox(height: 4),
         Text(
           value,
-          style: const TextStyle(
-            color: Colors.white,
+          style: TextStyle(
+            color: textColor,
             fontSize: 16,
             fontWeight: FontWeight.bold,
           ),
@@ -154,11 +162,7 @@ class _MapScreenState extends State<MapScreen> {
     );
   }
 
-  Widget _divider() {
-    return Container(
-      height: 40,
-      width: 1,
-      color: Colors.grey[700],
-    );
+  Widget _divider(Color color) {
+    return Container(height: 40, width: 1, color: color);
   }
 }

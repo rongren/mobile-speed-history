@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/ride_record.dart';
 import '../../providers/ride_provider.dart';
@@ -15,7 +15,8 @@ class HistoryDetailScreen extends StatefulWidget {
   State<HistoryDetailScreen> createState() => _HistoryDetailScreenState();
 }
 
-class _HistoryDetailScreenState extends State<HistoryDetailScreen> with AutomaticKeepAliveClientMixin {
+class _HistoryDetailScreenState extends State<HistoryDetailScreen>
+    with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
 
@@ -23,6 +24,11 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> with Automati
 
   Future<void> _pickDateFromCalendar() async {
     final records = context.read<RideProvider>().records;
+    final isDark = context.read<SettingsProvider>().appTheme == 'dark';
+    final sheetBg = isDark ? const Color(0xFF1e1e1e) : Colors.white;
+    final dialogBg = isDark ? const Color(0xFF1e1e1e) : Colors.white;
+    final dropdownBg = isDark ? const Color(0xFF2a2a2a) : Colors.grey[100]!;
+    final textColor = isDark ? Colors.white : Colors.black87;
 
     final recordedDays = records
         .map((r) => DateTime(r.year, r.month, r.day))
@@ -36,7 +42,7 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> with Automati
 
     await showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF1e1e1e),
+      backgroundColor: sheetBg,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
@@ -55,10 +61,10 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> with Automati
                 builder: (dialogCtx) => StatefulBuilder(
                   builder: (dialogCtx, setDialogState) {
                     return AlertDialog(
-                      backgroundColor: const Color(0xFF1e1e1e),
-                      title: const Text(
+                      backgroundColor: dialogBg,
+                      title: Text(
                         '연도 / 월 선택',
-                        style: TextStyle(color: Colors.white, fontSize: 15),
+                        style: TextStyle(color: textColor, fontSize: 15),
                       ),
                       content: Row(
                         children: [
@@ -66,8 +72,8 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> with Automati
                             child: DropdownButton<int>(
                               value: tempYear,
                               isExpanded: true,
-                              dropdownColor: const Color(0xFF2a2a2a),
-                              style: const TextStyle(color: Colors.white),
+                              dropdownColor: dropdownBg,
+                              style: TextStyle(color: textColor),
                               underline: const SizedBox(),
                               items: recordYears
                                   .map((y) => DropdownMenuItem(
@@ -87,8 +93,8 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> with Automati
                             child: DropdownButton<int>(
                               value: tempMonth,
                               isExpanded: true,
-                              dropdownColor: const Color(0xFF2a2a2a),
-                              style: const TextStyle(color: Colors.white),
+                              dropdownColor: dropdownBg,
+                              style: TextStyle(color: textColor),
                               underline: const SizedBox(),
                               items: List.generate(12, (i) => i + 1)
                                   .map((m) => DropdownMenuItem(
@@ -134,10 +140,10 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> with Automati
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text(
+                    Text(
                       '날짜 선택',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: textColor,
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
@@ -167,16 +173,16 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> with Automati
                               children: [
                                 Text(
                                   '${day.year}년 ${day.month}월',
-                                  style: const TextStyle(
-                                    color: Colors.white,
+                                  style: TextStyle(
+                                    color: textColor,
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
                                 const SizedBox(width: 2),
-                                const Icon(
+                                Icon(
                                   Icons.arrow_drop_down,
-                                  color: Colors.white,
+                                  color: textColor,
                                   size: 22,
                                 ),
                               ],
@@ -185,12 +191,10 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> with Automati
                         },
                       ),
                       calendarStyle: CalendarStyle(
-                        defaultTextStyle:
-                            const TextStyle(color: Colors.white),
-                        weekendTextStyle:
-                            const TextStyle(color: Colors.white),
+                        defaultTextStyle: TextStyle(color: textColor),
+                        weekendTextStyle: TextStyle(color: textColor),
                         outsideTextStyle:
-                            TextStyle(color: Colors.grey[700]),
+                            TextStyle(color: isDark ? Colors.grey[700] : Colors.grey[400]),
                         selectedDecoration: const BoxDecoration(
                           color: Colors.blue,
                           shape: BoxShape.circle,
@@ -199,29 +203,27 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> with Automati
                           color: Colors.blue.withOpacity(0.3),
                           shape: BoxShape.circle,
                         ),
-                        todayTextStyle:
-                            const TextStyle(color: Colors.white),
+                        todayTextStyle: TextStyle(color: textColor),
                         markerDecoration: const BoxDecoration(
                           color: Colors.orange,
                           shape: BoxShape.circle,
                         ),
                         markersMaxCount: 1,
                       ),
-                      headerStyle: const HeaderStyle(
+                      headerStyle: HeaderStyle(
                         formatButtonVisible: false,
                         titleCentered: true,
-                        leftChevronIcon: Icon(
-                            Icons.chevron_left, color: Colors.white),
-                        rightChevronIcon: Icon(
-                            Icons.chevron_right, color: Colors.white),
+                        leftChevronIcon: Icon(Icons.chevron_left, color: textColor),
+                        rightChevronIcon: Icon(Icons.chevron_right, color: textColor),
                       ),
-                      daysOfWeekStyle: const DaysOfWeekStyle(
-                        weekdayStyle: TextStyle(color: Colors.grey),
-                        weekendStyle: TextStyle(color: Colors.grey),
+                      daysOfWeekStyle: DaysOfWeekStyle(
+                        weekdayStyle: TextStyle(
+                            color: isDark ? Colors.grey : Colors.grey[600]!),
+                        weekendStyle: TextStyle(
+                            color: isDark ? Colors.grey : Colors.grey[600]!),
                       ),
                       eventLoader: (day) {
-                        final key =
-                            DateTime(day.year, day.month, day.day);
+                        final key = DateTime(day.year, day.month, day.day);
                         return recordedDays.contains(key) ? [true] : [];
                       },
                     ),
@@ -236,6 +238,13 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> with Automati
   }
 
   void _showSelectPicker() {
+    final isDark = context.read<SettingsProvider>().appTheme == 'dark';
+    final sheetBg = isDark ? const Color(0xFF1e1e1e) : Colors.white;
+    final textColor = isDark ? Colors.white : Colors.black87;
+    final dropdownBg = isDark ? const Color(0xFF2a2a2a) : Colors.grey[100]!;
+    final boxColor = isDark ? Colors.grey[900]! : Colors.grey[200]!;
+    final borderColor = isDark ? Colors.grey[700]! : Colors.grey[300]!;
+
     int tempYear = _selectedDate.year;
     int tempMonth = _selectedDate.month;
     int tempDay = _selectedDate.day;
@@ -247,16 +256,14 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> with Automati
 
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF1e1e1e),
+      backgroundColor: sheetBg,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-            top: Radius.circular(16)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setModalState) {
-            final daysInMonth = DateUtils.getDaysInMonth(
-                tempYear, tempMonth);
+            final daysInMonth = DateUtils.getDaysInMonth(tempYear, tempMonth);
             final days = List.generate(daysInMonth, (i) => i + 1);
             if (tempDay > daysInMonth) tempDay = daysInMonth;
 
@@ -266,10 +273,10 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> with Automati
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text(
+                    Text(
                       '날짜 선택',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: textColor,
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
@@ -281,11 +288,12 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> with Automati
                           child: _selectBox(
                             value: tempYear,
                             items: years,
-                            onChanged: (v) {
-                              setModalState(() =>
-                              tempYear = v!);
-                            },
+                            onChanged: (v) => setModalState(() => tempYear = v!),
                             format: (v) => '$v년',
+                            boxColor: boxColor,
+                            borderColor: borderColor,
+                            dropdownBg: dropdownBg,
+                            textColor: textColor,
                           ),
                         ),
                         const SizedBox(width: 8),
@@ -293,11 +301,12 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> with Automati
                           child: _selectBox(
                             value: tempMonth,
                             items: months,
-                            onChanged: (v) {
-                              setModalState(() =>
-                              tempMonth = v!);
-                            },
+                            onChanged: (v) => setModalState(() => tempMonth = v!),
                             format: (v) => '$v월',
+                            boxColor: boxColor,
+                            borderColor: borderColor,
+                            dropdownBg: dropdownBg,
+                            textColor: textColor,
                           ),
                         ),
                         const SizedBox(width: 8),
@@ -305,11 +314,12 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> with Automati
                           child: _selectBox(
                             value: tempDay,
                             items: days,
-                            onChanged: (v) {
-                              setModalState(() =>
-                              tempDay = v!);
-                            },
+                            onChanged: (v) => setModalState(() => tempDay = v!),
                             format: (v) => '$v일',
+                            boxColor: boxColor,
+                            borderColor: borderColor,
+                            dropdownBg: dropdownBg,
+                            textColor: textColor,
                           ),
                         ),
                       ],
@@ -320,21 +330,15 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> with Automati
                       child: GestureDetector(
                         onTap: () {
                           setState(() {
-                            _selectedDate = DateTime(
-                              tempYear,
-                              tempMonth,
-                              tempDay,
-                            );
+                            _selectedDate = DateTime(tempYear, tempMonth, tempDay);
                           });
                           Navigator.pop(context);
                         },
                         child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 14),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
                           decoration: BoxDecoration(
                             color: Colors.blue,
-                            borderRadius:
-                            BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(12),
                           ),
                           child: const Text(
                             '확인',
@@ -363,21 +367,25 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> with Automati
     required List<T> items,
     required void Function(T?) onChanged,
     required String Function(T) format,
+    required Color boxColor,
+    required Color borderColor,
+    required Color dropdownBg,
+    required Color textColor,
   }) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
-        color: Colors.grey[900],
+        color: boxColor,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[700]!),
+        border: Border.all(color: borderColor),
       ),
       child: DropdownButton<T>(
         value: value,
         isExpanded: true,
         underline: const SizedBox(),
-        dropdownColor: const Color(0xFF2a2a2a),
-        menuMaxHeight: 200,   // 추가
-        style: const TextStyle(color: Colors.white, fontSize: 14),
+        dropdownColor: dropdownBg,
+        menuMaxHeight: 200,
+        style: TextStyle(color: textColor, fontSize: 14),
         items: items.map((item) => DropdownMenuItem<T>(
           value: item,
           child: Text(format(item)),
@@ -395,72 +403,73 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> with Automati
     final settings = context.watch<SettingsProvider>();
     final useKmh = settings.useKmh;
     final weightKg = settings.weightKg;
+    final isDark = settings.appTheme == 'dark';
+
+    final bgColor = isDark ? Colors.black : const Color(0xFFF2F4F7);
+    final cardColor = isDark ? Colors.grey[900]! : Colors.white;
+    final navBtnColor = isDark ? Colors.grey[800]! : Colors.grey[200]!;
+    final navBtnDisabledColor = isDark ? Colors.grey[850]! : Colors.grey[300]!;
+    final textColor = isDark ? Colors.white : Colors.black87;
+    final subTextColor = isDark ? Colors.grey : Colors.grey[600]!;
+
     final dayRecords = records.where((r) =>
     r.year == _selectedDate.year &&
         r.month == _selectedDate.month &&
         r.day == _selectedDate.day,
     ).toList();
 
-    final totalDistance = dayRecords.fold(
-        0.0, (s, r) => s + r.totalDistance);
-    final totalDuration = dayRecords.fold(
-        0, (s, r) => s + r.duration);
+    final totalDistance = dayRecords.fold(0.0, (s, r) => s + r.totalDistance);
+    final totalDuration = dayRecords.fold(0, (s, r) => s + r.duration);
     final maxSpeed = dayRecords.isEmpty
         ? 0.0
-        : dayRecords.map((r) => r.maxSpeed)
-        .reduce((a, b) => a > b ? a : b);
+        : dayRecords.map((r) => r.maxSpeed).reduce((a, b) => a > b ? a : b);
     final avgSpeed = dayRecords.isEmpty
         ? 0.0
-        : dayRecords.fold(0.0, (s, r) => s + r.avgSpeed) /
-        dayRecords.length;
+        : dayRecords.fold(0.0, (s, r) => s + r.avgSpeed) / dayRecords.length;
+
+    final isToday = _selectedDate.day == DateTime.now().day &&
+        _selectedDate.month == DateTime.now().month &&
+        _selectedDate.year == DateTime.now().year;
 
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: bgColor,
       body: SafeArea(
-        bottom: true,  // 하단 시스템 네비 영역 확보
+        bottom: true,
         child: Column(
           children: [
             // 날짜 선택 영역
             Container(
-              color: Colors.grey[900],
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 16, vertical: 12),
+              color: cardColor,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: Row(
                 children: [
-                  // 이전 날짜
                   GestureDetector(
                     onTap: () {
                       setState(() {
-                        _selectedDate = _selectedDate
-                            .subtract(const Duration(days: 1));
+                        _selectedDate = _selectedDate.subtract(const Duration(days: 1));
                       });
                     },
                     child: Container(
                       width: 32,
                       height: 32,
                       decoration: BoxDecoration(
-                        color: Colors.grey[800],
+                        color: navBtnColor,
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Icon(
-                        Icons.chevron_left,
-                        color: Colors.white,
-                        size: 20,
-                      ),
+                      child: Icon(Icons.chevron_left, color: textColor, size: 20),
                     ),
                   ),
 
                   const SizedBox(width: 8),
 
-                  // 날짜 텍스트
                   Expanded(
                     child: Text(
                       '${_selectedDate.year}년 '
                           '${_selectedDate.month}월 '
                           '${_selectedDate.day}일',
                       textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        color: Colors.white,
+                      style: TextStyle(
+                        color: textColor,
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
@@ -469,36 +478,24 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> with Automati
 
                   const SizedBox(width: 8),
 
-                  // 다음 날짜 (오늘 이후는 비활성화)
                   GestureDetector(
-                    onTap: _selectedDate.day == DateTime.now().day &&
-                        _selectedDate.month == DateTime.now().month &&
-                        _selectedDate.year == DateTime.now().year
+                    onTap: isToday
                         ? null
                         : () {
                       setState(() {
-                        _selectedDate = _selectedDate
-                            .add(const Duration(days: 1));
+                        _selectedDate = _selectedDate.add(const Duration(days: 1));
                       });
                     },
                     child: Container(
                       width: 32,
                       height: 32,
                       decoration: BoxDecoration(
-                        color: _selectedDate.day == DateTime.now().day &&
-                            _selectedDate.month == DateTime.now().month &&
-                            _selectedDate.year == DateTime.now().year
-                            ? Colors.grey[850]
-                            : Colors.grey[800],
+                        color: isToday ? navBtnDisabledColor : navBtnColor,
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Icon(
                         Icons.chevron_right,
-                        color: _selectedDate.day == DateTime.now().day &&
-                            _selectedDate.month == DateTime.now().month &&
-                            _selectedDate.year == DateTime.now().year
-                            ? Colors.grey[700]
-                            : Colors.white,
+                        color: isToday ? subTextColor : textColor,
                         size: 20,
                       ),
                     ),
@@ -506,25 +503,19 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> with Automati
 
                   const SizedBox(width: 8),
 
-                  // 셀렉트 버튼
                   GestureDetector(
                     onTap: _showSelectPicker,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 8),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       decoration: BoxDecoration(
-                        color: Colors.grey[800],
+                        color: navBtnColor,
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Row(
+                      child: Row(
                         children: [
-                          Icon(Icons.list,
-                              color: Colors.white, size: 16),
-                          SizedBox(width: 4),
-                          Text('선택',
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 13)),
+                          Icon(Icons.list, color: textColor, size: 16),
+                          const SizedBox(width: 4),
+                          Text('선택', style: TextStyle(color: textColor, fontSize: 13)),
                         ],
                       ),
                     ),
@@ -532,25 +523,19 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> with Automati
 
                   const SizedBox(width: 8),
 
-                  // 달력 버튼
                   GestureDetector(
                     onTap: _pickDateFromCalendar,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 8),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       decoration: BoxDecoration(
-                        color: Colors.grey[800],
+                        color: navBtnColor,
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Row(
+                      child: Row(
                         children: [
-                          Icon(Icons.calendar_today,
-                              color: Colors.white, size: 16),
-                          SizedBox(width: 4),
-                          Text('달력',
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 13)),
+                          Icon(Icons.calendar_today, color: textColor, size: 16),
+                          const SizedBox(width: 4),
+                          Text('달력', style: TextStyle(color: textColor, fontSize: 13)),
                         ],
                       ),
                     ),
@@ -567,25 +552,33 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> with Automati
                 decoration: BoxDecoration(
                   color: Colors.blue.withOpacity(0.15),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                      color: Colors.blue.withOpacity(0.4)),
+                  border: Border.all(color: Colors.blue.withOpacity(0.4)),
                 ),
-                child: Row(
-                  mainAxisAlignment:
-                  MainAxisAlignment.spaceAround,
+                child: Column(
                   children: [
-                    _summaryItem('총 거리',
-                        '${formatDistance(totalDistance, useKmh)} ${distanceUnit(useKmh)}'),
-                    _summaryItem('총 시간',
-                        formatDuration(totalDuration)),
-                    _summaryItem('최고속도',
-                        '${formatSpeed(maxSpeed, useKmh)} ${speedUnit(useKmh)}'),
-                    if (weightKg != null)
-                      _summaryItem('칼로리',
-                          '${formatNumber(calcCalories(totalDistance, weightKg)!)} kcal')
-                    else
-                      _summaryItem('평균속도',
-                          '${formatSpeed(avgSpeed, useKmh)} ${speedUnit(useKmh)}'),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        _summaryItem('총 거리',
+                            '${formatDistance(totalDistance, useKmh)} ${distanceUnit(useKmh)}',
+                            textColor),
+                        _summaryItem('총 시간', formatDuration(totalDuration), textColor),
+                        _summaryItem('최고속도',
+                            '${formatSpeed(maxSpeed, useKmh)} ${speedUnit(useKmh)}',
+                            textColor),
+                        _summaryItem('평균속도',
+                            '${formatSpeed(avgSpeed, useKmh)} ${speedUnit(useKmh)}',
+                            textColor),
+                      ],
+                    ),
+                    if (weightKg != null) ...[
+                      const SizedBox(height: 10),
+                      Divider(color: Colors.blue.withOpacity(0.3), height: 1),
+                      const SizedBox(height: 10),
+                      _summaryItem('총 칼로리',
+                          '${formatNumber(calcCalories(totalDistance, weightKg)!)} kcal',
+                          textColor),
+                    ],
                   ],
                 ),
               ),
@@ -593,83 +586,63 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> with Automati
             // 기록 목록
             Expanded(
               child: dayRecords.isEmpty
-                  ? const Center(
+                  ? Center(
                 child: Text(
                   '해당 날짜에 주행기록이 없어요',
-                  style: TextStyle(
-                      color: Colors.grey, fontSize: 16),
+                  style: TextStyle(color: subTextColor, fontSize: 16),
                 ),
               )
                   : ListView.builder(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 16),
+                padding: const EdgeInsets.symmetric(horizontal: 16),
                 itemCount: dayRecords.length,
                 itemBuilder: (context, index) {
                   final record = dayRecords[index];
                   final bestIds = context.read<RideProvider>().bestRecordIds;
-                  final time =
-                  DateTime.fromMillisecondsSinceEpoch(
-                      record.createdAt);
+                  final time = DateTime.fromMillisecondsSinceEpoch(record.createdAt);
                   final timeStr =
                       '${time.hour.toString().padLeft(2, '0')}:'
                       '${time.minute.toString().padLeft(2, '0')}';
 
                   return GestureDetector(
-                    onTap: () => _showRecordDetail(
-                        context, record, useKmh, weightKg),
+                    onTap: () => _showRecordDetail(context, record, useKmh, weightKg, isDark),
                     child: Container(
-                      margin: const EdgeInsets.only(
-                          bottom: 12),
+                      margin: const EdgeInsets.only(bottom: 12),
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.grey[900],
-                        borderRadius:
-                        BorderRadius.circular(12),
+                        color: cardColor,
+                        borderRadius: BorderRadius.circular(12),
                       ),
                       child: Column(
-                        crossAxisAlignment:
-                        CrossAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
-                            mainAxisAlignment:
-                            MainAxisAlignment
-                                .spaceBetween,
-                            children: [
-                              Text(
-                                '$timeStr 출발',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 15,
-                                  fontWeight:
-                                  FontWeight.bold,
-                                ),
-                              ),
-                            ],
+                          Text(
+                            '$timeStr 출발',
+                            style: TextStyle(
+                              color: textColor,
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                           const SizedBox(height: 6),
-                          RecordBadges(
-                            recordId: record.id,
-                            bestIds: bestIds,
-                          ),
+                          RecordBadges(recordId: record.id, bestIds: bestIds),
                           const SizedBox(height: 12),
                           Row(
-                            mainAxisAlignment:
-                            MainAxisAlignment
-                                .spaceAround,
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
                             children: [
                               _statItem('거리',
-                                  '${formatDistance(record.totalDistance, useKmh)} ${distanceUnit(useKmh)}'),
-                              _statItem('시간',
-                                  formatDuration(record.duration)),
+                                  '${formatDistance(record.totalDistance, useKmh)} ${distanceUnit(useKmh)}',
+                                  textColor),
+                              _statItem('시간', formatDuration(record.duration), textColor),
                               _statItem('최고속도',
-                                  '${formatSpeed(record.maxSpeed, useKmh)} ${speedUnit(useKmh)}'),
+                                  '${formatSpeed(record.maxSpeed, useKmh)} ${speedUnit(useKmh)}',
+                                  textColor),
                               _statItem('평균속도',
-                                  '${formatSpeed(record.avgSpeed, useKmh)} ${speedUnit(useKmh)}'),
+                                  '${formatSpeed(record.avgSpeed, useKmh)} ${speedUnit(useKmh)}',
+                                  textColor),
                             ],
                           ),
                           if (weightKg != null ||
-                              (record.memo != null &&
-                                  record.memo!.isNotEmpty)) ...[
+                              (record.memo != null && record.memo!.isNotEmpty)) ...[
                             const SizedBox(height: 8),
                             Row(
                               children: [
@@ -677,20 +650,18 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> with Automati
                                   Text(
                                     '🔥 ${formatNumber(calcCalories(record.totalDistance, weightKg)!)} kcal',
                                     style: const TextStyle(
-                                        color: Colors.orange,
-                                        fontSize: 12),
+                                        color: Colors.orange, fontSize: 12),
                                   ),
                                 if (weightKg != null &&
                                     record.memo != null &&
                                     record.memo!.isNotEmpty)
                                   const SizedBox(width: 12),
-                                if (record.memo != null &&
-                                    record.memo!.isNotEmpty)
+                                if (record.memo != null && record.memo!.isNotEmpty)
                                   Expanded(
                                     child: Text(
                                       '📝 ${record.memo}',
                                       style: TextStyle(
-                                          color: Colors.grey[400],
+                                          color: isDark ? Colors.grey[400]! : Colors.grey[600]!,
                                           fontSize: 12),
                                       overflow: TextOverflow.ellipsis,
                                     ),
@@ -712,7 +683,7 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> with Automati
   }
 
   void _showRecordDetail(BuildContext context, RideRecord record,
-      bool useKmh, double? weightKg) {
+      bool useKmh, double? weightKg, bool isDark) {
     final ride = context.read<RideProvider>();
     final int? calories = calcCalories(record.totalDistance, weightKg);
     final ctrl = TextEditingController(text: record.memo ?? '');
@@ -720,15 +691,18 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> with Automati
     final timeStr = '${time.hour.toString().padLeft(2, '0')}:'
         '${time.minute.toString().padLeft(2, '0')}';
 
+    final dialogBg = isDark ? const Color(0xFF1e1e1e) : Colors.white;
+    final memoBoxColor = isDark ? Colors.grey[900]! : Colors.grey[100]!;
+    final btnBg = isDark ? Colors.grey[800]! : Colors.grey[200]!;
+    final textColor = isDark ? Colors.white : Colors.black87;
+
     showDialog(
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDialogState) => Dialog(
-          backgroundColor: const Color(0xFF1e1e1e),
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20)),
-          insetPadding:
-              const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
+          backgroundColor: dialogBg,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
           child: Padding(
             padding: const EdgeInsets.all(24),
             child: Column(
@@ -743,20 +717,18 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> with Automati
                       children: [
                         Text(
                           '${record.year}년 ${record.month}월 ${record.day}일',
-                          style: const TextStyle(
-                              color: Colors.white,
+                          style: TextStyle(
+                              color: textColor,
                               fontSize: 16,
                               fontWeight: FontWeight.bold),
                         ),
                         Text('$timeStr 출발',
-                            style: const TextStyle(
-                                color: Colors.grey, fontSize: 13)),
+                            style: const TextStyle(color: Colors.grey, fontSize: 13)),
                       ],
                     ),
                     GestureDetector(
                       onTap: () => Navigator.pop(ctx),
-                      child: const Icon(Icons.close,
-                          color: Colors.grey, size: 22),
+                      child: const Icon(Icons.close, color: Colors.grey, size: 22),
                     ),
                   ],
                 ),
@@ -766,26 +738,31 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> with Automati
                   decoration: BoxDecoration(
                     color: Colors.blue.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                        color: Colors.blue.withOpacity(0.3)),
+                    border: Border.all(color: Colors.blue.withOpacity(0.3)),
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  child: Column(
                     children: [
-                      _detailStat('거리',
-                          '${formatDistance(record.totalDistance, useKmh)}',
-                          distanceUnit(useKmh)),
-                      _detailStat(
-                          '시간', formatDuration(record.duration), ''),
-                      _detailStat('최고속도',
-                          '${formatSpeed(record.maxSpeed, useKmh)}',
-                          speedUnit(useKmh)),
-                      if (calories != null)
-                        _detailStat('칼로리', formatNumber(calories), 'kcal')
-                      else
-                        _detailStat('평균속도',
-                            '${formatSpeed(record.avgSpeed, useKmh)}',
-                            speedUnit(useKmh)),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          _detailStat('거리',
+                              '${formatDistance(record.totalDistance, useKmh)}',
+                              distanceUnit(useKmh), textColor),
+                          _detailStat('시간', formatDuration(record.duration), '', textColor),
+                          _detailStat('최고속도',
+                              '${formatSpeed(record.maxSpeed, useKmh)}',
+                              speedUnit(useKmh), textColor),
+                          _detailStat('평균속도',
+                              '${formatSpeed(record.avgSpeed, useKmh)}',
+                              speedUnit(useKmh), textColor),
+                        ],
+                      ),
+                      if (calories != null) ...[
+                        const SizedBox(height: 10),
+                        Divider(color: Colors.blue.withOpacity(0.3), height: 1),
+                        const SizedBox(height: 10),
+                        _detailStat('칼로리', formatNumber(calories), 'kcal', textColor),
+                      ],
                     ],
                   ),
                 ),
@@ -799,12 +776,11 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> with Automati
                       backgroundColor: Colors.transparent,
                       builder: (bsCtx) => Padding(
                         padding: EdgeInsets.only(
-                            bottom:
-                                MediaQuery.of(bsCtx).viewInsets.bottom),
+                            bottom: MediaQuery.of(bsCtx).viewInsets.bottom),
                         child: Container(
-                          decoration: const BoxDecoration(
-                            color: Color(0xFF1e1e1e),
-                            borderRadius: BorderRadius.vertical(
+                          decoration: BoxDecoration(
+                            color: dialogBg,
+                            borderRadius: const BorderRadius.vertical(
                                 top: Radius.circular(20)),
                           ),
                           padding: const EdgeInsets.all(24),
@@ -812,9 +788,9 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> with Automati
                             mainAxisSize: MainAxisSize.min,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text('메모',
+                              Text('메모',
                                   style: TextStyle(
-                                      color: Colors.white,
+                                      color: textColor,
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold)),
                               const SizedBox(height: 12),
@@ -824,18 +800,15 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> with Automati
                                 maxLength: 80,
                                 maxLines: 5,
                                 minLines: 3,
-                                style: const TextStyle(
-                                    color: Colors.white, fontSize: 14),
+                                style: TextStyle(color: textColor, fontSize: 14),
                                 decoration: InputDecoration(
                                   hintText: '메모를 남겨보세요',
                                   hintStyle: TextStyle(
-                                      color: Colors.grey[600],
-                                      fontSize: 14),
+                                      color: Colors.grey[600], fontSize: 14),
                                   filled: true,
-                                  fillColor: Colors.grey[900],
+                                  fillColor: memoBoxColor,
                                   border: OutlineInputBorder(
-                                    borderRadius:
-                                        BorderRadius.circular(10),
+                                    borderRadius: BorderRadius.circular(10),
                                     borderSide: BorderSide.none,
                                   ),
                                   counterStyle: const TextStyle(
@@ -848,12 +821,9 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> with Automati
                                 child: ElevatedButton(
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: Colors.blue,
-                                    padding:
-                                        const EdgeInsets.symmetric(
-                                            vertical: 14),
+                                    padding: const EdgeInsets.symmetric(vertical: 14),
                                     shape: RoundedRectangleBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(12)),
+                                        borderRadius: BorderRadius.circular(12)),
                                   ),
                                   onPressed: () {
                                     ctrl.text = bsCtrl.text;
@@ -873,8 +843,7 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> with Automati
                     );
                     if (ctx.mounted) {
                       if (record.id != null) {
-                        await ride.updateMemo(
-                            record.id!, ctrl.text.trim());
+                        await ride.updateMemo(record.id!, ctrl.text.trim());
                       }
                       setDialogState(() {});
                     }
@@ -884,16 +853,14 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> with Automati
                     constraints: const BoxConstraints(minHeight: 60),
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Colors.grey[900],
+                      color: memoBoxColor,
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: ctrl.text.isEmpty
                         ? Text('메모를 남겨보세요 (탭하여 입력)',
-                            style: TextStyle(
-                                color: Colors.grey[600], fontSize: 13))
+                            style: TextStyle(color: Colors.grey[600], fontSize: 13))
                         : Text(ctrl.text,
-                            style: const TextStyle(
-                                color: Colors.white, fontSize: 13)),
+                            style: TextStyle(color: textColor, fontSize: 13)),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -901,9 +868,8 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> with Automati
                   width: double.infinity,
                   child: ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.grey[800],
-                      padding:
-                          const EdgeInsets.symmetric(vertical: 14),
+                      backgroundColor: btnBg,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12)),
                     ),
@@ -912,15 +878,13 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> with Automati
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (_) =>
-                                HistoryDetailMapScreen(record: record)),
+                            builder: (_) => HistoryDetailMapScreen(record: record)),
                       );
                     },
-                    icon: const Icon(Icons.map_outlined,
-                        color: Colors.white, size: 18),
-                    label: const Text('경로 보기',
+                    icon: Icon(Icons.map_outlined, color: textColor, size: 18),
+                    label: Text('경로 보기',
                         style: TextStyle(
-                            color: Colors.white,
+                            color: textColor,
                             fontSize: 15,
                             fontWeight: FontWeight.bold)),
                   ),
@@ -933,62 +897,50 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> with Automati
     );
   }
 
-  Widget _detailStat(String label, String value, String unit) {
+  Widget _detailStat(String label, String value, String unit, Color textColor) {
     return Column(
       children: [
         Text(value,
-            style: const TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.bold)),
+            style: TextStyle(
+                color: textColor, fontSize: 16, fontWeight: FontWeight.bold)),
         if (unit.isNotEmpty)
-          Text(unit,
-              style: const TextStyle(color: Colors.blue, fontSize: 11)),
+          Text(unit, style: const TextStyle(color: Colors.blue, fontSize: 11)),
         const SizedBox(height: 4),
-        Text(label,
-            style: const TextStyle(color: Colors.grey, fontSize: 11)),
+        Text(label, style: const TextStyle(color: Colors.grey, fontSize: 11)),
       ],
     );
   }
 
-  Widget _summaryItem(String label, String value) {
+  Widget _summaryItem(String label, String value, Color textColor) {
     return Column(
       children: [
         Text(
           value,
-          style: const TextStyle(
-            color: Colors.white,
+          style: TextStyle(
+            color: textColor,
             fontSize: 13,
             fontWeight: FontWeight.bold,
           ),
         ),
         const SizedBox(height: 4),
-        Text(
-          label,
-          style: const TextStyle(
-              color: Colors.blue, fontSize: 11),
-        ),
+        Text(label, style: const TextStyle(color: Colors.blue, fontSize: 11)),
       ],
     );
   }
 
-  Widget _statItem(String label, String value) {
+  Widget _statItem(String label, String value, Color textColor) {
     return Column(
       children: [
         Text(
           value,
-          style: const TextStyle(
-            color: Colors.white,
+          style: TextStyle(
+            color: textColor,
             fontSize: 13,
             fontWeight: FontWeight.bold,
           ),
         ),
         const SizedBox(height: 4),
-        Text(
-          label,
-          style: const TextStyle(
-              color: Colors.grey, fontSize: 11),
-        ),
+        Text(label, style: const TextStyle(color: Colors.grey, fontSize: 11)),
       ],
     );
   }

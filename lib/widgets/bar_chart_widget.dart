@@ -1,5 +1,7 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
+import '../providers/settings_provider.dart';
 import '../utils/format_utils.dart';
 
 enum ChartDataType { distance, duration, maxSpeed, avgSpeed }
@@ -49,13 +51,12 @@ class _BarChartWidgetState extends State<BarChartWidget>
 
   late AnimationController _animationController;
   late Animation<double> _animation;
-  double _prevMaxValue = 1.0; // 추가
+  double _prevMaxValue = 1.0;
 
   @override
   void initState() {
     super.initState();
 
-    // 애니메이션 추가
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 350),
       vsync: this,
@@ -114,7 +115,6 @@ class _BarChartWidgetState extends State<BarChartWidget>
     if (start != _visibleStart ||
         end != _visibleEnd ||
         newMaxVal != _visibleMaxValue) {
-      // 최대값 바뀔 때만 애니메이션
       if (newMaxVal != _visibleMaxValue) {
         _prevMaxValue = _visibleMaxValue;
         _animationController.forward(from: 0);
@@ -157,22 +157,26 @@ class _BarChartWidgetState extends State<BarChartWidget>
 
   @override
   Widget build(BuildContext context) {
+    final isDark = context.watch<SettingsProvider>().appTheme == 'dark';
     return Column(
       children: [
-        // 데이터 선택 버튼
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Row(
             children: [
-              Expanded(child: _typeButton('거리', ChartDataType.distance)),
+              Expanded(child: _typeButton('거리', ChartDataType.distance, isDark)),
               const SizedBox(width: 5),
-              Expanded(child: _typeButton('시간', ChartDataType.duration)),
+              Expanded(child: _typeButton('시간', ChartDataType.duration, isDark)),
               const SizedBox(width: 5),
-              Expanded(child: _typeButton('최고속도', ChartDataType.maxSpeed)),
+              Expanded(child: _typeButton('최고속도', ChartDataType.maxSpeed, isDark)),
               const SizedBox(width: 5),
-              Expanded(child: _typeButton('평균속도', ChartDataType.avgSpeed)),
+              Expanded(child: _typeButton('평균속도', ChartDataType.avgSpeed, isDark)),
               const SizedBox(width: 8),
-              Container(width: 1, height: 26, color: Colors.grey[800]),
+              Container(
+                width: 1,
+                height: 26,
+                color: isDark ? Colors.grey[800] : Colors.grey[300],
+              ),
               const SizedBox(width: 8),
               GestureDetector(
                 onTap: () => setState(() => _showAverage = !_showAverage),
@@ -181,16 +185,20 @@ class _BarChartWidgetState extends State<BarChartWidget>
                   decoration: BoxDecoration(
                     color: _showAverage
                         ? Colors.orange.withOpacity(0.15)
-                        : Colors.grey[850],
+                        : (isDark ? Colors.grey[850]! : Colors.grey[200]!),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: _showAverage ? Colors.orange : Colors.grey[700]!,
+                      color: _showAverage
+                          ? Colors.orange
+                          : (isDark ? Colors.grey[700]! : Colors.grey[400]!),
                     ),
                   ),
                   child: Text(
                     '평균',
                     style: TextStyle(
-                      color: _showAverage ? Colors.orange : Colors.grey,
+                      color: _showAverage
+                          ? Colors.orange
+                          : (isDark ? Colors.grey : Colors.grey[600]!),
                       fontSize: 12,
                       fontWeight: _showAverage ? FontWeight.bold : FontWeight.normal,
                     ),
@@ -201,22 +209,24 @@ class _BarChartWidgetState extends State<BarChartWidget>
           ),
         ),
 
-        // 그래프
         Expanded(
           child: _currentData.isEmpty
-              ? const Center(
+              ? Center(
                   child: Text(
                     '아직 주행기록이 없어요',
-                    style: TextStyle(color: Colors.grey, fontSize: 16),
+                    style: TextStyle(
+                      color: isDark ? Colors.grey : Colors.grey[600],
+                      fontSize: 16,
+                    ),
                   ),
                 )
-              : _buildChart(),
+              : _buildChart(isDark),
         ),
       ],
     );
   }
 
-  Widget _typeButton(String label, ChartDataType type) {
+  Widget _typeButton(String label, ChartDataType type, bool isDark) {
     final isSelected = _selectedType == type;
     return GestureDetector(
       onTap: () {
@@ -235,16 +245,22 @@ class _BarChartWidgetState extends State<BarChartWidget>
         height: 34,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: isSelected ? Colors.blue : Colors.grey[900],
+          color: isSelected
+              ? Colors.blue
+              : (isDark ? Colors.grey[900]! : Colors.grey[200]!),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? Colors.blue : Colors.grey[700]!,
+            color: isSelected
+                ? Colors.blue
+                : (isDark ? Colors.grey[700]! : Colors.grey[400]!),
           ),
         ),
         child: Text(
           label,
           style: TextStyle(
-            color: isSelected ? Colors.white : Colors.grey,
+            color: isSelected
+                ? Colors.white
+                : (isDark ? Colors.grey : Colors.grey[600]!),
             fontSize: 12,
             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
           ),
@@ -253,14 +269,13 @@ class _BarChartWidgetState extends State<BarChartWidget>
     );
   }
 
-  Widget _buildChart() {
+  Widget _buildChart(bool isDark) {
     final data = _currentData;
     final totalWidth = (barWidth + barSpacing) * data.length;
 
     return GestureDetector(
       onHorizontalDragUpdate: (_) {},
       onTapUp: (details) {
-        // 탭한 위치로 인덱스 계산
         final scrollOffset = _scrollController.hasClients
             ? _scrollController.offset
             : 0.0;
@@ -287,10 +302,8 @@ class _BarChartWidgetState extends State<BarChartWidget>
             width: totalWidth,
             height: totalHeight,
             child: AnimatedBuilder(
-              // 추가
               animation: _animation,
               builder: (context, _) {
-                // 이전값 → 현재값 보간
                 final animatedMax =
                     _prevMaxValue +
                     (_visibleMaxValue - _prevMaxValue) * _animation.value;
@@ -310,6 +323,7 @@ class _BarChartWidgetState extends State<BarChartWidget>
                     formatValue: _formatValue,
                     selectedIndex: widget.selectedIndex,
                     showAverage: _showAverage,
+                    isDark: isDark,
                   ),
                 );
               },
@@ -335,6 +349,7 @@ class BarChartPainter extends CustomPainter {
   final String Function(double) formatValue;
   final int selectedIndex;
   final bool showAverage;
+  final bool isDark;
 
   BarChartPainter({
     required this.data,
@@ -350,22 +365,21 @@ class BarChartPainter extends CustomPainter {
     required this.formatValue,
     this.selectedIndex = -1,
     this.showAverage = false,
+    this.isDark = true,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
     final linePaint = Paint()
-      ..color = Colors.grey[700]!
+      ..color = isDark ? Colors.grey[700]! : Colors.grey[400]!
       ..strokeWidth = 1;
 
-    // 보이는 범위만 그리기
     final renderStart = (visibleStart - 5).clamp(0, data.length - 1);
     final renderEnd = (visibleEnd + 5).clamp(0, data.length - 1);
 
     for (int i = renderStart; i <= renderEnd; i++) {
       final isSelected = i == selectedIndex;
 
-      // 막대 색상 — 선택 여부에 따라 변경
       final barPaint = Paint()
         ..color = isSelected ? const Color(0xFF64D4FF) : Colors.blue;
 
@@ -382,24 +396,19 @@ class BarChartPainter extends CustomPainter {
       );
       canvas.drawRRect(barRect, barPaint);
 
-      // 값 텍스트 색상도 변경
+      final valueTextColor = isDark ? Colors.white : Colors.black87;
       final valuePainterStyle = TextStyle(
-        color: isSelected ? Colors.white : Colors.white,
+        color: valueTextColor,
         fontSize: 9,
         fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
       );
 
-      // 라벨 색상 변경
       final labelPainterStyle = TextStyle(
-        color: isSelected
-            ? Colors
-                  .blue // 선택된 라벨은 파란색
-            : const Color(0xFF9E9E9E),
-        fontSize: isSelected ? 11 : 10, // 선택된 라벨은 살짝 크게
+        color: isSelected ? Colors.blue : const Color(0xFF9E9E9E),
+        fontSize: isSelected ? 11 : 10,
         fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
       );
 
-      // 값 텍스트
       final valueText = TextPainter(
         text: TextSpan(text: formatValue(value), style: valuePainterStyle),
         textDirection: TextDirection.ltr,
@@ -414,7 +423,6 @@ class BarChartPainter extends CustomPainter {
         ),
       );
 
-      // 라벨 텍스트
       final labelText = TextPainter(
         text: TextSpan(text: labels[i], style: labelPainterStyle),
         textDirection: TextDirection.ltr,
@@ -430,7 +438,7 @@ class BarChartPainter extends CustomPainter {
         ),
       );
     }
-    // 평균선 그리기
+
     if (showAverage && data.isNotEmpty) {
       final avg = data.reduce((a, b) => a + b) / data.length;
       final avgRatio = maxValue > 0 ? (avg / maxValue).clamp(0.0, 1.0) : 0.0;
@@ -441,7 +449,6 @@ class BarChartPainter extends CustomPainter {
         ..strokeWidth = 1.5
         ..style = PaintingStyle.stroke;
 
-      // 점선으로 그리기
       double x = 0;
       const dashWidth = 8.0;
       const dashSpace = 4.0;
@@ -450,7 +457,6 @@ class BarChartPainter extends CustomPainter {
         x += dashWidth + dashSpace;
       }
 
-      // 평균 라벨
       final avgText = TextPainter(
         text: TextSpan(
           text: '평균 ${formatValue(avg)}',
@@ -478,7 +484,10 @@ class BarChartPainter extends CustomPainter {
       );
       canvas.drawRRect(
         bgRect,
-        Paint()..color = const Color(0xCC1a1a1a),
+        Paint()
+          ..color = isDark
+              ? const Color(0xCC1a1a1a)
+              : const Color(0xCCFFFFFF),
       );
       avgText.paint(
         canvas,
@@ -486,7 +495,6 @@ class BarChartPainter extends CustomPainter {
       );
     }
 
-    // 구분선
     canvas.drawLine(
       Offset(0, valueHeight + chartHeight),
       Offset(size.width, valueHeight + chartHeight),
@@ -501,6 +509,7 @@ class BarChartPainter extends CustomPainter {
         oldDelegate.visibleEnd != visibleEnd ||
         oldDelegate.data != data ||
         oldDelegate.selectedIndex != selectedIndex ||
-        oldDelegate.showAverage != showAverage;
+        oldDelegate.showAverage != showAverage ||
+        oldDelegate.isDark != isDark;
   }
 }

@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../models/ride_record.dart';
@@ -23,9 +23,8 @@ class _HistoryMonthlyScreenState extends State<HistoryMonthlyScreen>
   int _selectedIndex = -1;
   bool _showHeatmap = true;
 
-  // 히트맵 색상 계산
-  Color _heatmapColor(double value, double maxValue) {
-    if (value <= 0) return Colors.grey[850]!;
+  Color _heatmapColor(double value, double maxValue, bool isDark) {
+    if (value <= 0) return isDark ? Colors.grey[850]! : Colors.grey[200]!;
     final ratio = (value / maxValue).clamp(0.0, 1.0);
     return Color.lerp(
       Colors.blue.withOpacity(0.2),
@@ -38,12 +37,19 @@ class _HistoryMonthlyScreenState extends State<HistoryMonthlyScreen>
   Widget build(BuildContext context) {
     super.build(context);
     final records = context.watch<RideProvider>().records;
-    final useKmh = context.watch<SettingsProvider>().useKmh;
+    final settings = context.watch<SettingsProvider>();
+    final useKmh = settings.useKmh;
+    final isDark = settings.appTheme == 'dark';
+
+    final cardColor = isDark ? const Color(0xFF1e1e1e) : Colors.white;
+    final panelColor = isDark ? Colors.grey[950]! : const Color(0xFFEEF0F3);
+    final textColor = isDark ? Colors.white : Colors.black87;
+    final dividerColor = isDark ? Colors.grey[800]! : Colors.grey[300]!;
+    final borderColor = isDark ? Colors.grey[800]! : Colors.grey[300]!;
 
     final Map<String, List<RideRecord>> grouped = {};
     for (final r in records) {
-      final key =
-          '${r.year}-${r.month.toString().padLeft(2, '0')}';
+      final key = '${r.year}-${r.month.toString().padLeft(2, '0')}';
       grouped.putIfAbsent(key, () => []).add(r);
     }
     final keys = grouped.keys.toList()..sort();
@@ -78,23 +84,17 @@ class _HistoryMonthlyScreenState extends State<HistoryMonthlyScreen>
       selectedLabel = '${selectedYear}년 ${selectedMonth}월';
     }
 
-    final totalDistance = selectedRecords.fold(
-        0.0, (s, r) => s + r.totalDistance);
-    final totalDuration = selectedRecords.fold(
-        0, (s, r) => s + r.duration);
+    final totalDistance = selectedRecords.fold(0.0, (s, r) => s + r.totalDistance);
+    final totalDuration = selectedRecords.fold(0, (s, r) => s + r.duration);
     final maxSpeed = selectedRecords.isEmpty ? 0.0
-        : selectedRecords.map((r) => r.maxSpeed)
-        .reduce((a, b) => a > b ? a : b);
+        : selectedRecords.map((r) => r.maxSpeed).reduce((a, b) => a > b ? a : b);
     final avgSpeed = selectedRecords.isEmpty ? 0.0
-        : selectedRecords.fold(0.0, (s, r) => s + r.avgSpeed) /
-        selectedRecords.length;
+        : selectedRecords.fold(0.0, (s, r) => s + r.avgSpeed) / selectedRecords.length;
 
-    // 히트맵 데이터 — 일별 거리
     Map<int, double> dailyDistance = {};
     if (selectedYear > 0) {
       for (final r in selectedRecords) {
-        dailyDistance[r.day] =
-            (dailyDistance[r.day] ?? 0) + r.totalDistance;
+        dailyDistance[r.day] = (dailyDistance[r.day] ?? 0) + r.totalDistance;
       }
     }
     final maxDailyDist = dailyDistance.values.isEmpty
@@ -103,7 +103,6 @@ class _HistoryMonthlyScreenState extends State<HistoryMonthlyScreen>
 
     return Column(
       children: [
-        // 그래프
         SizedBox(
           height: 300,
           child: BarChartWidget(
@@ -128,15 +127,15 @@ class _HistoryMonthlyScreenState extends State<HistoryMonthlyScreen>
           ),
         ),
 
-        Container(height: 1, color: Colors.grey[800]),
+        Container(height: 1, color: dividerColor),
 
         if (_selectedIndex < 0)
-          const Padding(
-            padding: EdgeInsets.all(24),
+          Padding(
+            padding: const EdgeInsets.all(24),
             child: Text(
               '막대를 탭하면 상세 정보를 볼 수 있어요',
               style: TextStyle(
-                  color: Colors.grey, fontSize: 14),
+                  color: isDark ? Colors.grey : Colors.grey[600], fontSize: 14),
               textAlign: TextAlign.center,
             ),
           ),
@@ -158,45 +157,36 @@ class _HistoryMonthlyScreenState extends State<HistoryMonthlyScreen>
                   ),
                   const SizedBox(height: 12),
 
-                  // 요약 카드
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       color: Colors.blue.withOpacity(0.15),
-                      borderRadius:
-                      BorderRadius.circular(12),
-                      border: Border.all(
-                          color: Colors.blue
-                              .withOpacity(0.4)),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.blue.withOpacity(0.4)),
                     ),
                     child: Column(
                       children: [
                         Row(
-                          mainAxisAlignment:
-                          MainAxisAlignment
-                              .spaceAround,
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
                           children: [
                             _statItem('총 거리',
                                 '${formatDistance(totalDistance, useKmh)} ${distanceUnit(useKmh)}',
-                                isBlue: true),
+                                isBlue: true, textColor: textColor),
                             _statItem('총 시간',
-                                formatDuration(
-                                    totalDuration),
-                                isBlue: true),
+                                formatDuration(totalDuration),
+                                isBlue: true, textColor: textColor),
                             _statItem('최고속도',
                                 '${formatSpeed(maxSpeed, useKmh)} ${speedUnit(useKmh)}',
-                                isBlue: true),
+                                isBlue: true, textColor: textColor),
                             _statItem('평균속도',
                                 '${formatSpeed(avgSpeed, useKmh)} ${speedUnit(useKmh)}',
-                                isBlue: true),
+                                isBlue: true, textColor: textColor),
                           ],
                         ),
                         const SizedBox(height: 8),
                         Text(
                           '총 ${formatNumber(selectedRecords.length)}회 주행',
-                          style: const TextStyle(
-                              color: Colors.blue,
-                              fontSize: 12),
+                          style: const TextStyle(color: Colors.blue, fontSize: 12),
                         ),
                       ],
                     ),
@@ -206,40 +196,29 @@ class _HistoryMonthlyScreenState extends State<HistoryMonthlyScreen>
 
                   // 히트맵
                   Container(
-                    color: Colors.grey[950],
+                    color: panelColor,
                     padding: const EdgeInsets.all(12),
                     child: Column(
-                      crossAxisAlignment:
-                      CrossAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         GestureDetector(
-                          onTap: () => setState(() =>
-                          _showHeatmap =
-                          !_showHeatmap),
+                          onTap: () => setState(() => _showHeatmap = !_showHeatmap),
                           child: Row(
-                            mainAxisAlignment:
-                            MainAxisAlignment
-                                .spaceBetween,
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               const Text(
                                 '일별 거리 히트맵',
                                 style: TextStyle(
-                                  color: Colors
-                                      .orange,
+                                  color: Colors.orange,
                                   fontSize: 13,
-                                  fontWeight:
-                                  FontWeight
-                                      .bold,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
                               Icon(
                                 _showHeatmap
-                                    ? Icons
-                                    .keyboard_arrow_up
-                                    : Icons
-                                    .keyboard_arrow_down,
-                                color: Colors
-                                    .orange,
+                                    ? Icons.keyboard_arrow_up
+                                    : Icons.keyboard_arrow_down,
+                                color: Colors.orange,
                                 size: 20,
                               ),
                             ],
@@ -247,23 +226,18 @@ class _HistoryMonthlyScreenState extends State<HistoryMonthlyScreen>
                         ),
                         if (_showHeatmap) ...[
                           const SizedBox(height: 12),
-                          // 요일 헤더
                           Row(
-                            mainAxisAlignment:
-                            MainAxisAlignment
-                                .spaceAround,
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
                             children: ['월', '화', '수', '목', '금', '토', '일']
                                 .map((d) => SizedBox(
                               width: 36,
                               child: Text(
                                 d,
-                                textAlign:
-                                TextAlign
-                                    .center,
+                                textAlign: TextAlign.center,
                                 style: TextStyle(
                                   color: d == '토' || d == '일'
                                       ? Colors.orange
-                                      : Colors.grey,
+                                      : (isDark ? Colors.grey : Colors.grey[600]!),
                                   fontSize: 11,
                                 ),
                               ),
@@ -271,24 +245,28 @@ class _HistoryMonthlyScreenState extends State<HistoryMonthlyScreen>
                                 .toList(),
                           ),
                           const SizedBox(height: 6),
-                          // 달력 그리기
                           _buildHeatmapCalendar(
                             selectedYear,
                             selectedMonth,
                             dailyDistance,
                             maxDailyDist,
+                            isDark,
                           ),
                         ],
                       ],
                     ),
                   ),
 
-                  // 주차별 breakdown
                   _buildWeeklyBreakdown(
                     selectedYear,
                     selectedMonth,
                     selectedRecords,
                     useKmh,
+                    isDark,
+                    cardColor,
+                    panelColor,
+                    textColor,
+                    borderColor,
                   ),
                 ],
               ),
@@ -304,7 +282,7 @@ class _HistoryMonthlyScreenState extends State<HistoryMonthlyScreen>
 
     for (final r in records) {
       final day = r.day;
-      final week = ((day - 1) / 7).floor() + 1;  // 1~5주차
+      final week = ((day - 1) / 7).floor() + 1;
       weekGroups.putIfAbsent(week, () => []).add(r);
     }
 
@@ -315,8 +293,7 @@ class _HistoryMonthlyScreenState extends State<HistoryMonthlyScreen>
         'distance': list.fold(0.0, (s, r) => s + r.totalDistance),
         'duration': list.fold(0.0, (s, r) => s + r.duration),
         'maxSpeed': list.isEmpty ? 0.0
-            : list.map((r) => r.maxSpeed)
-            .reduce((a, b) => a > b ? a : b),
+            : list.map((r) => r.maxSpeed).reduce((a, b) => a > b ? a : b),
         'avgSpeed': list.isEmpty ? 0.0
             : list.fold(0.0, (s, r) => s + r.avgSpeed) / list.length,
         'count': list.length.toDouble(),
@@ -326,12 +303,11 @@ class _HistoryMonthlyScreenState extends State<HistoryMonthlyScreen>
   }
 
   Widget _buildWeeklyBreakdown(
-      int year, int month, List<RideRecord> records, bool useKmh) {
+      int year, int month, List<RideRecord> records, bool useKmh,
+      bool isDark, Color cardColor, Color panelColor, Color textColor, Color borderColor) {
     if (records.isEmpty) return const SizedBox();
 
     final weeklyStats = _getWeeklyStats(year, month, records);
-
-    // 실제 데이터 있는 주차만
     final activeWeeks = weeklyStats.entries
         .where((e) => e.value['count']! > 0)
         .toList();
@@ -339,7 +315,7 @@ class _HistoryMonthlyScreenState extends State<HistoryMonthlyScreen>
     if (activeWeeks.isEmpty) return const SizedBox();
 
     return Container(
-      color: Colors.grey[950],
+      color: panelColor,
       padding: const EdgeInsets.all(12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -366,47 +342,44 @@ class _HistoryMonthlyScreenState extends State<HistoryMonthlyScreen>
               margin: const EdgeInsets.only(bottom: 8),
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: const Color(0xFF1e1e1e),
+                color: cardColor,
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: Colors.grey[800]!),
+                border: Border.all(color: borderColor),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
-                    mainAxisAlignment:
-                    MainAxisAlignment.spaceBetween,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
                         '$week주차',
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: TextStyle(
+                          color: textColor,
                           fontSize: 13,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       Text(
                         '$count회 주행',
-                        style: const TextStyle(
-                          color: Colors.blue,
-                          fontSize: 12,
-                        ),
+                        style: const TextStyle(color: Colors.blue, fontSize: 12),
                       ),
                     ],
                   ),
                   const SizedBox(height: 8),
                   Row(
-                    mainAxisAlignment:
-                    MainAxisAlignment.spaceAround,
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
                       _statItem('거리',
-                          '${formatDistance(distance, useKmh)} ${distanceUnit(useKmh)}'),
-                      _statItem('시간',
-                          formatDuration(duration)),
+                          '${formatDistance(distance, useKmh)} ${distanceUnit(useKmh)}',
+                          textColor: textColor),
+                      _statItem('시간', formatDuration(duration), textColor: textColor),
                       _statItem('최고속도',
-                          '${formatSpeed(maxSpeed, useKmh)} ${speedUnit(useKmh)}'),
+                          '${formatSpeed(maxSpeed, useKmh)} ${speedUnit(useKmh)}',
+                          textColor: textColor),
                       _statItem('평균속도',
-                          '${formatSpeed(avgSpeed, useKmh)} ${speedUnit(useKmh)}'),
+                          '${formatSpeed(avgSpeed, useKmh)} ${speedUnit(useKmh)}',
+                          textColor: textColor),
                     ],
                   ),
                 ],
@@ -423,9 +396,9 @@ class _HistoryMonthlyScreenState extends State<HistoryMonthlyScreen>
       int month,
       Map<int, double> dailyDistance,
       double maxDist,
+      bool isDark,
       ) {
     final firstDay = DateTime(year, month, 1);
-    // 월요일 = 0 기준으로 첫째날 오프셋
     final startOffset = (firstDay.weekday - 1) % 7;
     final daysInMonth = DateUtils.getDaysInMonth(year, month);
     final totalCells = startOffset + daysInMonth;
@@ -444,7 +417,7 @@ class _HistoryMonthlyScreenState extends State<HistoryMonthlyScreen>
             }
 
             final dist = dailyDistance[day] ?? 0.0;
-            final color = _heatmapColor(dist, maxDist);
+            final color = _heatmapColor(dist, maxDist, isDark);
             final isToday = DateTime.now().year == year &&
                 DateTime.now().month == month &&
                 DateTime.now().day == day;
@@ -457,8 +430,7 @@ class _HistoryMonthlyScreenState extends State<HistoryMonthlyScreen>
                 color: color,
                 borderRadius: BorderRadius.circular(6),
                 border: isToday
-                    ? Border.all(
-                    color: Colors.orange, width: 1.5)
+                    ? Border.all(color: Colors.orange, width: 1.5)
                     : null,
               ),
               child: Column(
@@ -469,11 +441,9 @@ class _HistoryMonthlyScreenState extends State<HistoryMonthlyScreen>
                     style: TextStyle(
                       color: dist > 0
                           ? Colors.white
-                          : Colors.grey[600],
+                          : (isDark ? Colors.grey[600]! : Colors.grey[500]!),
                       fontSize: 11,
-                      fontWeight: dist > 0
-                          ? FontWeight.bold
-                          : FontWeight.normal,
+                      fontWeight: dist > 0 ? FontWeight.bold : FontWeight.normal,
                     ),
                   ),
                   if (dist > 0)
@@ -493,13 +463,14 @@ class _HistoryMonthlyScreenState extends State<HistoryMonthlyScreen>
     );
   }
 
-  Widget _statItem(String label, String value, {bool isBlue = false}) {
+  Widget _statItem(String label, String value,
+      {bool isBlue = false, required Color textColor}) {
     return Column(
       children: [
         Text(
           value,
-          style: const TextStyle(
-            color: Colors.white,
+          style: TextStyle(
+            color: textColor,
             fontSize: 13,
             fontWeight: FontWeight.bold,
           ),

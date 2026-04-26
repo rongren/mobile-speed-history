@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../models/ride_record.dart';
@@ -52,7 +52,15 @@ class _HistoryYearlyScreenState extends State<HistoryYearlyScreen>
   Widget build(BuildContext context) {
     super.build(context);
     final records = context.watch<RideProvider>().records;
-    final useKmh = context.watch<SettingsProvider>().useKmh;
+    final settings = context.watch<SettingsProvider>();
+    final useKmh = settings.useKmh;
+    final isDark = settings.appTheme == 'dark';
+
+    final cardColor = isDark ? const Color(0xFF1e1e1e) : Colors.white;
+    final panelColor = isDark ? Colors.grey[950]! : const Color(0xFFEEF0F3);
+    final textColor = isDark ? Colors.white : Colors.black87;
+    final dividerColor = isDark ? Colors.grey[800]! : Colors.grey[300]!;
+    final borderColor = isDark ? Colors.grey[800]! : Colors.grey[300]!;
 
     final Map<int, List<RideRecord>> grouped = {};
     for (final r in records) {
@@ -100,7 +108,6 @@ class _HistoryYearlyScreenState extends State<HistoryYearlyScreen>
 
     return Column(
       children: [
-        // 그래프
         SizedBox(
           height: 300,
           child: BarChartWidget(
@@ -125,15 +132,16 @@ class _HistoryYearlyScreenState extends State<HistoryYearlyScreen>
           ),
         ),
 
-        Container(height: 1, color: Colors.grey[800]),
+        Container(height: 1, color: dividerColor),
 
         if (_selectedIndex < 0)
-          const Padding(
-            padding: EdgeInsets.all(24),
+          Padding(
+            padding: const EdgeInsets.all(24),
             child: Text(
               '막대를 탭하면 상세 정보를 볼 수 있어요',
               style: TextStyle(
-                  color: Colors.grey, fontSize: 14),
+                  color: isDark ? Colors.grey : Colors.grey[600],
+                  fontSize: 14),
               textAlign: TextAlign.center,
             ),
           ),
@@ -155,45 +163,37 @@ class _HistoryYearlyScreenState extends State<HistoryYearlyScreen>
                   ),
                   const SizedBox(height: 12),
 
-                  // 요약 카드
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       color: Colors.blue.withOpacity(0.15),
-                      borderRadius:
-                      BorderRadius.circular(12),
-                      border: Border.all(
-                          color: Colors.blue
-                              .withOpacity(0.4)),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.blue.withOpacity(0.4)),
                     ),
                     child: Column(
                       children: [
                         Row(
-                          mainAxisAlignment:
-                          MainAxisAlignment
-                              .spaceAround,
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
                           children: [
                             _statItem('총 거리',
                                 '${formatDistance(totalDistance, useKmh)} ${distanceUnit(useKmh)}',
-                                isBlue: true),
+                                isBlue: true, textColor: textColor),
                             _statItem('총 시간',
-                                formatDuration(
-                                    totalDuration),
-                                isBlue: true),
+                                formatDuration(totalDuration),
+                                isBlue: true, textColor: textColor),
                             _statItem('최고속도',
                                 '${formatSpeed(maxSpeed, useKmh)} ${speedUnit(useKmh)}',
-                                isBlue: true),
+                                isBlue: true, textColor: textColor),
                             _statItem('평균속도',
                                 '${formatSpeed(avgSpeed, useKmh)} ${speedUnit(useKmh)}',
-                                isBlue: true),
+                                isBlue: true, textColor: textColor),
                           ],
                         ),
                         const SizedBox(height: 8),
                         Text(
                           '총 ${formatNumber(selectedRecords.length)}회 주행',
                           style: const TextStyle(
-                              color: Colors.blue,
-                              fontSize: 12),
+                              color: Colors.blue, fontSize: 12),
                         ),
                       ],
                     ),
@@ -201,42 +201,31 @@ class _HistoryYearlyScreenState extends State<HistoryYearlyScreen>
 
                   const SizedBox(height: 16),
 
-                  // 월별 breakdown
                   Container(
-                    color: Colors.grey[950],
+                    color: panelColor,
                     padding: const EdgeInsets.all(12),
                     child: Column(
-                      crossAxisAlignment:
-                      CrossAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         GestureDetector(
                           onTap: () => setState(() =>
-                          _showMonthlyBreakdown =
-                          !_showMonthlyBreakdown),
+                          _showMonthlyBreakdown = !_showMonthlyBreakdown),
                           child: Row(
-                            mainAxisAlignment:
-                            MainAxisAlignment
-                                .spaceBetween,
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               const Text(
                                 '월별 통계',
                                 style: TextStyle(
-                                  color: Colors
-                                      .orange,
+                                  color: Colors.orange,
                                   fontSize: 13,
-                                  fontWeight:
-                                  FontWeight
-                                      .bold,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
                               Icon(
                                 _showMonthlyBreakdown
-                                    ? Icons
-                                    .keyboard_arrow_up
-                                    : Icons
-                                    .keyboard_arrow_down,
-                                color: Colors
-                                    .orange,
+                                    ? Icons.keyboard_arrow_up
+                                    : Icons.keyboard_arrow_down,
+                                color: Colors.orange,
                                 size: 20,
                               ),
                             ],
@@ -246,58 +235,32 @@ class _HistoryYearlyScreenState extends State<HistoryYearlyScreen>
                           const SizedBox(height: 12),
                           ...List.generate(12, (i) {
                             final month = i + 1;
-                            final stat =
-                            monthlyStats[month]!;
-                            final count =
-                            stat['count']!
-                                .toInt();
-                            if (count == 0) {
-                              return const SizedBox();
-                            }
-                            final distance =
-                            stat['distance']!;
-                            final duration =
-                            stat['duration']!
-                                .toInt();
-                            final maxSpd =
-                            stat['maxSpeed']!;
-                            final avgSpd =
-                            stat['avgSpeed']!;
+                            final stat = monthlyStats[month]!;
+                            final count = stat['count']!.toInt();
+                            if (count == 0) return const SizedBox();
+                            final distance = stat['distance']!;
+                            final duration = stat['duration']!.toInt();
+                            final maxSpd = stat['maxSpeed']!;
+                            final avgSpd = stat['avgSpeed']!;
 
                             return Container(
-                              margin:
-                              const EdgeInsets
-                                  .only(
-                                  bottom: 8),
-                              padding:
-                              const EdgeInsets
-                                  .all(12),
-                              decoration:
-                              BoxDecoration(
-                                color: const Color(
-                                    0xFF1e1e1e),
-                                borderRadius:
-                                BorderRadius
-                                    .circular(
-                                    10),
-                                border: Border.all(
-                                    color: Colors
-                                        .grey[800]!),
+                              margin: const EdgeInsets.only(bottom: 8),
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: cardColor,
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(color: borderColor),
                               ),
                               child: Column(
-                                crossAxisAlignment:
-                                CrossAxisAlignment
-                                    .start,
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Row(
-                                    mainAxisAlignment:
-                                    MainAxisAlignment
-                                        .spaceBetween,
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: [
                                       Text(
                                         monthLabels[i],
-                                        style: const TextStyle(
-                                          color: Colors.white,
+                                        style: TextStyle(
+                                          color: textColor,
                                           fontSize: 13,
                                           fontWeight: FontWeight.bold,
                                         ),
@@ -311,26 +274,22 @@ class _HistoryYearlyScreenState extends State<HistoryYearlyScreen>
                                       ),
                                     ],
                                   ),
-                                  const SizedBox(
-                                      height:
-                                      8),
+                                  const SizedBox(height: 8),
                                   Row(
-                                    mainAxisAlignment:
-                                    MainAxisAlignment
-                                        .spaceAround,
+                                    mainAxisAlignment: MainAxisAlignment.spaceAround,
                                     children: [
-                                      _statItem(
-                                          '거리',
-                                          '${formatDistance(distance, useKmh)} ${distanceUnit(useKmh)}'),
-                                      _statItem(
-                                          '시간',
-                                          formatDuration(duration)),
-                                      _statItem(
-                                          '최고속도',
-                                          '${formatSpeed(maxSpd, useKmh)} ${speedUnit(useKmh)}'),
-                                      _statItem(
-                                          '평균속도',
-                                          '${formatSpeed(avgSpd, useKmh)} ${speedUnit(useKmh)}'),
+                                      _statItem('거리',
+                                          '${formatDistance(distance, useKmh)} ${distanceUnit(useKmh)}',
+                                          textColor: textColor),
+                                      _statItem('시간',
+                                          formatDuration(duration),
+                                          textColor: textColor),
+                                      _statItem('최고속도',
+                                          '${formatSpeed(maxSpd, useKmh)} ${speedUnit(useKmh)}',
+                                          textColor: textColor),
+                                      _statItem('평균속도',
+                                          '${formatSpeed(avgSpd, useKmh)} ${speedUnit(useKmh)}',
+                                          textColor: textColor),
                                     ],
                                   ),
                                 ],
@@ -349,13 +308,14 @@ class _HistoryYearlyScreenState extends State<HistoryYearlyScreen>
     );
   }
 
-  Widget _statItem(String label, String value, {bool isBlue = false}) {
+  Widget _statItem(String label, String value,
+      {bool isBlue = false, required Color textColor}) {
     return Column(
       children: [
         Text(
           value,
-          style: const TextStyle(
-            color: Colors.white,
+          style: TextStyle(
+            color: textColor,
             fontSize: 13,
             fontWeight: FontWeight.bold,
           ),

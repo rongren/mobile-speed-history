@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../models/ride_record.dart';
@@ -41,8 +41,7 @@ class _HistoryDailyScreenState extends State<HistoryDailyScreen>
         int.parse(parts[2]),
       );
       final weekday = date.weekday - 1;
-      final totalDist =
-      list.fold(0.0, (s, r) => s + r.totalDistance);
+      final totalDist = list.fold(0.0, (s, r) => s + r.totalDistance);
       weekdayDistances.putIfAbsent(weekday, () => []).add(totalDist);
     }
 
@@ -59,7 +58,7 @@ class _HistoryDailyScreenState extends State<HistoryDailyScreen>
     return result;
   }
 
-  Widget _recentButton(String label, int days) {
+  Widget _recentButton(String label, int days, bool isDark) {
     final isSelected = _recentDays == days;
     return GestureDetector(
       onTap: () => setState(() {
@@ -72,22 +71,22 @@ class _HistoryDailyScreenState extends State<HistoryDailyScreen>
         decoration: BoxDecoration(
           color: isSelected
               ? Colors.orange.withOpacity(0.2)
-              : Colors.grey[850],
+              : (isDark ? Colors.grey[850]! : Colors.grey[200]!),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isSelected
                 ? Colors.orange
-                : Colors.grey[700]!,
+                : (isDark ? Colors.grey[700]! : Colors.grey[400]!),
           ),
         ),
         child: Text(
           label,
           style: TextStyle(
-            color: isSelected ? Colors.orange : Colors.grey,
+            color: isSelected
+                ? Colors.orange
+                : (isDark ? Colors.grey : Colors.grey[600]!),
             fontSize: 12,
-            fontWeight: isSelected
-                ? FontWeight.bold
-                : FontWeight.normal,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
           ),
         ),
       ),
@@ -102,6 +101,13 @@ class _HistoryDailyScreenState extends State<HistoryDailyScreen>
     final settings = context.watch<SettingsProvider>();
     final useKmh = settings.useKmh;
     final weightKg = settings.weightKg;
+    final isDark = settings.appTheme == 'dark';
+
+    final cardColor = isDark ? const Color(0xFF1e1e1e) : Colors.white;
+    final panelColor = isDark ? Colors.grey[950]! : const Color(0xFFEEF0F3);
+    final textColor = isDark ? Colors.white : Colors.black87;
+    final dividerColor = isDark ? Colors.grey[800]! : Colors.grey[300]!;
+    final borderColor = isDark ? Colors.grey[800]! : Colors.grey[300]!;
 
     final Map<String, List<RideRecord>> grouped = {};
     for (final r in records) {
@@ -110,7 +116,6 @@ class _HistoryDailyScreenState extends State<HistoryDailyScreen>
       grouped.putIfAbsent(key, () => []).add(r);
     }
 
-    // 빈 날짜 채우기
     if (grouped.isNotEmpty) {
       final allKeys = grouped.keys.toList()..sort();
       final firstDate = DateTime.parse(allKeys.first);
@@ -128,7 +133,6 @@ class _HistoryDailyScreenState extends State<HistoryDailyScreen>
     final weekdayStats = _getWeekdayStats(grouped);
     final allKeys = grouped.keys.toList()..sort();
 
-    // 최근 N일 필터
     final filteredKeys = _recentDays == null
         ? allKeys
         : allKeys.where((k) {
@@ -139,8 +143,7 @@ class _HistoryDailyScreenState extends State<HistoryDailyScreen>
         int.parse(parts[2]),
       );
       return date.isAfter(
-          DateTime.now()
-              .subtract(Duration(days: _recentDays!)));
+          DateTime.now().subtract(Duration(days: _recentDays!)));
     }).toList();
 
     final labels = filteredKeys.map((k) {
@@ -155,8 +158,7 @@ class _HistoryDailyScreenState extends State<HistoryDailyScreen>
     final maxSpeedData = filteredKeys.map((k) =>
     grouped[k]!.isEmpty
         ? 0.0
-        : grouped[k]!.map((r) => r.maxSpeed)
-        .reduce((a, b) => a > b ? a : b)).toList();
+        : grouped[k]!.map((r) => r.maxSpeed).reduce((a, b) => a > b ? a : b)).toList();
     final avgSpeedData = filteredKeys.map((k) =>
     grouped[k]!.isEmpty
         ? 0.0
@@ -172,42 +174,36 @@ class _HistoryDailyScreenState extends State<HistoryDailyScreen>
       '${parts[0]}년 ${int.parse(parts[1])}월 ${int.parse(parts[2])}일';
     }
 
-    final totalDistance = selectedRecords.fold(
-        0.0, (s, r) => s + r.totalDistance);
-    final totalDuration = selectedRecords.fold(
-        0, (s, r) => s + r.duration);
+    final totalDistance = selectedRecords.fold(0.0, (s, r) => s + r.totalDistance);
+    final totalDuration = selectedRecords.fold(0, (s, r) => s + r.duration);
     final maxSpeed = selectedRecords.isEmpty
         ? 0.0
-        : selectedRecords.map((r) => r.maxSpeed)
-        .reduce((a, b) => a > b ? a : b);
+        : selectedRecords.map((r) => r.maxSpeed).reduce((a, b) => a > b ? a : b);
     final avgSpeed = selectedRecords.isEmpty
         ? 0.0
-        : selectedRecords.fold(0.0, (s, r) => s + r.avgSpeed) /
-        selectedRecords.length;
+        : selectedRecords.fold(0.0, (s, r) => s + r.avgSpeed) / selectedRecords.length;
 
     return Column(
       children: [
         // 기간 필터
         Container(
-          color: Colors.grey[950],
-          padding: const EdgeInsets.symmetric(
-              horizontal: 16, vertical: 8),
+          color: panelColor,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Row(
             children: [
-              Expanded(child: _recentButton('7일', 7)),
+              Expanded(child: _recentButton('7일', 7, isDark)),
               const SizedBox(width: 6),
-              Expanded(child: _recentButton('30일', 30)),
+              Expanded(child: _recentButton('30일', 30, isDark)),
               const SizedBox(width: 6),
-              Expanded(child: _recentButton('90일', 90)),
+              Expanded(child: _recentButton('90일', 90, isDark)),
               const SizedBox(width: 6),
-              Expanded(child: _recentButton('180일', 180)),
+              Expanded(child: _recentButton('180일', 180, isDark)),
               const SizedBox(width: 6),
-              Expanded(child: _recentButton('365일', 365)),
+              Expanded(child: _recentButton('365일', 365, isDark)),
             ],
           ),
         ),
 
-        // 그래프
         SizedBox(
           height: 300,
           child: BarChartWidget(
@@ -232,23 +228,19 @@ class _HistoryDailyScreenState extends State<HistoryDailyScreen>
           ),
         ),
 
-        // 구분선
-        Container(height: 1, color: Colors.grey[800]),
+        Container(height: 1, color: dividerColor),
 
         // 요일별 통계
         Container(
-          color: Colors.grey[950],
-          padding: const EdgeInsets.symmetric(
-              horizontal: 16, vertical: 12),
+          color: panelColor,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               GestureDetector(
-                onTap: () => setState(() =>
-                _showWeekdayStats = !_showWeekdayStats),
+                onTap: () => setState(() => _showWeekdayStats = !_showWeekdayStats),
                 child: Row(
-                  mainAxisAlignment:
-                  MainAxisAlignment.spaceBetween,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Text(
                       '요일별 평균 거리',
@@ -271,21 +263,16 @@ class _HistoryDailyScreenState extends State<HistoryDailyScreen>
               if (_showWeekdayStats) ...[
                 const SizedBox(height: 12),
                 Row(
-                  mainAxisAlignment:
-                  MainAxisAlignment.spaceAround,
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: List.generate(7, (i) {
-                    final dayLabels = [
-                      '월', '화', '수', '목', '금', '토', '일'
-                    ];
+                    final dayLabels = ['월', '화', '수', '목', '금', '토', '일'];
                     final stat = weekdayStats[i]!;
                     final avgDist = stat['avgDistance']!;
                     final count = stat['count']!.toInt();
                     final maxDist = weekdayStats.values
                         .map((s) => s['avgDistance']!)
                         .reduce((a, b) => a > b ? a : b);
-                    final ratio = maxDist > 0
-                        ? avgDist / maxDist
-                        : 0.0;
+                    final ratio = maxDist > 0 ? avgDist / maxDist : 0.0;
                     final isWeekend = i == 5 || i == 6;
 
                     return Column(
@@ -293,26 +280,17 @@ class _HistoryDailyScreenState extends State<HistoryDailyScreen>
                         Container(
                           width: 28,
                           height: 60,
-                          alignment:
-                          Alignment.bottomCenter,
+                          alignment: Alignment.bottomCenter,
                           child: AnimatedContainer(
-                            duration: const Duration(
-                                milliseconds: 400),
+                            duration: const Duration(milliseconds: 400),
                             curve: Curves.easeOut,
                             width: 28,
-                            height: (60 * ratio)
-                                .clamp(2.0, 60.0),
-                            decoration:
-                            BoxDecoration(
-                              color: isWeekend
-                                  ? Colors.orange
-                                  : Colors.blue,
-                              borderRadius:
-                              const BorderRadius.only(
-                                topLeft: Radius
-                                    .circular(4),
-                                topRight: Radius
-                                    .circular(4),
+                            height: (60 * ratio).clamp(2.0, 60.0),
+                            decoration: BoxDecoration(
+                              color: isWeekend ? Colors.orange : Colors.blue,
+                              borderRadius: const BorderRadius.only(
+                                topLeft: Radius.circular(4),
+                                topRight: Radius.circular(4),
                               ),
                             ),
                           ),
@@ -322,11 +300,10 @@ class _HistoryDailyScreenState extends State<HistoryDailyScreen>
                           avgDist > 0
                               ? formatDistance(avgDist, useKmh, decimals: 1)
                               : '-',
-                          style: const TextStyle(
-                            color: Colors.white,
+                          style: TextStyle(
+                            color: textColor,
                             fontSize: 10,
-                            fontWeight:
-                            FontWeight.bold,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                         const SizedBox(height: 2),
@@ -335,14 +312,14 @@ class _HistoryDailyScreenState extends State<HistoryDailyScreen>
                           style: TextStyle(
                             color: isWeekend
                                 ? Colors.orange
-                                : Colors.grey,
+                                : (isDark ? Colors.grey : Colors.grey[600]!),
                             fontSize: 11,
                           ),
                         ),
                         Text(
                           '${count}회',
-                          style: const TextStyle(
-                            color: Colors.grey,
+                          style: TextStyle(
+                            color: isDark ? Colors.grey : Colors.grey[500]!,
                             fontSize: 9,
                           ),
                         ),
@@ -355,37 +332,34 @@ class _HistoryDailyScreenState extends State<HistoryDailyScreen>
           ),
         ),
 
-        // 구분선
-        Container(height: 1, color: Colors.grey[800]),
+        Container(height: 1, color: dividerColor),
 
-        // 선택 안했을때 안내
         if (_selectedIndex < 0)
-          const Padding(
-            padding: EdgeInsets.all(24),
+          Padding(
+            padding: const EdgeInsets.all(24),
             child: Text(
               '막대를 탭하면 상세 정보를 볼 수 있어요',
               style: TextStyle(
-                  color: Colors.grey, fontSize: 14),
+                  color: isDark ? Colors.grey : Colors.grey[600], fontSize: 14),
               textAlign: TextAlign.center,
             ),
           ),
 
-        // 선택된 날짜 상세
         if (_selectedIndex >= 0)
           Expanded(
             child: selectedRecords.isEmpty
-                ? const Center(
+                ? Center(
               child: Text(
                 '해당 날짜에 기록이 없어요',
                 style: TextStyle(
-                    color: Colors.grey, fontSize: 14),
+                    color: isDark ? Colors.grey : Colors.grey[600],
+                    fontSize: 14),
               ),
             )
                 : SingleChildScrollView(
               padding: const EdgeInsets.all(16),
               child: Column(
-                crossAxisAlignment:
-                CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     selectedLabel,
@@ -397,51 +371,41 @@ class _HistoryDailyScreenState extends State<HistoryDailyScreen>
                   ),
                   const SizedBox(height: 12),
 
-                  // 하루 요약
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Colors.blue
-                          .withOpacity(0.15),
-                      borderRadius:
-                      BorderRadius.circular(12),
-                      border: Border.all(
-                          color: Colors.blue
-                              .withOpacity(0.4)),
+                      color: Colors.blue.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.blue.withOpacity(0.4)),
                     ),
                     child: Column(
                       children: [
                         Row(
-                          mainAxisAlignment:
-                          MainAxisAlignment
-                              .spaceAround,
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
                           children: [
                             _statItem('총 거리',
                                 '${formatDistance(totalDistance, useKmh)} ${distanceUnit(useKmh)}',
-                                isBlue: true),
+                                isBlue: true, textColor: textColor),
                             _statItem('총 시간',
-                                formatDuration(
-                                    totalDuration),
-                                isBlue: true),
+                                formatDuration(totalDuration),
+                                isBlue: true, textColor: textColor),
                             _statItem('최고속도',
                                 '${formatSpeed(maxSpeed, useKmh)} ${speedUnit(useKmh)}',
-                                isBlue: true),
+                                isBlue: true, textColor: textColor),
                             if (weightKg != null)
                               _statItem('칼로리',
                                   '${formatNumber(calcCalories(totalDistance, weightKg)!)} kcal',
-                                  isBlue: true)
+                                  isBlue: true, textColor: textColor)
                             else
                               _statItem('평균속도',
                                   '${formatSpeed(avgSpeed, useKmh)} ${speedUnit(useKmh)}',
-                                  isBlue: true),
+                                  isBlue: true, textColor: textColor),
                           ],
                         ),
                         const SizedBox(height: 8),
                         Text(
                           '총 ${formatNumber(selectedRecords.length)}회 주행',
-                          style: const TextStyle(
-                              color: Colors.blue,
-                              fontSize: 12),
+                          style: const TextStyle(color: Colors.blue, fontSize: 12),
                         ),
                       ],
                     ),
@@ -449,14 +413,10 @@ class _HistoryDailyScreenState extends State<HistoryDailyScreen>
 
                   const SizedBox(height: 16),
 
-                  // 회차별 목록
-                  ...selectedRecords.asMap().entries
-                      .map((e) {
+                  ...selectedRecords.asMap().entries.map((e) {
                     final idx = e.key;
                     final record = e.value;
-                    final time = DateTime
-                        .fromMillisecondsSinceEpoch(
-                        record.createdAt);
+                    final time = DateTime.fromMillisecondsSinceEpoch(record.createdAt);
                     final timeStr =
                         '${time.hour.toString().padLeft(2, '0')}:'
                         '${time.minute.toString().padLeft(2, '0')}';
@@ -466,94 +426,63 @@ class _HistoryDailyScreenState extends State<HistoryDailyScreen>
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) =>
-                                HistoryDetailMapScreen(
-                                  record:
-                                  record,
-                                ),
+                            builder: (_) => HistoryDetailMapScreen(record: record),
                           ),
                         );
                       },
                       child: Container(
-                        margin:
-                        const EdgeInsets.only(
-                            bottom: 10),
-                        padding:
-                        const EdgeInsets.all(
-                            14),
+                        margin: const EdgeInsets.only(bottom: 10),
+                        padding: const EdgeInsets.all(14),
                         decoration: BoxDecoration(
-                          color: const Color(
-                              0xFF1e1e1e),
-                          borderRadius:
-                          BorderRadius
-                              .circular(12),
-                          border: Border.all(
-                              color: Colors
-                                  .grey[800]!),
+                          color: cardColor,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: borderColor),
                         ),
                         child: Column(
-                          crossAxisAlignment:
-                          CrossAxisAlignment
-                              .start,
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Row(
-                              mainAxisAlignment:
-                              MainAxisAlignment
-                                  .spaceBetween,
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
                                   '${idx + 1}회차  $timeStr 출발',
-                                  style: const TextStyle(
-                                    color: Colors.white,
+                                  style: TextStyle(
+                                    color: textColor,
                                     fontSize: 13,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
                                 const Row(
                                   children: [
-                                    Text(
-                                      '경로 보기',
-                                      style: TextStyle(
-                                          color: Colors.blue,
-                                          fontSize: 12),
-                                    ),
-                                    Icon(
-                                        Icons.chevron_right,
-                                        color: Colors.blue,
-                                        size: 16),
+                                    Text('경로 보기',
+                                        style: TextStyle(color: Colors.blue, fontSize: 12)),
+                                    Icon(Icons.chevron_right, color: Colors.blue, size: 16),
                                   ],
                                 ),
                               ],
                             ),
                             const SizedBox(height: 6),
-                            RecordBadges(
-                              recordId: record.id,
-                              bestIds: bestIds,
-                            ),
+                            RecordBadges(recordId: record.id, bestIds: bestIds),
                             const SizedBox(height: 10),
                             Row(
-                              mainAxisAlignment:
-                              MainAxisAlignment
-                                  .spaceAround,
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
                               children: [
-                                _statItem(
-                                    '거리',
-                                    '${formatDistance(record.totalDistance, useKmh)} ${distanceUnit(useKmh)}'),
-                                _statItem(
-                                    '시간',
-                                    formatDuration(
-                                        record.duration)),
-                                _statItem(
-                                    '최고속도',
-                                    '${formatSpeed(record.maxSpeed, useKmh)} ${speedUnit(useKmh)}'),
-                                _statItem(
-                                    '평균속도',
-                                    '${formatSpeed(record.avgSpeed, useKmh)} ${speedUnit(useKmh)}'),
+                                _statItem('거리',
+                                    '${formatDistance(record.totalDistance, useKmh)} ${distanceUnit(useKmh)}',
+                                    textColor: textColor),
+                                _statItem('시간',
+                                    formatDuration(record.duration),
+                                    textColor: textColor),
+                                _statItem('최고속도',
+                                    '${formatSpeed(record.maxSpeed, useKmh)} ${speedUnit(useKmh)}',
+                                    textColor: textColor),
+                                _statItem('평균속도',
+                                    '${formatSpeed(record.avgSpeed, useKmh)} ${speedUnit(useKmh)}',
+                                    textColor: textColor),
                               ],
                             ),
                             if (weightKg != null ||
-                                (record.memo != null &&
-                                    record.memo!.isNotEmpty)) ...[
+                                (record.memo != null && record.memo!.isNotEmpty)) ...[
                               const SizedBox(height: 8),
                               Row(
                                 children: [
@@ -561,23 +490,20 @@ class _HistoryDailyScreenState extends State<HistoryDailyScreen>
                                     Text(
                                       '🔥 ${formatNumber(calcCalories(record.totalDistance, weightKg)!)} kcal',
                                       style: const TextStyle(
-                                          color: Colors.orange,
-                                          fontSize: 12),
+                                          color: Colors.orange, fontSize: 12),
                                     ),
                                   if (weightKg != null &&
                                       record.memo != null &&
                                       record.memo!.isNotEmpty)
                                     const SizedBox(width: 12),
-                                  if (record.memo != null &&
-                                      record.memo!.isNotEmpty)
+                                  if (record.memo != null && record.memo!.isNotEmpty)
                                     Expanded(
                                       child: Text(
                                         '📝 ${record.memo}',
                                         style: TextStyle(
-                                            color: Colors.grey[400],
+                                            color: isDark ? Colors.grey[400]! : Colors.grey[600]!,
                                             fontSize: 12),
-                                        overflow:
-                                            TextOverflow.ellipsis,
+                                        overflow: TextOverflow.ellipsis,
                                       ),
                                     ),
                                 ],
@@ -596,13 +522,14 @@ class _HistoryDailyScreenState extends State<HistoryDailyScreen>
     );
   }
 
-  Widget _statItem(String label, String value, {bool isBlue = false}) {
+  Widget _statItem(String label, String value,
+      {bool isBlue = false, required Color textColor}) {
     return Column(
       children: [
         Text(
           value,
-          style: const TextStyle(
-            color: Colors.white,
+          style: TextStyle(
+            color: textColor,
             fontSize: 13,
             fontWeight: FontWeight.bold,
           ),

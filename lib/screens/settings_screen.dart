@@ -186,6 +186,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               panelColor: panelColor,
               titleColor: titleColor,
               subtitleColor: subtitleColor,
+              isDark: isDark,
             ),
             const SizedBox(height: 24),
 
@@ -723,6 +724,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     required Color panelColor,
     required Color titleColor,
     required Color subtitleColor,
+    required bool isDark,
   }) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -762,7 +764,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             onChanged: onChanged,
             activeThumbColor: Colors.blue,
             activeTrackColor: Colors.blue.withOpacity(0.4),
-            inactiveTrackColor: Colors.grey[700],
+            inactiveTrackColor: isDark ? Colors.grey[700] : Colors.grey[300],
           ),
         ],
       ),

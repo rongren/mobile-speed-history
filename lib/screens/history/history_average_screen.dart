@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/ride_provider.dart';
 import '../../providers/settings_provider.dart';
@@ -13,15 +13,24 @@ class HistoryAverageScreen extends StatelessWidget {
     final settings = context.watch<SettingsProvider>();
     final useKmh = settings.useKmh;
     final weightKg = settings.weightKg;
+    final isDark = settings.appTheme == 'dark';
+
+    final cardColor = isDark ? Colors.grey[900]! : Colors.white;
+    final textColor = isDark ? Colors.white : Colors.black87;
+    final subTextColor = isDark ? Colors.grey : Colors.grey[600]!;
 
     if (records.isEmpty) {
-      return const Center(
-        child: Text('아직 주행기록이 없어요',
-            style: TextStyle(color: Colors.grey, fontSize: 16)),
+      return Center(
+        child: Text(
+          '아직 주행기록이 없어요',
+          style: TextStyle(
+            color: isDark ? Colors.grey : Colors.grey[600],
+            fontSize: 16,
+          ),
+        ),
       );
     }
 
-    // 기본 통계
     final avgDistance =
         records.fold(0.0, (s, r) => s + r.totalDistance) / records.length;
     final avgDuration =
@@ -35,11 +44,9 @@ class HistoryAverageScreen extends StatelessWidget {
     final bestSpeed =
         records.map((r) => r.maxSpeed).reduce((a, b) => a > b ? a : b);
 
-    // 칼로리
     final totalCalories = calcCalories(totalDist, weightKg);
     final avgCalories = calcCalories(avgDistance, weightKg);
 
-    // 최근 30일
     final now = DateTime.now();
     final thirtyDaysAgo = now.subtract(const Duration(days: 30));
     final recent = records.where((r) {
@@ -53,7 +60,6 @@ class HistoryAverageScreen extends StatelessWidget {
         ? null
         : recent.fold(0.0, (s, r) => s + r.avgSpeed) / recent.length;
 
-    // 평균 주행 간격
     int? avgIntervalDays;
     if (records.length >= 2) {
       final sorted = List.from(records)
@@ -69,11 +75,10 @@ class HistoryAverageScreen extends StatelessWidget {
       avgIntervalDays = totalGap ~/ (sorted.length - 1);
     }
 
-    // 요일별 평균 거리
     final weekdayTotals = List.filled(7, 0.0);
     final weekdayCounts = List.filled(7, 0);
     for (final r in records) {
-      final wd = DateTime(r.year, r.month, r.day).weekday - 1; // 0=월..6=일
+      final wd = DateTime(r.year, r.month, r.day).weekday - 1;
       weekdayTotals[wd] += r.totalDistance;
       weekdayCounts[wd]++;
     }
@@ -90,13 +95,15 @@ class HistoryAverageScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── 전체 누적 헤더 카드
+          // 전체 누적 헤더 카드 (그라디언트 — 항상 파란색)
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [Colors.blue.shade900, Colors.blue.shade600],
+                colors: isDark
+                    ? [Colors.blue.shade900, Colors.blue.shade600]
+                    : [Colors.blue.shade500, Colors.blue.shade300],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -152,21 +159,21 @@ class HistoryAverageScreen extends StatelessWidget {
           ),
 
           const SizedBox(height: 24),
-          _sectionLabel('1회 평균'),
+          _sectionLabel('1회 평균', textColor),
           const SizedBox(height: 10),
 
-          // ── 평균 2×2 그리드
           Row(
             children: [
               Expanded(
                 child: _avgCard('거리',
                     '${formatDistance(avgDistance, useKmh)}',
-                    distanceUnit(useKmh), Icons.straighten, Colors.blue),
+                    distanceUnit(useKmh), Icons.straighten, Colors.blue,
+                    cardColor, textColor),
               ),
               const SizedBox(width: 10),
               Expanded(
                 child: _avgCard('시간', formatDuration(avgDuration), '',
-                    Icons.timer, Colors.teal),
+                    Icons.timer, Colors.teal, cardColor, textColor),
               ),
             ],
           ),
@@ -179,7 +186,9 @@ class HistoryAverageScreen extends StatelessWidget {
                     '${formatSpeed(avgMaxSpeed, useKmh)}',
                     speedUnit(useKmh),
                     Icons.speed,
-                    Colors.orange),
+                    Colors.orange,
+                    cardColor,
+                    textColor),
               ),
               const SizedBox(width: 10),
               Expanded(
@@ -188,7 +197,9 @@ class HistoryAverageScreen extends StatelessWidget {
                     '${formatSpeed(avgAvgSpeed, useKmh)}',
                     speedUnit(useKmh),
                     Icons.trending_up,
-                    Colors.purple),
+                    Colors.purple,
+                    cardColor,
+                    textColor),
               ),
             ],
           ),
@@ -196,11 +207,14 @@ class HistoryAverageScreen extends StatelessWidget {
             const SizedBox(height: 10),
             _statTile('1회 평균 칼로리', '${formatNumber(avgCalories)} kcal',
                 icon: Icons.local_fire_department,
-                iconColor: Colors.deepOrange),
+                iconColor: Colors.deepOrange,
+                cardColor: cardColor,
+                textColor: textColor,
+                subTextColor: subTextColor),
           ],
 
           const SizedBox(height: 24),
-          _sectionLabel('최근 30일'),
+          _sectionLabel('최근 30일', textColor),
           const SizedBox(height: 10),
 
           recent.isEmpty
@@ -208,11 +222,11 @@ class HistoryAverageScreen extends StatelessWidget {
                   width: double.infinity,
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.grey[900],
+                    color: cardColor,
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Text('최근 30일 기록 없음',
-                      style: TextStyle(color: Colors.grey, fontSize: 13),
+                  child: Text('최근 30일 기록 없음',
+                      style: TextStyle(color: subTextColor, fontSize: 13),
                       textAlign: TextAlign.center),
                 )
               : Row(
@@ -223,6 +237,9 @@ class HistoryAverageScreen extends StatelessWidget {
                         '${formatDistance(recentAvgDist!, useKmh)} ${distanceUnit(useKmh)}',
                         '전체 ${formatDistance(avgDistance, useKmh)}',
                         recentAvgDist > avgDistance,
+                        cardColor,
+                        textColor,
+                        subTextColor,
                       ),
                     ),
                     const SizedBox(width: 10),
@@ -232,13 +249,16 @@ class HistoryAverageScreen extends StatelessWidget {
                         '${formatSpeed(recentAvgSpeed!, useKmh)} ${speedUnit(useKmh)}',
                         '전체 ${formatSpeed(avgAvgSpeed, useKmh)}',
                         recentAvgSpeed > avgAvgSpeed,
+                        cardColor,
+                        textColor,
+                        subTextColor,
                       ),
                     ),
                   ],
                 ),
 
           const SizedBox(height: 24),
-          _sectionLabel('주행 패턴'),
+          _sectionLabel('주행 패턴', textColor),
           const SizedBox(height: 10),
 
           Row(
@@ -250,6 +270,9 @@ class HistoryAverageScreen extends StatelessWidget {
                     avgIntervalDays == 0 ? '매일' : '$avgIntervalDays일에 1번',
                     icon: Icons.calendar_today,
                     iconColor: Colors.cyan,
+                    cardColor: cardColor,
+                    textColor: textColor,
+                    subTextColor: subTextColor,
                   ),
                 ),
               if (avgIntervalDays != null && bestDayIdx >= 0)
@@ -261,6 +284,9 @@ class HistoryAverageScreen extends StatelessWidget {
                     weekdayNames[bestDayIdx],
                     icon: Icons.star,
                     iconColor: Colors.amber,
+                    cardColor: cardColor,
+                    textColor: textColor,
+                    subTextColor: subTextColor,
                   ),
                 ),
             ],
@@ -268,18 +294,18 @@ class HistoryAverageScreen extends StatelessWidget {
 
           const SizedBox(height: 10),
 
-          // ── 요일별 막대
+          // 요일별 막대
           Container(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
             decoration: BoxDecoration(
-              color: Colors.grey[900],
+              color: cardColor,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('요일별 평균 거리',
-                    style: TextStyle(color: Colors.grey, fontSize: 12)),
+                Text('요일별 평균 거리',
+                    style: TextStyle(color: subTextColor, fontSize: 12)),
                 const SizedBox(height: 14),
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.end,
@@ -299,7 +325,7 @@ class HistoryAverageScreen extends StatelessWidget {
                                     style: TextStyle(
                                       color: isMax
                                           ? Colors.blue
-                                          : Colors.grey[600],
+                                          : (isDark ? Colors.grey[600]! : Colors.grey[500]!),
                                       fontSize: 9,
                                     ),
                                     textAlign: TextAlign.center,
@@ -313,8 +339,8 @@ class HistoryAverageScreen extends StatelessWidget {
                                 color: isMax
                                     ? Colors.blue
                                     : weekdayCounts[i] > 0
-                                        ? Colors.grey[700]
-                                        : Colors.grey[850],
+                                        ? (isDark ? Colors.grey[700]! : Colors.grey[400]!)
+                                        : (isDark ? Colors.grey[850]! : Colors.grey[300]!),
                                 borderRadius: BorderRadius.circular(4),
                               ),
                             ),
@@ -322,7 +348,7 @@ class HistoryAverageScreen extends StatelessWidget {
                             Text(
                               weekdayNames[i],
                               style: TextStyle(
-                                color: isMax ? Colors.blue : Colors.grey,
+                                color: isMax ? Colors.blue : subTextColor,
                                 fontSize: 12,
                                 fontWeight: isMax
                                     ? FontWeight.bold
@@ -345,10 +371,10 @@ class HistoryAverageScreen extends StatelessWidget {
     );
   }
 
-  Widget _sectionLabel(String text) {
+  Widget _sectionLabel(String text, Color textColor) {
     return Text(text,
-        style: const TextStyle(
-            color: Colors.white,
+        style: TextStyle(
+            color: textColor,
             fontSize: 15,
             fontWeight: FontWeight.bold));
   }
@@ -374,11 +400,11 @@ class HistoryAverageScreen extends StatelessWidget {
       Container(width: 1, height: 48, color: Colors.white24);
 
   Widget _avgCard(String label, String value, String unit, IconData icon,
-      Color color) {
+      Color color, Color cardColor, Color textColor) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.grey[900],
+        color: cardColor,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: color.withOpacity(0.3)),
       ),
@@ -388,8 +414,8 @@ class HistoryAverageScreen extends StatelessWidget {
           Icon(icon, color: color, size: 18),
           const SizedBox(height: 10),
           Text(value,
-              style: const TextStyle(
-                  color: Colors.white,
+              style: TextStyle(
+                  color: textColor,
                   fontSize: 20,
                   fontWeight: FontWeight.bold)),
           Text(unit, style: TextStyle(color: color, fontSize: 11)),
@@ -402,18 +428,19 @@ class HistoryAverageScreen extends StatelessWidget {
   }
 
   Widget _compareCard(
-      String label, String recentVal, String overallVal, bool isUp) {
+      String label, String recentVal, String overallVal, bool isUp,
+      Color cardColor, Color textColor, Color subTextColor) {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.grey[900],
+        color: cardColor,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(label,
-              style: const TextStyle(color: Colors.grey, fontSize: 12)),
+              style: TextStyle(color: subTextColor, fontSize: 12)),
           const SizedBox(height: 8),
           Row(
             children: [
@@ -425,8 +452,8 @@ class HistoryAverageScreen extends StatelessWidget {
               const SizedBox(width: 4),
               Expanded(
                 child: Text(recentVal,
-                    style: const TextStyle(
-                        color: Colors.white,
+                    style: TextStyle(
+                        color: textColor,
                         fontSize: 14,
                         fontWeight: FontWeight.bold)),
               ),
@@ -434,18 +461,22 @@ class HistoryAverageScreen extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(overallVal,
-              style: TextStyle(color: Colors.grey[600], fontSize: 11)),
+              style: TextStyle(color: subTextColor, fontSize: 11)),
         ],
       ),
     );
   }
 
   Widget _statTile(String label, String value,
-      {IconData? icon, Color? iconColor}) {
+      {IconData? icon,
+      Color? iconColor,
+      required Color cardColor,
+      required Color textColor,
+      required Color subTextColor}) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
       decoration: BoxDecoration(
-        color: Colors.grey[900],
+        color: cardColor,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -456,11 +487,11 @@ class HistoryAverageScreen extends StatelessWidget {
           ],
           Expanded(
             child: Text(label,
-                style: const TextStyle(color: Colors.grey, fontSize: 13)),
+                style: TextStyle(color: subTextColor, fontSize: 13)),
           ),
           Text(value,
-              style: const TextStyle(
-                  color: Colors.white,
+              style: TextStyle(
+                  color: textColor,
                   fontSize: 14,
                   fontWeight: FontWeight.bold)),
         ],
