@@ -86,7 +86,7 @@ class SettingsProvider extends ChangeNotifier {
   }
 
   Future<void> setWeightKg(double? value) async {
-    _weightKg = value != null ? value.clamp(30.0, 150.0) : null;
+    _weightKg = value;
     notifyListeners();
     final prefs = await SharedPreferences.getInstance();
     if (_weightKg != null) {

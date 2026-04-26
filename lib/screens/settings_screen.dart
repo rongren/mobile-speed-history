@@ -395,114 +395,115 @@ class _SettingsScreenState extends State<SettingsScreen> {
         color: Colors.grey[900],
         borderRadius: BorderRadius.circular(12),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: Colors.pink.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: const Icon(Icons.person_outline,
-                color: Colors.pink, size: 20),
-          ),
-          const SizedBox(width: 14),
-          const Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('체중',
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold)),
-                SizedBox(height: 2),
-                Text('칼로리 추정에 사용됩니다',
-                    style: TextStyle(color: Colors.grey, fontSize: 12)),
-              ],
-            ),
-          ),
-          GestureDetector(
-            onTap: () => settings
-                .setWeightKg((settings.weightKg ?? 70) - 1),
-            child: Container(
-              width: 32,
-              height: 32,
-              decoration: BoxDecoration(
-                color: Colors.grey[800],
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Icon(Icons.remove,
-                  color: Colors.white, size: 18),
-            ),
-          ),
-          GestureDetector(
-            onTap: () async {
-              final result = await NumberInputDialog.show(
-                context,
-                title: '체중 입력',
-                initialValue: settings.weightKg?.toInt() ?? 70,
-                unit: 'kg',
-                min: 30,
-                max: 150,
-              );
-              if (result != null) {
-                settings.setWeightKg(result.toDouble());
-              }
-            },
-            child: Container(
-              width: 68,
-              padding: const EdgeInsets.symmetric(vertical: 6),
-              decoration: BoxDecoration(
-                color: Colors.grey[800],
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                settings.weightKg != null
-                    ? '${settings.weightKg!.toInt()} kg'
-                    : '--',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: settings.weightKg != null
-                      ? Colors.white
-                      : Colors.grey,
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
-          GestureDetector(
-            onTap: () => settings
-                .setWeightKg((settings.weightKg ?? 70) + 1),
-            child: Container(
-              width: 32,
-              height: 32,
-              decoration: BoxDecoration(
-                color: Colors.grey[800],
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Icon(Icons.add,
-                  color: Colors.white, size: 18),
-            ),
-          ),
-          if (settings.weightKg != null) ...[
-            const SizedBox(width: 6),
-            GestureDetector(
-              onTap: () => settings.setWeightKg(null),
-              child: Container(
-                width: 28,
-                height: 28,
+          Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
                 decoration: BoxDecoration(
-                  color: Colors.grey[850],
-                  borderRadius: BorderRadius.circular(8),
+                  color: Colors.pink.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(Icons.close,
-                    color: Colors.grey, size: 14),
+                child: const Icon(Icons.person_outline,
+                    color: Colors.pink, size: 20),
               ),
-            ),
-          ],
+              const SizedBox(width: 14),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('체중',
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold)),
+                    SizedBox(height: 2),
+                    Text('칼로리 추정에 사용됩니다',
+                        style:
+                            TextStyle(color: Colors.grey, fontSize: 12)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              GestureDetector(
+                onTap: () => settings
+                    .setWeightKg((settings.weightKg ?? 70) - 1),
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[800],
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(Icons.remove,
+                      color: Colors.white, size: 20),
+                ),
+              ),
+              const SizedBox(width: 20),
+              GestureDetector(
+                onTap: () async {
+                  final result = await NumberInputDialog.show(
+                    context,
+                    title: '체중 입력',
+                    initialValue: settings.weightKg?.toInt(),
+                    unit: 'kg',
+                    maxDigits: 3,
+                    allowEmpty: true,
+                  );
+                  if (result == null) return;
+                  if (result == NumberInputDialog.clearValue) {
+                    settings.setWeightKg(null);
+                  } else {
+                    settings.setWeightKg(result.toDouble());
+                  }
+                },
+                child: Container(
+                  width: 80,
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[800],
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    settings.weightKg != null
+                        ? '${settings.weightKg!.toInt()} kg'
+                        : '--',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: settings.weightKg != null
+                          ? Colors.white
+                          : Colors.grey,
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 20),
+              GestureDetector(
+                onTap: () => settings
+                    .setWeightKg((settings.weightKg ?? 70) + 1),
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[800],
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(Icons.add,
+                      color: Colors.white, size: 20),
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     );
@@ -524,37 +525,53 @@ class _SettingsScreenState extends State<SettingsScreen> {
         color: Colors.grey[900],
         borderRadius: BorderRadius.circular(12),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: iconColor.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(icon, color: iconColor, size: 20),
+          Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: iconColor.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(icon, color: iconColor, size: 20),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title,
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 2),
+                    Text(subtitle,
+                        style: const TextStyle(
+                            color: Colors.grey, fontSize: 12)),
+                  ],
+                ),
+              ),
+            ],
           ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title,
-                    style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold)),
-                const SizedBox(height: 2),
-                Text(subtitle,
-                    style:
-                        const TextStyle(color: Colors.grey, fontSize: 12)),
-              ],
-            ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: _twoStateButton(
+                    leftLabel, isLeft, () => onToggle(true)),
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: _twoStateButton(
+                    rightLabel, !isLeft, () => onToggle(false)),
+              ),
+            ],
           ),
-          _twoStateButton(leftLabel, isLeft, () => onToggle(true)),
-          const SizedBox(width: 6),
-          _twoStateButton(rightLabel, !isLeft, () => onToggle(false)),
         ],
       ),
     );
@@ -564,7 +581,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        padding: const EdgeInsets.symmetric(vertical: 8),
         decoration: BoxDecoration(
           color: isSelected
               ? Colors.blue.withOpacity(0.15)
@@ -576,9 +593,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
         child: Text(
           label,
+          textAlign: TextAlign.center,
           style: TextStyle(
             color: isSelected ? Colors.blue : Colors.grey,
-            fontSize: 12,
+            fontSize: 13,
+            fontWeight:
+                isSelected ? FontWeight.bold : FontWeight.normal,
           ),
         ),
       ),
@@ -766,37 +786,52 @@ class _SettingsScreenState extends State<SettingsScreen> {
         color: Colors.grey[900],
         borderRadius: BorderRadius.circular(12),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: Colors.purple.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: const Icon(Icons.palette_outlined,
-                color: Colors.purple, size: 20),
+          Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: Colors.purple.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.palette_outlined,
+                    color: Colors.purple, size: 20),
+              ),
+              const SizedBox(width: 14),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('테마',
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold)),
+                    SizedBox(height: 2),
+                    Text('앱 색상 테마 선택',
+                        style:
+                            TextStyle(color: Colors.grey, fontSize: 12)),
+                  ],
+                ),
+              ),
+            ],
           ),
-          const SizedBox(width: 14),
-          const Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('테마',
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold)),
-                SizedBox(height: 2),
-                Text('앱 색상 테마 선택',
-                    style: TextStyle(color: Colors.grey, fontSize: 12)),
-              ],
-            ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                  child: _themeButton(
+                      ThemeMode.dark, Icons.dark_mode_outlined, 'Dark')),
+              const SizedBox(width: 6),
+              Expanded(
+                  child: _themeButton(
+                      ThemeMode.light, Icons.light_mode_outlined, 'Light')),
+            ],
           ),
-          _themeButton(ThemeMode.dark, Icons.dark_mode_outlined, 'Dark'),
-          const SizedBox(width: 8),
-          _themeButton(ThemeMode.light, Icons.light_mode_outlined, 'Light'),
         ],
       ),
     );
@@ -807,7 +842,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return GestureDetector(
       onTap: () => setState(() => _selectedTheme = mode),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        padding: const EdgeInsets.symmetric(vertical: 8),
         decoration: BoxDecoration(
           color: isSelected
               ? Colors.blue.withOpacity(0.15)
@@ -818,15 +853,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         ),
         child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(icon,
                 color: isSelected ? Colors.blue : Colors.grey, size: 16),
-            const SizedBox(width: 4),
+            const SizedBox(width: 6),
             Text(
               label,
               style: TextStyle(
                 color: isSelected ? Colors.blue : Colors.grey,
-                fontSize: 12,
+                fontSize: 13,
+                fontWeight: isSelected
+                    ? FontWeight.bold
+                    : FontWeight.normal,
               ),
             ),
           ],

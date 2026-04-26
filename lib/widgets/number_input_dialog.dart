@@ -2,28 +2,29 @@ import 'package:flutter/material.dart';
 
 class NumberInputDialog extends StatefulWidget {
   final String title;
-  final int initialValue;
+  final int? initialValue;  // null = 빈 상태로 시작
   final String unit;
-  final int min;
-  final int max;
+  final int maxDigits;
+  final bool allowEmpty;    // true면 빈 확인 시 clearValue 반환
+
+  static const int clearValue = -1;
 
   const NumberInputDialog({
     super.key,
     required this.title,
-    required this.initialValue,
+    this.initialValue,
     required this.unit,
-    required this.min,
-    required this.max,
+    this.maxDigits = 4,
+    this.allowEmpty = false,
   });
 
-  /// 다이얼로그를 띄우고 입력값을 반환. 취소 시 null.
   static Future<int?> show(
     BuildContext context, {
     required String title,
-    required int initialValue,
+    int? initialValue,
     required String unit,
-    required int min,
-    required int max,
+    int maxDigits = 4,
+    bool allowEmpty = false,
   }) {
     return showDialog<int>(
       context: context,
@@ -31,8 +32,8 @@ class NumberInputDialog extends StatefulWidget {
         title: title,
         initialValue: initialValue,
         unit: unit,
-        min: min,
-        max: max,
+        maxDigits: maxDigits,
+        allowEmpty: allowEmpty,
       ),
     );
   }
@@ -47,40 +48,45 @@ class _NumberInputDialogState extends State<NumberInputDialog> {
   @override
   void initState() {
     super.initState();
-    _input = widget.initialValue.toString();
+    _input = widget.initialValue?.toString() ?? '';
   }
 
-  int get _currentValue => int.tryParse(_input) ?? 0;
+  int? get _currentValue => int.tryParse(_input);
 
-  bool get _isValid =>
-      _currentValue >= widget.min && _currentValue <= widget.max;
+  bool get _isValid {
+    if (_input.isEmpty) return widget.allowEmpty;
+    final v = _currentValue;
+    return v != null && v > 0;
+  }
 
   void _onDigit(String digit) {
     setState(() {
-      if (_input == '0') {
-        _input = digit;
-      } else if (_input.length < 4) {
-        _input += digit;
-      }
+      if (_input.isEmpty && digit == '0') return;
+      if (_input.length < widget.maxDigits) _input += digit;
     });
   }
 
   void _onBackspace() {
     setState(() {
-      if (_input.length > 1) {
+      if (_input.isNotEmpty) {
         _input = _input.substring(0, _input.length - 1);
-      } else {
-        _input = '0';
       }
     });
   }
 
   void _confirm() {
-    if (_isValid) Navigator.pop(context, _currentValue);
+    if (!_isValid) return;
+    if (_input.isEmpty) {
+      Navigator.pop(context, NumberInputDialog.clearValue);
+    } else {
+      Navigator.pop(context, _currentValue);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final isEmpty = _input.isEmpty;
+
     return Dialog(
       backgroundColor: const Color(0xFF1e1e1e),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -104,9 +110,9 @@ class _NumberInputDialogState extends State<NumberInputDialog> {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  _input,
+                  isEmpty ? '--' : _input,
                   style: TextStyle(
-                    color: _isValid ? Colors.white : Colors.red,
+                    color: isEmpty ? Colors.grey[600] : Colors.white,
                     fontSize: 52,
                     fontWeight: FontWeight.bold,
                     letterSpacing: 2,
@@ -121,12 +127,6 @@ class _NumberInputDialogState extends State<NumberInputDialog> {
                   ),
                 ),
               ],
-            ),
-
-            Text(
-              '${widget.min} ~ ${widget.max} ${widget.unit}',
-              style: TextStyle(
-                  color: _isValid ? Colors.grey : Colors.red, fontSize: 12),
             ),
             const SizedBox(height: 24),
 
@@ -171,7 +171,9 @@ class _NumberInputDialogState extends State<NumberInputDialog> {
                         child: Text(
                           '확인',
                           style: TextStyle(
-                              color: _isValid ? Colors.white : Colors.grey[600],
+                              color: _isValid
+                                  ? Colors.white
+                                  : Colors.grey[600],
                               fontSize: 15,
                               fontWeight: FontWeight.bold),
                         ),
@@ -195,12 +197,9 @@ class _NumberInputDialogState extends State<NumberInputDialog> {
         _keyRow(['7', '8', '9']),
         Row(
           children: [
-            // 빈 칸
-            Expanded(child: const SizedBox()),
+            const Expanded(child: SizedBox()),
             const SizedBox(width: 6),
-            Expanded(
-              child: _keyButton('0', onTap: () => _onDigit('0')),
-            ),
+            Expanded(child: _keyButton('0', onTap: () => _onDigit('0'))),
             const SizedBox(width: 6),
             Expanded(
               child: _keyButton('⌫',
