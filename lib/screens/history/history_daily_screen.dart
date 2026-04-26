@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../models/ride_record.dart';
 import '../../providers/ride_provider.dart';
+import '../../providers/settings_provider.dart';
 import '../../widgets/bar_chart_widget.dart';
 import '../../widgets/record_badges.dart';
 import 'history_detail_map_screen.dart';
@@ -98,6 +99,9 @@ class _HistoryDailyScreenState extends State<HistoryDailyScreen>
     super.build(context);
     final records = context.watch<RideProvider>().records;
     final bestIds = context.read<RideProvider>().bestRecordIds;
+    final settings = context.watch<SettingsProvider>();
+    final useKmh = settings.useKmh;
+    final weightKg = settings.weightKg;
 
     final Map<String, List<RideRecord>> grouped = {};
     for (final r in records) {
@@ -214,6 +218,7 @@ class _HistoryDailyScreenState extends State<HistoryDailyScreen>
             maxSpeedData: maxSpeedData,
             avgSpeedData: avgSpeedData,
             selectedIndex: _selectedIndex,
+            useKmh: useKmh,
             onBarTap: (index) {
               SystemSound.play(SystemSoundType.click);
               setState(() {
@@ -315,8 +320,7 @@ class _HistoryDailyScreenState extends State<HistoryDailyScreen>
                         const SizedBox(height: 4),
                         Text(
                           avgDist > 0
-                              ? avgDist
-                              .toStringAsFixed(1)
+                              ? convertDistance(avgDist, useKmh).toStringAsFixed(1)
                               : '-',
                           style: const TextStyle(
                             color: Colors.white,
@@ -413,17 +417,17 @@ class _HistoryDailyScreenState extends State<HistoryDailyScreen>
                               .spaceAround,
                           children: [
                             _statItem('총 거리',
-                                '${totalDistance.toStringAsFixed(2)} km',
+                                '${convertDistance(totalDistance, useKmh).toStringAsFixed(2)} ${distanceUnit(useKmh)}',
                                 isBlue: true),
                             _statItem('총 시간',
                                 formatDuration(
                                     totalDuration),
                                 isBlue: true),
                             _statItem('최고속도',
-                                '${maxSpeed.toStringAsFixed(1)} km/h',
+                                '${convertSpeed(maxSpeed, useKmh).toStringAsFixed(1)} ${speedUnit(useKmh)}',
                                 isBlue: true),
-                            _statItem('평균속도',
-                                '${avgSpeed.toStringAsFixed(1)} km/h',
+                            _statItem('칼로리',
+                                '${calcCalories(totalDistance, weightKg)} kcal',
                                 isBlue: true),
                           ],
                         ),
@@ -529,17 +533,42 @@ class _HistoryDailyScreenState extends State<HistoryDailyScreen>
                               children: [
                                 _statItem(
                                     '거리',
-                                    '${record.totalDistance.toStringAsFixed(2)} km'),
+                                    '${convertDistance(record.totalDistance, useKmh).toStringAsFixed(2)} ${distanceUnit(useKmh)}'),
                                 _statItem(
                                     '시간',
                                     formatDuration(
                                         record.duration)),
                                 _statItem(
                                     '최고속도',
-                                    '${record.maxSpeed.toStringAsFixed(1)} km/h'),
+                                    '${convertSpeed(record.maxSpeed, useKmh).toStringAsFixed(1)} ${speedUnit(useKmh)}'),
                                 _statItem(
                                     '평균속도',
-                                    '${record.avgSpeed.toStringAsFixed(1)} km/h'),
+                                    '${convertSpeed(record.avgSpeed, useKmh).toStringAsFixed(1)} ${speedUnit(useKmh)}'),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                Text(
+                                  '🔥 ${calcCalories(record.totalDistance, weightKg)} kcal',
+                                  style: const TextStyle(
+                                      color: Colors.orange,
+                                      fontSize: 12),
+                                ),
+                                if (record.memo != null &&
+                                    record.memo!.isNotEmpty) ...[
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Text(
+                                      '📝 ${record.memo}',
+                                      style: TextStyle(
+                                          color: Colors.grey[400],
+                                          fontSize: 12),
+                                      overflow:
+                                          TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
                               ],
                             ),
                           ],

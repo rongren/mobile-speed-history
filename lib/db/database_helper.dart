@@ -19,11 +19,13 @@ class DatabaseHelper {
     final path = join(dbPath, fileName);
     return await openDatabase(
       path,
-      version: 3,                         // 버전 올리기
+      version: 4,
       onCreate: _createDB,
       onUpgrade: (db, oldVersion, newVersion) async {
-        await db.execute('DROP TABLE IF EXISTS ride_records');
-        await _createDB(db, newVersion);
+        if (oldVersion < 4) {
+          await db.execute(
+              'ALTER TABLE ride_records ADD COLUMN memo TEXT');
+        }
       },
     );
   }
@@ -40,7 +42,8 @@ class DatabaseHelper {
                 avgSpeed REAL NOT NULL,
                 duration INTEGER NOT NULL,
                 pathPoints TEXT NOT NULL,
-                createdAt INTEGER NOT NULL
+                createdAt INTEGER NOT NULL,
+                memo TEXT
             )
         ''');
   }
@@ -48,6 +51,16 @@ class DatabaseHelper {
   Future<int> insertRecord(RideRecord record) async {
     final db = await database;
     return await db.insert('ride_records', record.toMap());
+  }
+
+  Future<void> updateMemo(int id, String memo) async {
+    final db = await database;
+    await db.update(
+      'ride_records',
+      {'memo': memo},
+      where: 'id = ?',
+      whereArgs: [id],
+    );
   }
 
   Future<List<RideRecord>> getAllRecords() async {

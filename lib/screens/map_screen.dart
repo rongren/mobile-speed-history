@@ -3,6 +3,8 @@ import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:provider/provider.dart';
 import '../providers/ride_provider.dart';
+import '../providers/settings_provider.dart';
+import '../utils/format_utils.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -18,6 +20,7 @@ class _MapScreenState extends State<MapScreen> {
   @override
   Widget build(BuildContext context) {
     final ride = context.watch<RideProvider>();
+    final useKmh = context.watch<SettingsProvider>().useKmh;
 
     if (_mapController != null && ride.pathPoints.isNotEmpty) {
       _drawPath(ride.pathPoints);
@@ -80,7 +83,7 @@ class _MapScreenState extends State<MapScreen> {
               children: [
                 _statCard(
                   '거리',
-                  '${ride.totalDistance.toStringAsFixed(2)} km',
+                  '${convertDistance(ride.totalDistance, useKmh).toStringAsFixed(2)} ${distanceUnit(useKmh)}',
                   Icons.straighten,
                 ),
                 _divider(),
@@ -92,7 +95,7 @@ class _MapScreenState extends State<MapScreen> {
                 _divider(),
                 _statCard(
                   '최고속도',
-                  '${ride.maxSpeed.toStringAsFixed(1)} km/h',
+                  '${convertSpeed(ride.maxSpeed, useKmh).toStringAsFixed(1)} ${speedUnit(useKmh)}',
                   Icons.speed,
                 ),
               ],

@@ -7,6 +7,7 @@ class SettingsProvider extends ChangeNotifier {
   static const _keyMinRecordDistance = 'min_record_distance';
   static const _keyAutoPause = 'auto_pause';
   static const _keyDefaultGaugeSpeed = 'default_gauge_speed';
+  static const _keyWeightKg = 'weight_kg';
   static const _keyShowDistance = 'show_distance';
   static const _keyShowDuration = 'show_duration';
   static const _keyShowMaxSpeed = 'show_max_speed';
@@ -17,6 +18,7 @@ class SettingsProvider extends ChangeNotifier {
   double _minRecordDistanceKm = 0.1;
   bool _autoPause = false;
   int _defaultGaugeSpeed = 60;
+  double _weightKg = 70.0;
   bool _showDistance = true;
   bool _showDuration = true;
   bool _showMaxSpeed = true;
@@ -27,6 +29,7 @@ class SettingsProvider extends ChangeNotifier {
   double get minRecordDistanceKm => _minRecordDistanceKm;
   bool get autoPause => _autoPause;
   int get defaultGaugeSpeed => _defaultGaugeSpeed;
+  double get weightKg => _weightKg;
   bool get showDistance => _showDistance;
   bool get showDuration => _showDuration;
   bool get showMaxSpeed => _showMaxSpeed;
@@ -39,6 +42,7 @@ class SettingsProvider extends ChangeNotifier {
     _minRecordDistanceKm = prefs.getDouble(_keyMinRecordDistance) ?? 0.1;
     _autoPause = prefs.getBool(_keyAutoPause) ?? false;
     _defaultGaugeSpeed = prefs.getInt(_keyDefaultGaugeSpeed) ?? 60;
+    _weightKg = prefs.getDouble(_keyWeightKg) ?? 70.0;
     _showDistance = prefs.getBool(_keyShowDistance) ?? true;
     _showDuration = prefs.getBool(_keyShowDuration) ?? true;
     _showMaxSpeed = prefs.getBool(_keyShowMaxSpeed) ?? true;
@@ -79,6 +83,13 @@ class SettingsProvider extends ChangeNotifier {
     notifyListeners();
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt(_keyDefaultGaugeSpeed, value);
+  }
+
+  Future<void> setWeightKg(double value) async {
+    _weightKg = value.clamp(30.0, 150.0);
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble(_keyWeightKg, _weightKg);
   }
 
   Future<void> setShowDistance(bool value) async {

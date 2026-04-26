@@ -192,8 +192,8 @@ class RideProvider extends ChangeNotifier {
     }
   }
 
-  // 저장됐으면 true, 최소거리 미달로 스킵됐으면 false
-  Future<bool> stopRide({double minRecordDistanceKm = 0.0}) async {
+  // 저장됐으면 RideRecord, 최소거리 미달로 스킵됐으면 null
+  Future<RideRecord?> stopRide({double minRecordDistanceKm = 0.0}) async {
     final durationSeconds = duration; // _isRiding 변경 전에 캡처
     _isRiding = false;
     _isAutoPaused = false;
@@ -209,7 +209,7 @@ class RideProvider extends ChangeNotifier {
     // 최소 기록 거리 미달 시 저장 안 함
     if (_totalDistance < minRecordDistanceKm) {
       notifyListeners();
-      return false;
+      return null;
     }
 
     final pathJson = jsonEncode(
@@ -236,10 +236,26 @@ class RideProvider extends ChangeNotifier {
       createdAt: startedAt ?? now.millisecondsSinceEpoch,
     );
 
-    await DatabaseHelper.instance.insertRecord(record);
+    final id = await DatabaseHelper.instance.insertRecord(record);
     await loadRecords();
     notifyListeners();
-    return true;
+    return RideRecord(
+      id: id,
+      year: record.year,
+      month: record.month,
+      day: record.day,
+      totalDistance: record.totalDistance,
+      maxSpeed: record.maxSpeed,
+      avgSpeed: record.avgSpeed,
+      duration: record.duration,
+      pathPoints: record.pathPoints,
+      createdAt: record.createdAt,
+    );
+  }
+
+  Future<void> updateMemo(int id, String memo) async {
+    await DatabaseHelper.instance.updateMemo(id, memo);
+    await loadRecords();
   }
 
   Future<void> deleteRecord(int id) async {

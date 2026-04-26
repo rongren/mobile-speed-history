@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
+import 'package:provider/provider.dart';
 import '../../models/ride_record.dart';
+import '../../providers/settings_provider.dart';
 import '../../utils/format_utils.dart';
 
 class HistoryDetailMapScreen extends StatefulWidget {
@@ -34,6 +36,7 @@ class _HistoryDetailMapScreenState extends State<HistoryDetailMapScreen> {
     final record = widget.record;
     final time = DateTime.fromMillisecondsSinceEpoch(record.createdAt);
     final points = _parsePathPoints();
+    final useKmh = context.watch<SettingsProvider>().useKmh;
 
     // 경로 중심 좌표
     NLatLng initialPosition = const NLatLng(37.5665, 126.9780);
@@ -107,16 +110,16 @@ class _HistoryDetailMapScreenState extends State<HistoryDetailMapScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   _statCard('거리',
-                      '${record.totalDistance.toStringAsFixed(2)} km'),
+                      '${convertDistance(record.totalDistance, useKmh).toStringAsFixed(2)} ${distanceUnit(useKmh)}'),
                   _divider(),
                   _statCard('시간',
                       formatDuration(record.duration)),
                   _divider(),
                   _statCard('최고속도',
-                      '${record.maxSpeed.toStringAsFixed(1)} km/h'),
+                      '${convertSpeed(record.maxSpeed, useKmh).toStringAsFixed(1)} ${speedUnit(useKmh)}'),
                   _divider(),
                   _statCard('평균속도',
-                      '${record.avgSpeed.toStringAsFixed(1)} km/h'),
+                      '${convertSpeed(record.avgSpeed, useKmh).toStringAsFixed(1)} ${speedUnit(useKmh)}'),
                 ],
               ),
             ),

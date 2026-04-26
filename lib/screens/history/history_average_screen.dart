@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/ride_provider.dart';
+import '../../providers/settings_provider.dart';
 import '../../utils/format_utils.dart';
 
 class HistoryAverageScreen extends StatelessWidget {
@@ -9,6 +10,7 @@ class HistoryAverageScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final records = context.watch<RideProvider>().records;
+    final useKmh = context.watch<SettingsProvider>().useKmh;
 
     if (records.isEmpty) {
       return _emptyWidget();
@@ -18,25 +20,24 @@ class HistoryAverageScreen extends StatelessWidget {
     final avgDuration = records.fold(0, (s, r) => s + r.duration) ~/ records.length;
     final avgMaxSpeed = records.fold(0.0, (s, r) => s + r.maxSpeed) / records.length;
     final avgAvgSpeed = records.fold(0.0, (s, r) => s + r.avgSpeed) / records.length;
+    final totalDist = records.fold(0.0, (s, r) => s + r.totalDistance);
+    final bestSpeed = records.map((r) => r.maxSpeed).reduce((a, b) => a > b ? a : b);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
           _sectionTitle('1회 평균'),
-          _statRow('평균 거리', '${avgDistance.toStringAsFixed(2)} km'),
+          _statRow('평균 거리', '${convertDistance(avgDistance, useKmh).toStringAsFixed(2)} ${distanceUnit(useKmh)}'),
           _statRow('평균 시간', formatDuration(avgDuration)),
-          _statRow('평균 최고속도', '${avgMaxSpeed.toStringAsFixed(1)} km/h'),
-          _statRow('평균 속도', '${avgAvgSpeed.toStringAsFixed(1)} km/h'),
+          _statRow('평균 최고속도', '${convertSpeed(avgMaxSpeed, useKmh).toStringAsFixed(1)} ${speedUnit(useKmh)}'),
+          _statRow('평균 속도', '${convertSpeed(avgAvgSpeed, useKmh).toStringAsFixed(1)} ${speedUnit(useKmh)}'),
           const SizedBox(height: 24),
           _sectionTitle('전체 누적'),
           _statRow('총 주행 횟수', '${records.length}회'),
-          _statRow('총 거리',
-              '${records.fold(0.0, (s, r) => s + r.totalDistance).toStringAsFixed(2)} km'),
-          _statRow('총 시간',
-              formatDuration(records.fold(0, (s, r) => s + r.duration))),
-          _statRow('최고 속도',
-              '${records.map((r) => r.maxSpeed).reduce((a, b) => a > b ? a : b).toStringAsFixed(1)} km/h'),
+          _statRow('총 거리', '${convertDistance(totalDist, useKmh).toStringAsFixed(2)} ${distanceUnit(useKmh)}'),
+          _statRow('총 시간', formatDuration(records.fold(0, (s, r) => s + r.duration))),
+          _statRow('최고 속도', '${convertSpeed(bestSpeed, useKmh).toStringAsFixed(1)} ${speedUnit(useKmh)}'),
         ],
       ),
     );

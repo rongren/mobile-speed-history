@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../utils/format_utils.dart';
 
 enum ChartDataType { distance, duration, maxSpeed, avgSpeed }
 
@@ -11,6 +12,7 @@ class BarChartWidget extends StatefulWidget {
   final List<double> avgSpeedData;
   final Function(int index)? onBarTap;
   final int selectedIndex;
+  final bool useKmh;
 
   const BarChartWidget({
     super.key,
@@ -21,6 +23,7 @@ class BarChartWidget extends StatefulWidget {
     required this.avgSpeedData,
     this.onBarTap,
     this.selectedIndex = -1,
+    this.useKmh = true,
   });
 
   @override
@@ -138,16 +141,17 @@ class _BarChartWidgetState extends State<BarChartWidget>
   }
 
   String _formatValue(double value) {
+    final useKmh = widget.useKmh;
     switch (_selectedType) {
       case ChartDataType.distance:
-        return '${value.toStringAsFixed(1)}km';
+        return '${convertDistance(value, useKmh).toStringAsFixed(1)} ${distanceUnit(useKmh)}';
       case ChartDataType.duration:
         final h = (value / 3600).floor();
         final m = ((value % 3600) / 60).floor();
         return h > 0 ? '${h}h${m}m' : '${m}m';
       case ChartDataType.maxSpeed:
       case ChartDataType.avgSpeed:
-        return '${value.toStringAsFixed(1)}';
+        return '${convertSpeed(value, useKmh).toStringAsFixed(1)}';
     }
   }
 

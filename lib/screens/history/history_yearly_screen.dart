@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../models/ride_record.dart';
 import '../../providers/ride_provider.dart';
+import '../../providers/settings_provider.dart';
 import '../../widgets/bar_chart_widget.dart';
 import '../../utils/format_utils.dart';
 
@@ -51,6 +52,7 @@ class _HistoryYearlyScreenState extends State<HistoryYearlyScreen>
   Widget build(BuildContext context) {
     super.build(context);
     final records = context.watch<RideProvider>().records;
+    final useKmh = context.watch<SettingsProvider>().useKmh;
 
     final Map<int, List<RideRecord>> grouped = {};
     for (final r in records) {
@@ -108,6 +110,7 @@ class _HistoryYearlyScreenState extends State<HistoryYearlyScreen>
             maxSpeedData: maxSpeedData,
             avgSpeedData: avgSpeedData,
             selectedIndex: _selectedIndex,
+            useKmh: useKmh,
             onBarTap: (index) {
               SystemSound.play(SystemSoundType.click);
               setState(() {
@@ -171,17 +174,17 @@ class _HistoryYearlyScreenState extends State<HistoryYearlyScreen>
                               .spaceAround,
                           children: [
                             _statItem('총 거리',
-                                '${totalDistance.toStringAsFixed(2)} km',
+                                '${convertDistance(totalDistance, useKmh).toStringAsFixed(2)} ${distanceUnit(useKmh)}',
                                 isBlue: true),
                             _statItem('총 시간',
                                 formatDuration(
                                     totalDuration),
                                 isBlue: true),
                             _statItem('최고속도',
-                                '${maxSpeed.toStringAsFixed(1)} km/h',
+                                '${convertSpeed(maxSpeed, useKmh).toStringAsFixed(1)} ${speedUnit(useKmh)}',
                                 isBlue: true),
                             _statItem('평균속도',
-                                '${avgSpeed.toStringAsFixed(1)} km/h',
+                                '${convertSpeed(avgSpeed, useKmh).toStringAsFixed(1)} ${speedUnit(useKmh)}',
                                 isBlue: true),
                           ],
                         ),
@@ -318,16 +321,16 @@ class _HistoryYearlyScreenState extends State<HistoryYearlyScreen>
                                     children: [
                                       _statItem(
                                           '거리',
-                                          '${distance.toStringAsFixed(2)} km'),
+                                          '${convertDistance(distance, useKmh).toStringAsFixed(2)} ${distanceUnit(useKmh)}'),
                                       _statItem(
                                           '시간',
                                           formatDuration(duration)),
                                       _statItem(
                                           '최고속도',
-                                          '${maxSpd.toStringAsFixed(1)} km/h'),
+                                          '${convertSpeed(maxSpd, useKmh).toStringAsFixed(1)} ${speedUnit(useKmh)}'),
                                       _statItem(
                                           '평균속도',
-                                          '${avgSpd.toStringAsFixed(1)} km/h'),
+                                          '${convertSpeed(avgSpd, useKmh).toStringAsFixed(1)} ${speedUnit(useKmh)}'),
                                     ],
                                   ),
                                 ],

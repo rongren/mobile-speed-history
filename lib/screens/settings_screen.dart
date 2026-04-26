@@ -5,6 +5,7 @@ import '../db/database_helper.dart';
 import '../db/sample_data.dart';
 import '../providers/ride_provider.dart';
 import '../providers/settings_provider.dart';
+import '../widgets/number_input_dialog.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -168,6 +169,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _gaugeSpeedTile(settings),
           const SizedBox(height: 10),
           _displayItemsTile(settings),
+          const SizedBox(height: 10),
+          _weightTile(settings),
           const SizedBox(height: 24),
 
           _sectionTitle('데이터'),
@@ -379,6 +382,99 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
               );
             }).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _weightTile(SettingsProvider settings) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: Colors.grey[900],
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: Colors.pink.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: const Icon(Icons.person_outline,
+                color: Colors.pink, size: 20),
+          ),
+          const SizedBox(width: 14),
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('체중',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold)),
+                SizedBox(height: 2),
+                Text('칼로리 추정에 사용됩니다',
+                    style: TextStyle(color: Colors.grey, fontSize: 12)),
+              ],
+            ),
+          ),
+          GestureDetector(
+            onTap: () => settings.setWeightKg(settings.weightKg - 1),
+            child: Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                color: Colors.grey[800],
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(Icons.remove, color: Colors.white, size: 18),
+            ),
+          ),
+          GestureDetector(
+            onTap: () async {
+              final result = await NumberInputDialog.show(
+                context,
+                title: '체중 입력',
+                initialValue: settings.weightKg.toInt(),
+                unit: 'kg',
+                min: 30,
+                max: 150,
+              );
+              if (result != null) settings.setWeightKg(result.toDouble());
+            },
+            child: Container(
+              width: 64,
+              padding: const EdgeInsets.symmetric(vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.grey[800],
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                '${settings.weightKg.toInt()} kg',
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
+          GestureDetector(
+            onTap: () => settings.setWeightKg(settings.weightKg + 1),
+            child: Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                color: Colors.grey[800],
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(Icons.add, color: Colors.white, size: 18),
+            ),
           ),
         ],
       ),

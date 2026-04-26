@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../models/ride_record.dart';
 import '../../providers/ride_provider.dart';
+import '../../providers/settings_provider.dart';
 import '../../widgets/bar_chart_widget.dart';
 import '../../utils/format_utils.dart';
 
@@ -37,6 +38,7 @@ class _HistoryMonthlyScreenState extends State<HistoryMonthlyScreen>
   Widget build(BuildContext context) {
     super.build(context);
     final records = context.watch<RideProvider>().records;
+    final useKmh = context.watch<SettingsProvider>().useKmh;
 
     final Map<String, List<RideRecord>> grouped = {};
     for (final r in records) {
@@ -111,6 +113,7 @@ class _HistoryMonthlyScreenState extends State<HistoryMonthlyScreen>
             maxSpeedData: maxSpeedData,
             avgSpeedData: avgSpeedData,
             selectedIndex: _selectedIndex,
+            useKmh: useKmh,
             onBarTap: (index) {
               SystemSound.play(SystemSoundType.click);
               setState(() {
@@ -174,17 +177,17 @@ class _HistoryMonthlyScreenState extends State<HistoryMonthlyScreen>
                               .spaceAround,
                           children: [
                             _statItem('총 거리',
-                                '${totalDistance.toStringAsFixed(2)} km',
+                                '${convertDistance(totalDistance, useKmh).toStringAsFixed(2)} ${distanceUnit(useKmh)}',
                                 isBlue: true),
                             _statItem('총 시간',
                                 formatDuration(
                                     totalDuration),
                                 isBlue: true),
                             _statItem('최고속도',
-                                '${maxSpeed.toStringAsFixed(1)} km/h',
+                                '${convertSpeed(maxSpeed, useKmh).toStringAsFixed(1)} ${speedUnit(useKmh)}',
                                 isBlue: true),
                             _statItem('평균속도',
-                                '${avgSpeed.toStringAsFixed(1)} km/h',
+                                '${convertSpeed(avgSpeed, useKmh).toStringAsFixed(1)} ${speedUnit(useKmh)}',
                                 isBlue: true),
                           ],
                         ),
@@ -285,6 +288,7 @@ class _HistoryMonthlyScreenState extends State<HistoryMonthlyScreen>
                     selectedYear,
                     selectedMonth,
                     selectedRecords,
+                    useKmh,
                   ),
                 ],
               ),
@@ -322,7 +326,7 @@ class _HistoryMonthlyScreenState extends State<HistoryMonthlyScreen>
   }
 
   Widget _buildWeeklyBreakdown(
-      int year, int month, List<RideRecord> records) {
+      int year, int month, List<RideRecord> records, bool useKmh) {
     if (records.isEmpty) return const SizedBox();
 
     final weeklyStats = _getWeeklyStats(year, month, records);
@@ -396,13 +400,13 @@ class _HistoryMonthlyScreenState extends State<HistoryMonthlyScreen>
                     MainAxisAlignment.spaceAround,
                     children: [
                       _statItem('거리',
-                          '${distance.toStringAsFixed(2)} km'),
+                          '${convertDistance(distance, useKmh).toStringAsFixed(2)} ${distanceUnit(useKmh)}'),
                       _statItem('시간',
                           formatDuration(duration)),
                       _statItem('최고속도',
-                          '${maxSpeed.toStringAsFixed(1)} km/h'),
+                          '${convertSpeed(maxSpeed, useKmh).toStringAsFixed(1)} ${speedUnit(useKmh)}'),
                       _statItem('평균속도',
-                          '${avgSpeed.toStringAsFixed(1)} km/h'),
+                          '${convertSpeed(avgSpeed, useKmh).toStringAsFixed(1)} ${speedUnit(useKmh)}'),
                     ],
                   ),
                 ],

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/ride_provider.dart';
+import '../../providers/settings_provider.dart';
 import 'history_detail_map_screen.dart';
 import 'package:table_calendar/table_calendar.dart';
 import '../../widgets/record_badges.dart';
@@ -390,6 +391,9 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> with Automati
     super.build(context);
 
     final records = context.watch<RideProvider>().records;
+    final settings = context.watch<SettingsProvider>();
+    final useKmh = settings.useKmh;
+    final weightKg = settings.weightKg;
     final dayRecords = records.where((r) =>
     r.year == _selectedDate.year &&
         r.month == _selectedDate.month &&
@@ -570,13 +574,13 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> with Automati
                   MainAxisAlignment.spaceAround,
                   children: [
                     _summaryItem('총 거리',
-                        '${totalDistance.toStringAsFixed(2)} km'),
+                        '${convertDistance(totalDistance, useKmh).toStringAsFixed(2)} ${distanceUnit(useKmh)}'),
                     _summaryItem('총 시간',
                         formatDuration(totalDuration)),
                     _summaryItem('최고속도',
-                        '${maxSpeed.toStringAsFixed(1)} km/h'),
-                    _summaryItem('평균속도',
-                        '${avgSpeed.toStringAsFixed(1)} km/h'),
+                        '${convertSpeed(maxSpeed, useKmh).toStringAsFixed(1)} ${speedUnit(useKmh)}'),
+                    _summaryItem('칼로리',
+                        '${calcCalories(totalDistance, weightKg)} kcal'),
                   ],
                 ),
               ),
@@ -675,13 +679,37 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> with Automati
                                 .spaceAround,
                             children: [
                               _statItem('거리',
-                                  '${record.totalDistance.toStringAsFixed(2)} km'),
+                                  '${convertDistance(record.totalDistance, useKmh).toStringAsFixed(2)} ${distanceUnit(useKmh)}'),
                               _statItem('시간',
                                   formatDuration(record.duration)),
                               _statItem('최고속도',
-                                  '${record.maxSpeed.toStringAsFixed(1)} km/h'),
+                                  '${convertSpeed(record.maxSpeed, useKmh).toStringAsFixed(1)} ${speedUnit(useKmh)}'),
                               _statItem('평균속도',
-                                  '${record.avgSpeed.toStringAsFixed(1)} km/h'),
+                                  '${convertSpeed(record.avgSpeed, useKmh).toStringAsFixed(1)} ${speedUnit(useKmh)}'),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              Text(
+                                '🔥 ${calcCalories(record.totalDistance, weightKg)} kcal',
+                                style: const TextStyle(
+                                    color: Colors.orange,
+                                    fontSize: 12),
+                              ),
+                              if (record.memo != null &&
+                                  record.memo!.isNotEmpty) ...[
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    '📝 ${record.memo}',
+                                    style: TextStyle(
+                                        color: Colors.grey[400],
+                                        fontSize: 12),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
                             ],
                           ),
                         ],

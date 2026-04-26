@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/ride_provider.dart';
 import '../providers/settings_provider.dart';
+import '../models/ride_record.dart';
 import '../utils/format_utils.dart';
 
 class SpeedometerScreen extends StatefulWidget {
@@ -152,19 +153,25 @@ class _SpeedometerScreenState extends State<SpeedometerScreen> {
           GestureDetector(
             onTap: () async {
               if (ride.isRiding) {
-                final saved = await ride.stopRide(
-                  minRecordDistanceKm: settings.minRecordDistanceKm,
+                final useKmh = settings.useKmh;
+                final weightKg = settings.weightKg;
+                final minDist = settings.minRecordDistanceKm;
+                final savedRecord = await ride.stopRide(
+                  minRecordDistanceKm: minDist,
                 );
-                if (!saved && context.mounted) {
+                if (!context.mounted) return;
+                if (savedRecord == null) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(
-                        '거리 부족 (최소 ${settings.minRecordDistanceKm.toStringAsFixed(1)} km) — 저장 안 됨',
+                        '거리 부족 (최소 ${minDist.toStringAsFixed(1)} km) — 저장 안 됨',
                       ),
                       backgroundColor: Colors.orange,
                       duration: const Duration(seconds: 3),
                     ),
                   );
+                } else {
+                  _showRideSummary(context, savedRecord, useKmh, weightKg);
                 }
               } else {
                 ride.startRide(
@@ -206,6 +213,129 @@ class _SpeedometerScreenState extends State<SpeedometerScreen> {
         ],
         ),
       ),
+    );
+  }
+
+  void _showRideSummary(BuildContext context, RideRecord record,
+      bool useKmh, double weightKg) {
+    final ctrl = TextEditingController();
+    final ride = context.read<RideProvider>();
+    final calories = calcCalories(record.totalDistance, weightKg);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: const Color(0xFF1e1e1e),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.only(
+          left: 24,
+          right: 24,
+          top: 24,
+          bottom: MediaQuery.of(ctx).viewInsets.bottom + 32,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              '주행 완료',
+              style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 20),
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              decoration: BoxDecoration(
+                color: Colors.blue.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.blue.withOpacity(0.3)),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _summaryStatCard('거리',
+                      '${convertDistance(record.totalDistance, useKmh).toStringAsFixed(2)}',
+                      distanceUnit(useKmh)),
+                  _summaryStatCard('시간',
+                      formatDuration(record.duration), ''),
+                  _summaryStatCard('최고속도',
+                      '${convertSpeed(record.maxSpeed, useKmh).toStringAsFixed(1)}',
+                      speedUnit(useKmh)),
+                  _summaryStatCard('칼로리', '$calories', 'kcal'),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+            TextField(
+              controller: ctrl,
+              maxLength: 80,
+              style: const TextStyle(color: Colors.white, fontSize: 14),
+              decoration: InputDecoration(
+                hintText: '메모를 남겨보세요 (선택)',
+                hintStyle:
+                    TextStyle(color: Colors.grey[600], fontSize: 14),
+                filled: true,
+                fillColor: Colors.grey[900],
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide.none,
+                ),
+                counterStyle:
+                    const TextStyle(color: Colors.grey, fontSize: 11),
+              ),
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                ),
+                onPressed: () async {
+                  final memo = ctrl.text.trim();
+                  if (memo.isNotEmpty && record.id != null) {
+                    await ride.updateMemo(record.id!, memo);
+                  }
+                  if (ctx.mounted) Navigator.pop(ctx);
+                },
+                child: const Text('확인',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold)),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _summaryStatCard(String label, String value, String unit) {
+    return Column(
+      children: [
+        Text(
+          value,
+          style: const TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+              fontWeight: FontWeight.bold),
+        ),
+        if (unit.isNotEmpty)
+          Text(unit,
+              style:
+                  const TextStyle(color: Colors.blue, fontSize: 11)),
+        const SizedBox(height: 4),
+        Text(label,
+            style: const TextStyle(color: Colors.grey, fontSize: 11)),
+      ],
     );
   }
 

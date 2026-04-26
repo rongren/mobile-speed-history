@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/ride_record.dart';
 import '../../providers/ride_provider.dart';
+import '../../providers/settings_provider.dart';
 import 'history_detail_map_screen.dart';
 import '../../widgets/record_badges.dart';
 import '../../utils/format_utils.dart';
@@ -245,6 +246,7 @@ class _HistoryTotalScreenState extends State<HistoryTotalScreen>
   Widget build(BuildContext context) {
     super.build(context);
     final records = context.watch<RideProvider>().records;
+    final useKmh = context.watch<SettingsProvider>().useKmh;
     final filtered = _sortedRecords(_filteredRecords(records));
 
     final years = records.map((r) => r.year).toSet().toList()..sort();
@@ -476,7 +478,7 @@ class _HistoryTotalScreenState extends State<HistoryTotalScreen>
                                       children: [
                                         _statItem(
                                           '거리',
-                                          '${record.totalDistance.toStringAsFixed(2)} km',
+                                          '${convertDistance(record.totalDistance, useKmh).toStringAsFixed(2)} ${distanceUnit(useKmh)}',
                                         ),
                                         _statItem(
                                           '시간',
@@ -484,11 +486,11 @@ class _HistoryTotalScreenState extends State<HistoryTotalScreen>
                                         ),
                                         _statItem(
                                           '최고속도',
-                                          '${record.maxSpeed.toStringAsFixed(1)} km/h',
+                                          '${convertSpeed(record.maxSpeed, useKmh).toStringAsFixed(1)} ${speedUnit(useKmh)}',
                                         ),
                                         _statItem(
                                           '평균속도',
-                                          '${record.avgSpeed.toStringAsFixed(1)} km/h',
+                                          '${convertSpeed(record.avgSpeed, useKmh).toStringAsFixed(1)} ${speedUnit(useKmh)}',
                                         ),
                                       ],
                                     ),

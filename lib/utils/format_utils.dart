@@ -16,3 +16,7 @@ double convertDistance(double km, bool useKmh) =>
 String speedUnit(bool useKmh) => useKmh ? 'km/h' : 'mph';
 
 String distanceUnit(bool useKmh) => useKmh ? 'km' : 'mi';
+
+// 칼로리 추정: 거리(km) × 체중(kg) × 0.5 kcal
+int calcCalories(double distanceKm, double weightKg) =>
+    (distanceKm * weightKg * 0.5).round();

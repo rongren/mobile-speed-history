@@ -9,6 +9,7 @@ class RideRecord {
   final int duration;
   final String pathPoints;
   final int createdAt;
+  final String? memo;
 
   RideRecord({
     this.id,
@@ -21,6 +22,7 @@ class RideRecord {
     required this.duration,
     required this.pathPoints,
     required this.createdAt,
+    this.memo,
   });
 
   Map<String, dynamic> toMap() {
@@ -35,6 +37,7 @@ class RideRecord {
       'duration': duration,
       'pathPoints': pathPoints,
       'createdAt': createdAt,
+      'memo': memo,
     };
   }
 
@@ -50,6 +53,7 @@ class RideRecord {
       duration: map['duration'],
       pathPoints: map['pathPoints'],
       createdAt: map['createdAt'],
+      memo: map['memo'] as String?,
     );
   }
 }
