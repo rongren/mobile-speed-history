@@ -17,6 +17,14 @@ class _MapScreenState extends State<MapScreen> {
   NaverMapController? _mapController;
   NLocationOverlay? _locationOverlay;
 
+  NMapType _toNMapType(String type) {
+    switch (type) {
+      case 'satellite': return NMapType.satellite;
+      case 'hybrid': return NMapType.hybrid;
+      default: return NMapType.basic;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final ride = context.watch<RideProvider>();
@@ -40,13 +48,15 @@ class _MapScreenState extends State<MapScreen> {
         children: [
           // 지도
           Expanded(
+            key: ValueKey(settings.mapType),
             child: NaverMap(
-              options: const NaverMapViewOptions(
-                initialCameraPosition: NCameraPosition(
+              options: NaverMapViewOptions(
+                initialCameraPosition: const NCameraPosition(
                   target: NLatLng(37.5665, 126.9780),
                   zoom: 15,
                 ),
                 locationButtonEnable: true,
+                mapType: _toNMapType(settings.mapType),
               ),
               onMapReady: (controller) async {
                 _mapController = controller;

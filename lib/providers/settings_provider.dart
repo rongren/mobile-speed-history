@@ -13,6 +13,9 @@ class SettingsProvider extends ChangeNotifier {
   static const _keyShowMaxSpeed = 'show_max_speed';
   static const _keyShowAvgSpeed = 'show_avg_speed';
   static const _keyAppTheme = 'app_theme';
+  static const _keyMinRecordDuration = 'min_record_duration';
+  static const _keySpeedAlertKmh = 'speed_alert_kmh';
+  static const _keyMapType = 'map_type';
 
   bool _useKmh = true;
   bool _gpsHighAccuracy = true;
@@ -25,6 +28,9 @@ class SettingsProvider extends ChangeNotifier {
   bool _showMaxSpeed = true;
   bool _showAvgSpeed = true;
   String _appTheme = 'dark';
+  int _minRecordDurationSec = 0;
+  double? _speedAlertKmh;
+  String _mapType = 'basic';
 
   bool get useKmh => _useKmh;
   bool get gpsHighAccuracy => _gpsHighAccuracy;
@@ -37,6 +43,9 @@ class SettingsProvider extends ChangeNotifier {
   bool get showMaxSpeed => _showMaxSpeed;
   bool get showAvgSpeed => _showAvgSpeed;
   String get appTheme => _appTheme;
+  int get minRecordDurationSec => _minRecordDurationSec;
+  double? get speedAlertKmh => _speedAlertKmh;
+  String get mapType => _mapType;
 
   Future<void> load() async {
     final prefs = await SharedPreferences.getInstance();
@@ -51,6 +60,9 @@ class SettingsProvider extends ChangeNotifier {
     _showMaxSpeed = prefs.getBool(_keyShowMaxSpeed) ?? true;
     _showAvgSpeed = prefs.getBool(_keyShowAvgSpeed) ?? true;
     _appTheme = prefs.getString(_keyAppTheme) ?? 'dark';
+    _minRecordDurationSec = prefs.getInt(_keyMinRecordDuration) ?? 0;
+    _speedAlertKmh = prefs.getDouble(_keySpeedAlertKmh);
+    _mapType = prefs.getString(_keyMapType) ?? 'basic';
     notifyListeners();
   }
 
@@ -133,5 +145,30 @@ class SettingsProvider extends ChangeNotifier {
     notifyListeners();
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_keyAppTheme, value);
+  }
+
+  Future<void> setMinRecordDurationSec(int value) async {
+    _minRecordDurationSec = value;
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_keyMinRecordDuration, value);
+  }
+
+  Future<void> setSpeedAlertKmh(double? value) async {
+    _speedAlertKmh = value != null ? value.clamp(1.0, 999.0) : null;
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    if (_speedAlertKmh != null) {
+      await prefs.setDouble(_keySpeedAlertKmh, _speedAlertKmh!);
+    } else {
+      await prefs.remove(_keySpeedAlertKmh);
+    }
+  }
+
+  Future<void> setMapType(String value) async {
+    _mapType = value;
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_keyMapType, value);
   }
 }

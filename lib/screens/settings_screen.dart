@@ -176,6 +176,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             const SizedBox(height: 10),
             _minDistanceTile(settings, panelColor, titleColor, subtitleColor, btnBgOff, btnBorderOff, btnTextOff),
             const SizedBox(height: 10),
+            _minDurationTile(settings, panelColor, titleColor, subtitleColor, btnBgOff, btnBorderOff, btnTextOff),
+            const SizedBox(height: 10),
             _switchTile(
               icon: Icons.pause_circle_outline,
               iconColor: Colors.orange,
@@ -188,6 +190,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               subtitleColor: subtitleColor,
               isDark: isDark,
             ),
+            const SizedBox(height: 10),
+            _speedAlertTile(settings, panelColor, titleColor, subtitleColor, btnBgOff, isDark),
             const SizedBox(height: 24),
 
             _sectionTitle('주행 화면', sectionColor),
@@ -196,6 +200,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
             _displayItemsTile(settings, panelColor, titleColor, subtitleColor, btnBgOff, btnBorderOff, btnTextOff),
             const SizedBox(height: 10),
             _weightTile(settings, panelColor, titleColor, subtitleColor, btnBgOff),
+            const SizedBox(height: 24),
+
+            _sectionTitle('지도', sectionColor),
+            _mapTypeTile(settings, panelColor, titleColor, subtitleColor, btnBgOff, btnBorderOff, btnTextOff),
             const SizedBox(height: 24),
 
             _sectionTitle('데이터', sectionColor),
@@ -701,6 +709,295 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: isSelected ? Colors.blue : btnTextOff,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            }),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _minDurationTile(SettingsProvider settings, Color panelColor,
+      Color titleColor, Color subtitleColor, Color btnBgOff, Color btnBorderOff, Color btnTextOff) {
+    const options = [0, 60, 180, 300, 600];
+    const labels = ['없음', '1분', '3분', '5분', '10분'];
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: panelColor,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: Colors.teal.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.timer_outlined, color: Colors.teal, size: 20),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('최소 기록 시간',
+                        style: TextStyle(
+                            color: titleColor,
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 2),
+                    Text('미달 시 주행 종료 후 저장 안 됨',
+                        style: TextStyle(color: subtitleColor, fontSize: 12)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: List.generate(options.length, (i) {
+              final isSelected = settings.minRecordDurationSec == options[i];
+              return Expanded(
+                child: GestureDetector(
+                  onTap: () => settings.setMinRecordDurationSec(options[i]),
+                  child: Container(
+                    margin: EdgeInsets.only(right: i < options.length - 1 ? 6 : 0),
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    decoration: BoxDecoration(
+                      color: isSelected ? Colors.teal.withOpacity(0.15) : btnBgOff,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: isSelected ? Colors.teal : btnBorderOff,
+                      ),
+                    ),
+                    child: Text(
+                      labels[i],
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: isSelected ? Colors.teal : btnTextOff,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            }),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _speedAlertTile(SettingsProvider settings, Color panelColor,
+      Color titleColor, Color subtitleColor, Color btnBgOff, bool isDark) {
+    final isOn = settings.speedAlertKmh != null;
+    final currentKmh = settings.speedAlertKmh?.toInt() ?? 30;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: panelColor,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: Colors.amber.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.notifications_active_outlined,
+                    color: Colors.amber, size: 20),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('속도 알림',
+                        style: TextStyle(
+                            color: titleColor,
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 2),
+                    Text('설정 속도 초과 시 진동 알림',
+                        style: TextStyle(color: subtitleColor, fontSize: 12)),
+                  ],
+                ),
+              ),
+              Switch(
+                value: isOn,
+                onChanged: (v) {
+                  if (v) {
+                    settings.setSpeedAlertKmh(currentKmh.toDouble());
+                  } else {
+                    settings.setSpeedAlertKmh(null);
+                  }
+                },
+                activeThumbColor: Colors.amber,
+                activeTrackColor: Colors.amber.withOpacity(0.4),
+                inactiveTrackColor: isDark ? Colors.grey[700] : Colors.grey[300],
+              ),
+            ],
+          ),
+          if (isOn) ...[
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                GestureDetector(
+                  onTap: () {
+                    final next = (currentKmh - 5).clamp(1, 999);
+                    settings.setSpeedAlertKmh(next.toDouble());
+                  },
+                  child: Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: btnBgOff,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(Icons.remove, color: titleColor, size: 20),
+                  ),
+                ),
+                const SizedBox(width: 20),
+                GestureDetector(
+                  onTap: () async {
+                    final result = await NumberInputDialog.show(
+                      context,
+                      title: '속도 알림 기준',
+                      initialValue: currentKmh,
+                      unit: 'km/h',
+                      maxDigits: 3,
+                      allowEmpty: false,
+                    );
+                    if (result == null) return;
+                    settings.setSpeedAlertKmh(result.toDouble());
+                  },
+                  child: Container(
+                    width: 90,
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    decoration: BoxDecoration(
+                      color: btnBgOff,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      '$currentKmh km/h',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: titleColor,
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 20),
+                GestureDetector(
+                  onTap: () {
+                    final next = (currentKmh + 5).clamp(1, 999);
+                    settings.setSpeedAlertKmh(next.toDouble());
+                  },
+                  child: Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: btnBgOff,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(Icons.add, color: titleColor, size: 20),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _mapTypeTile(SettingsProvider settings, Color panelColor,
+      Color titleColor, Color subtitleColor, Color btnBgOff, Color btnBorderOff, Color btnTextOff) {
+    const options = ['basic', 'satellite', 'hybrid'];
+    const labels = ['기본', '위성', '하이브리드'];
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: panelColor,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: Colors.green.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.map_outlined, color: Colors.green, size: 20),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('지도 스타일',
+                        style: TextStyle(
+                            color: titleColor,
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 2),
+                    Text('주행 지도 및 경로 지도에 적용',
+                        style: TextStyle(color: subtitleColor, fontSize: 12)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: List.generate(options.length, (i) {
+              final isSelected = settings.mapType == options[i];
+              return Expanded(
+                child: GestureDetector(
+                  onTap: () => settings.setMapType(options[i]),
+                  child: Container(
+                    margin: EdgeInsets.only(right: i < options.length - 1 ? 6 : 0),
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    decoration: BoxDecoration(
+                      color: isSelected ? Colors.green.withOpacity(0.15) : btnBgOff,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: isSelected ? Colors.green : btnBorderOff,
+                      ),
+                    ),
+                    child: Text(
+                      labels[i],
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: isSelected ? Colors.green : btnTextOff,
                         fontSize: 12,
                       ),
                     ),

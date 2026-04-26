@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import '../models/ride_record.dart';
@@ -23,6 +24,10 @@ class RideProvider extends ChangeNotifier {
   int _lastDuration = 0;
   Timer? _durationTimer;
 
+  // 속도 알림
+  double? _speedAlertKmh;
+  bool _wasAboveSpeedAlert = false;
+
   // 자동 일시정지
   bool _autoPauseEnabled = false;
   bool _isAutoPaused = false;
@@ -42,6 +47,10 @@ class RideProvider extends ChangeNotifier {
   double get totalDistance => _totalDistance;
   bool get isRiding => _isRiding;
   bool get isAutoPaused => _isAutoPaused;
+
+  // stopRide가 null을 반환할 때의 실패 이유 ('distance' or 'duration')
+  String? _stopFailReason;
+  String? get stopFailReason => _stopFailReason;
 
   int get duration {
     if (_isRiding && _startTime != null) {
@@ -82,6 +91,7 @@ class RideProvider extends ChangeNotifier {
   Future<void> startRide({
     bool gpsHighAccuracy = true,
     bool autoPause = false,
+    double? speedAlertKmh,
   }) async {
     final hasPermission = await LocationService.requestPermission();
     if (!hasPermission) return;
@@ -103,6 +113,8 @@ class RideProvider extends ChangeNotifier {
     _autoPausedAt = null;
     _totalPausedMs = 0;
     _lowSpeedCount = 0;
+    _speedAlertKmh = speedAlertKmh;
+    _wasAboveSpeedAlert = false;
 
     // GPS 스트림
     _positionSubscription =
@@ -148,6 +160,16 @@ class RideProvider extends ChangeNotifier {
 
     if (rawSpeed > _maxSpeed) _maxSpeed = rawSpeed;
 
+    // 속도 알림: 임계값 상향 돌파 시 1회 진동
+    final alertKmh = _speedAlertKmh;
+    if (alertKmh != null) {
+      final isAbove = rawSpeed >= alertKmh;
+      if (isAbove && !_wasAboveSpeedAlert) {
+        HapticFeedback.heavyImpact();
+      }
+      _wasAboveSpeedAlert = isAbove;
+    }
+
     if (_lastPosition != null) {
       final distanceInMeters = LocationService.calculateDistance(
         _lastPosition!, position,
@@ -192,8 +214,11 @@ class RideProvider extends ChangeNotifier {
     }
   }
 
-  // 저장됐으면 RideRecord, 최소거리 미달로 스킵됐으면 null
-  Future<RideRecord?> stopRide({double minRecordDistanceKm = 0.0}) async {
+  // 저장됐으면 RideRecord, 조건 미달로 스킵됐으면 null (stopFailReason 참조)
+  Future<RideRecord?> stopRide({
+    double minRecordDistanceKm = 0.0,
+    int minRecordDurationSec = 0,
+  }) async {
     final durationSeconds = duration; // _isRiding 변경 전에 캡처
     _isRiding = false;
     _isAutoPaused = false;
@@ -206,11 +231,20 @@ class RideProvider extends ChangeNotifier {
     _lastDuration = durationSeconds;
     _startTime = null;
 
-    // 최소 기록 거리 미달 시 저장 안 함
-    if (_totalDistance < minRecordDistanceKm) {
+    // 최소 기록 시간 미달 시 저장 안 함
+    if (minRecordDurationSec > 0 && durationSeconds < minRecordDurationSec) {
+      _stopFailReason = 'duration';
       notifyListeners();
       return null;
     }
+
+    // 최소 기록 거리 미달 시 저장 안 함
+    if (_totalDistance < minRecordDistanceKm) {
+      _stopFailReason = 'distance';
+      notifyListeners();
+      return null;
+    }
+    _stopFailReason = null;
 
     final pathJson = jsonEncode(
       pathPoints.map((p) => {

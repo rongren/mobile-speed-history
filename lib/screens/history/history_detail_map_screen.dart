@@ -19,6 +19,14 @@ class HistoryDetailMapScreen extends StatefulWidget {
 class _HistoryDetailMapScreenState extends State<HistoryDetailMapScreen> {
   NaverMapController? _mapController;
 
+  NMapType _toNMapType(String type) {
+    switch (type) {
+      case 'satellite': return NMapType.satellite;
+      case 'hybrid': return NMapType.hybrid;
+      default: return NMapType.basic;
+    }
+  }
+
   List<NLatLng> _parsePathPoints() {
     try {
       final List decoded = jsonDecode(widget.record.pathPoints);
@@ -76,6 +84,7 @@ class _HistoryDetailMapScreenState extends State<HistoryDetailMapScreen> {
                   target: initialPosition,
                   zoom: 15,
                 ),
+                mapType: _toNMapType(settings.mapType),
               ),
               onMapReady: (controller) async {
                 _mapController = controller;

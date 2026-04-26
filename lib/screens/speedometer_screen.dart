@@ -172,16 +172,20 @@ class _SpeedometerScreenState extends State<SpeedometerScreen> {
                 final useKmh = settings.useKmh;
                 final weightKg = settings.weightKg;
                 final minDist = settings.minRecordDistanceKm;
+                final minDur = settings.minRecordDurationSec;
                 final savedRecord = await ride.stopRide(
                   minRecordDistanceKm: minDist,
+                  minRecordDurationSec: minDur,
                 );
                 if (!context.mounted) return;
                 if (savedRecord == null) {
+                  final reason = ride.stopFailReason;
+                  final msg = reason == 'duration'
+                      ? '시간 부족 (최소 ${minDur}초) — 저장 안 됨'
+                      : '거리 부족 (최소 ${formatDouble(minDist, 1)} km) — 저장 안 됨';
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text(
-                        '거리 부족 (최소 ${formatDouble(minDist, 1)} km) — 저장 안 됨',
-                      ),
+                      content: Text(msg),
                       backgroundColor: Colors.orange,
                       duration: const Duration(seconds: 3),
                     ),
@@ -193,6 +197,7 @@ class _SpeedometerScreenState extends State<SpeedometerScreen> {
                 ride.startRide(
                   gpsHighAccuracy: settings.gpsHighAccuracy,
                   autoPause: settings.autoPause,
+                  speedAlertKmh: settings.speedAlertKmh,
                 );
               }
             },
