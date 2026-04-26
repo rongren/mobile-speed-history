@@ -164,6 +164,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           const SizedBox(height: 24),
 
+          _sectionTitle('주행 화면'),
+          _gaugeSpeedTile(settings),
+          const SizedBox(height: 10),
+          _displayItemsTile(settings),
+          const SizedBox(height: 24),
+
+          _sectionTitle('데이터'),
+          _settingTile(
+            icon: Icons.upload_file,
+            iconColor: Colors.teal,
+            title: '백업 / 내보내기',
+            subtitle: '주행 기록을 파일로 저장',
+            onTap: null,
+            isLoading: false,
+            loadingColor: Colors.teal,
+          ),
+          const SizedBox(height: 24),
+
           _sectionTitle('앱 정보'),
           _infoTile(
             icon: Icons.info_outline,
@@ -195,6 +213,174 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         ],
         ),
+      ),
+    );
+  }
+
+  Widget _gaugeSpeedTile(SettingsProvider settings) {
+    const speeds = [60, 120, 180, 240];
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: Colors.grey[900],
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: Colors.blue.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.speed, color: Colors.blue, size: 20),
+              ),
+              const SizedBox(width: 14),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('게이지 최대속도 기본값',
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold)),
+                    SizedBox(height: 2),
+                    Text('속도계 실행 시 기본 최대 눈금',
+                        style: TextStyle(color: Colors.grey, fontSize: 12)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: speeds.map((s) {
+              final isSelected = settings.defaultGaugeSpeed == s;
+              final isLast = s == speeds.last;
+              return Expanded(
+                child: GestureDetector(
+                  onTap: () => settings.setDefaultGaugeSpeed(s),
+                  child: Container(
+                    margin: EdgeInsets.only(right: isLast ? 0 : 6),
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? Colors.blue.withOpacity(0.15)
+                          : Colors.grey[800],
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: isSelected ? Colors.blue : Colors.grey[700]!,
+                      ),
+                    ),
+                    child: Text(
+                      '$s',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: isSelected ? Colors.blue : Colors.grey,
+                        fontSize: 13,
+                        fontWeight: isSelected
+                            ? FontWeight.bold
+                            : FontWeight.normal,
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _displayItemsTile(SettingsProvider settings) {
+    final items = [
+      ('거리', settings.showDistance, settings.setShowDistance),
+      ('시간', settings.showDuration, settings.setShowDuration),
+      ('최고속도', settings.showMaxSpeed, settings.setShowMaxSpeed),
+      ('평균속도', settings.showAvgSpeed, settings.setShowAvgSpeed),
+    ];
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: Colors.grey[900],
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: Colors.indigo.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.dashboard_outlined,
+                    color: Colors.indigo, size: 20),
+              ),
+              const SizedBox(width: 14),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('주행 중 표시 항목',
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold)),
+                    SizedBox(height: 2),
+                    Text('속도계 하단에 표시할 통계 선택',
+                        style: TextStyle(color: Colors.grey, fontSize: 12)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: items.asMap().entries.map((e) {
+              final i = e.key;
+              final (label, isOn, setter) = e.value;
+              final isLast = i == items.length - 1;
+              return Expanded(
+                child: GestureDetector(
+                  onTap: () => setter(!isOn),
+                  child: Container(
+                    margin: EdgeInsets.only(right: isLast ? 0 : 6),
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    decoration: BoxDecoration(
+                      color: isOn
+                          ? Colors.indigo.withOpacity(0.15)
+                          : Colors.grey[800],
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: isOn ? Colors.indigo : Colors.grey[700]!,
+                      ),
+                    ),
+                    child: Text(
+                      label,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: isOn ? Colors.indigo : Colors.grey,
+                        fontSize: 12,
+                        fontWeight:
+                            isOn ? FontWeight.bold : FontWeight.normal,
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ],
       ),
     );
   }

@@ -14,6 +14,19 @@ class SpeedometerScreen extends StatefulWidget {
 
 class _SpeedometerScreenState extends State<SpeedometerScreen> {
   double _maxSpeed = 60;
+  bool _initialized = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_initialized) {
+      _maxSpeed = context
+          .read<SettingsProvider>()
+          .defaultGaugeSpeed
+          .toDouble();
+      _initialized = true;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,9 +39,8 @@ class _SpeedometerScreenState extends State<SpeedometerScreen> {
       body: SafeArea(
         bottom: false,
         child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          const SizedBox(height: 12),
 
           // 최고속도 선택 라디오 버튼
           Row(
@@ -107,33 +119,8 @@ class _SpeedometerScreenState extends State<SpeedometerScreen> {
 
           const SizedBox(height: 16),
 
-          // 통계 3개
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 20),
-              decoration: BoxDecoration(
-                color: Colors.grey[900],
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  _statCard(
-                    '거리',
-                    '${convertDistance(ride.totalDistance, useKmh).toStringAsFixed(2)} ${distanceUnit(useKmh)}',
-                  ),
-                  _divider(),
-                  _statCard('시간', ride.formattedDuration),
-                  _divider(),
-                  _statCard(
-                    '최고속도',
-                    '${convertSpeed(ride.maxSpeed, useKmh).toStringAsFixed(1)} ${speedUnit(useKmh)}',
-                  ),
-                ],
-              ),
-            ),
-          ),
+          // 통계 카드 (표시 항목 설정 반영)
+          _buildStatsRow(ride, settings, useKmh),
 
           const SizedBox(height: 16),
 
@@ -217,6 +204,47 @@ class _SpeedometerScreenState extends State<SpeedometerScreen> {
 
           const SizedBox(height: 20),
         ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatsRow(
+      RideProvider ride, SettingsProvider settings, bool useKmh) {
+    final currentAvgSpeed = ride.duration > 0
+        ? ride.totalDistance / (ride.duration / 3600.0)
+        : 0.0;
+
+    final items = <(String, String)>[
+      if (settings.showDistance)
+        ('거리',
+            '${convertDistance(ride.totalDistance, useKmh).toStringAsFixed(2)} ${distanceUnit(useKmh)}'),
+      if (settings.showDuration) ('시간', ride.formattedDuration),
+      if (settings.showMaxSpeed)
+        ('최고속도',
+            '${convertSpeed(ride.maxSpeed, useKmh).toStringAsFixed(1)} ${speedUnit(useKmh)}'),
+      if (settings.showAvgSpeed)
+        ('평균속도',
+            '${convertSpeed(currentAvgSpeed, useKmh).toStringAsFixed(1)} ${speedUnit(useKmh)}'),
+    ];
+
+    if (items.isEmpty) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 20),
+        decoration: BoxDecoration(
+          color: Colors.grey[900],
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Row(
+          children: [
+            for (int i = 0; i < items.length; i++) ...[
+              if (i > 0) _divider(),
+              Expanded(child: _statCard(items[i].$1, items[i].$2)),
+            ],
+          ],
         ),
       ),
     );
