@@ -424,7 +424,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ),
           GestureDetector(
-            onTap: () => settings.setWeightKg(settings.weightKg - 1),
+            onTap: () => settings
+                .setWeightKg((settings.weightKg ?? 70) - 1),
             child: Container(
               width: 32,
               height: 32,
@@ -432,7 +433,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 color: Colors.grey[800],
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Icon(Icons.remove, color: Colors.white, size: 18),
+              child: const Icon(Icons.remove,
+                  color: Colors.white, size: 18),
             ),
           ),
           GestureDetector(
@@ -440,32 +442,40 @@ class _SettingsScreenState extends State<SettingsScreen> {
               final result = await NumberInputDialog.show(
                 context,
                 title: '체중 입력',
-                initialValue: settings.weightKg.toInt(),
+                initialValue: settings.weightKg?.toInt() ?? 70,
                 unit: 'kg',
                 min: 30,
                 max: 150,
               );
-              if (result != null) settings.setWeightKg(result.toDouble());
+              if (result != null) {
+                settings.setWeightKg(result.toDouble());
+              }
             },
             child: Container(
-              width: 64,
+              width: 68,
               padding: const EdgeInsets.symmetric(vertical: 6),
               decoration: BoxDecoration(
                 color: Colors.grey[800],
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
-                '${settings.weightKg.toInt()} kg',
+                settings.weightKg != null
+                    ? '${settings.weightKg!.toInt()} kg'
+                    : '--',
                 textAlign: TextAlign.center,
-                style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  color: settings.weightKg != null
+                      ? Colors.white
+                      : Colors.grey,
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ),
           GestureDetector(
-            onTap: () => settings.setWeightKg(settings.weightKg + 1),
+            onTap: () => settings
+                .setWeightKg((settings.weightKg ?? 70) + 1),
             child: Container(
               width: 32,
               height: 32,
@@ -473,9 +483,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 color: Colors.grey[800],
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Icon(Icons.add, color: Colors.white, size: 18),
+              child: const Icon(Icons.add,
+                  color: Colors.white, size: 18),
             ),
           ),
+          if (settings.weightKg != null) ...[
+            const SizedBox(width: 6),
+            GestureDetector(
+              onTap: () => settings.setWeightKg(null),
+              child: Container(
+                width: 28,
+                height: 28,
+                decoration: BoxDecoration(
+                  color: Colors.grey[850],
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.close,
+                    color: Colors.grey, size: 14),
+              ),
+            ),
+          ],
         ],
       ),
     );

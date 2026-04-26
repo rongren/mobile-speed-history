@@ -217,10 +217,10 @@ class _SpeedometerScreenState extends State<SpeedometerScreen> {
   }
 
   void _showRideSummary(BuildContext context, RideRecord record,
-      bool useKmh, double weightKg) {
+      bool useKmh, double? weightKg) {
     final ctrl = TextEditingController();
     final ride = context.read<RideProvider>();
-    final calories = calcCalories(record.totalDistance, weightKg);
+    final int? calories = calcCalories(record.totalDistance, weightKg);
 
     showModalBottomSheet(
       context: context,
@@ -265,7 +265,12 @@ class _SpeedometerScreenState extends State<SpeedometerScreen> {
                   _summaryStatCard('최고속도',
                       '${convertSpeed(record.maxSpeed, useKmh).toStringAsFixed(1)}',
                       speedUnit(useKmh)),
-                  _summaryStatCard('칼로리', '$calories', 'kcal'),
+                  if (calories != null)
+                    _summaryStatCard('칼로리', formatNumber(calories), 'kcal')
+                  else
+                    _summaryStatCard('평균속도',
+                        '${convertSpeed(record.avgSpeed, useKmh).toStringAsFixed(1)}',
+                        speedUnit(useKmh)),
                 ],
               ),
             ),

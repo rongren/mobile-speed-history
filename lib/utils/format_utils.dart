@@ -17,6 +17,19 @@ String speedUnit(bool useKmh) => useKmh ? 'km/h' : 'mph';
 
 String distanceUnit(bool useKmh) => useKmh ? 'km' : 'mi';
 
-// 칼로리 추정: 거리(km) × 체중(kg) × 0.5 kcal
-int calcCalories(double distanceKm, double weightKg) =>
-    (distanceKm * weightKg * 0.5).round();
+// 칼로리 추정: 거리(km) × 체중(kg) × 0.5 kcal — 체중 null이면 null 반환
+int? calcCalories(double distanceKm, double? weightKg) {
+  if (weightKg == null) return null;
+  return (distanceKm * weightKg * 0.5).round();
+}
+
+// 1000단위 콤마 포맷 (예: 1234 → "1,234")
+String formatNumber(int n) {
+  final s = n.toString();
+  final buf = StringBuffer();
+  for (int i = 0; i < s.length; i++) {
+    if (i > 0 && (s.length - i) % 3 == 0) buf.write(',');
+    buf.write(s[i]);
+  }
+  return buf.toString();
+}

@@ -426,9 +426,14 @@ class _HistoryDailyScreenState extends State<HistoryDailyScreen>
                             _statItem('최고속도',
                                 '${convertSpeed(maxSpeed, useKmh).toStringAsFixed(1)} ${speedUnit(useKmh)}',
                                 isBlue: true),
-                            _statItem('칼로리',
-                                '${calcCalories(totalDistance, weightKg)} kcal',
-                                isBlue: true),
+                            if (weightKg != null)
+                              _statItem('칼로리',
+                                  '${formatNumber(calcCalories(totalDistance, weightKg)!)} kcal',
+                                  isBlue: true)
+                            else
+                              _statItem('평균속도',
+                                  '${convertSpeed(avgSpeed, useKmh).toStringAsFixed(1)} ${speedUnit(useKmh)}',
+                                  isBlue: true),
                           ],
                         ),
                         const SizedBox(height: 8),
@@ -546,31 +551,38 @@ class _HistoryDailyScreenState extends State<HistoryDailyScreen>
                                     '${convertSpeed(record.avgSpeed, useKmh).toStringAsFixed(1)} ${speedUnit(useKmh)}'),
                               ],
                             ),
-                            const SizedBox(height: 8),
-                            Row(
-                              children: [
-                                Text(
-                                  '🔥 ${calcCalories(record.totalDistance, weightKg)} kcal',
-                                  style: const TextStyle(
-                                      color: Colors.orange,
-                                      fontSize: 12),
-                                ),
-                                if (record.memo != null &&
-                                    record.memo!.isNotEmpty) ...[
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Text(
-                                      '📝 ${record.memo}',
-                                      style: TextStyle(
-                                          color: Colors.grey[400],
+                            if (weightKg != null ||
+                                (record.memo != null &&
+                                    record.memo!.isNotEmpty)) ...[
+                              const SizedBox(height: 8),
+                              Row(
+                                children: [
+                                  if (weightKg != null)
+                                    Text(
+                                      '🔥 ${formatNumber(calcCalories(record.totalDistance, weightKg)!)} kcal',
+                                      style: const TextStyle(
+                                          color: Colors.orange,
                                           fontSize: 12),
-                                      overflow:
-                                          TextOverflow.ellipsis,
                                     ),
-                                  ),
+                                  if (weightKg != null &&
+                                      record.memo != null &&
+                                      record.memo!.isNotEmpty)
+                                    const SizedBox(width: 12),
+                                  if (record.memo != null &&
+                                      record.memo!.isNotEmpty)
+                                    Expanded(
+                                      child: Text(
+                                        '📝 ${record.memo}',
+                                        style: TextStyle(
+                                            color: Colors.grey[400],
+                                            fontSize: 12),
+                                        overflow:
+                                            TextOverflow.ellipsis,
+                                      ),
+                                    ),
                                 ],
-                              ],
-                            ),
+                              ),
+                            ],
                           ],
                         ),
                       ),

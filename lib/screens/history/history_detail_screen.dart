@@ -579,8 +579,12 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> with Automati
                         formatDuration(totalDuration)),
                     _summaryItem('최고속도',
                         '${convertSpeed(maxSpeed, useKmh).toStringAsFixed(1)} ${speedUnit(useKmh)}'),
-                    _summaryItem('칼로리',
-                        '${calcCalories(totalDistance, weightKg)} kcal'),
+                    if (weightKg != null)
+                      _summaryItem('칼로리',
+                          '${formatNumber(calcCalories(totalDistance, weightKg)!)} kcal')
+                    else
+                      _summaryItem('평균속도',
+                          '${convertSpeed(avgSpeed, useKmh).toStringAsFixed(1)} ${speedUnit(useKmh)}'),
                   ],
                 ),
               ),
@@ -688,30 +692,37 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> with Automati
                                   '${convertSpeed(record.avgSpeed, useKmh).toStringAsFixed(1)} ${speedUnit(useKmh)}'),
                             ],
                           ),
-                          const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              Text(
-                                '🔥 ${calcCalories(record.totalDistance, weightKg)} kcal',
-                                style: const TextStyle(
-                                    color: Colors.orange,
-                                    fontSize: 12),
-                              ),
-                              if (record.memo != null &&
-                                  record.memo!.isNotEmpty) ...[
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Text(
-                                    '📝 ${record.memo}',
-                                    style: TextStyle(
-                                        color: Colors.grey[400],
+                          if (weightKg != null ||
+                              (record.memo != null &&
+                                  record.memo!.isNotEmpty)) ...[
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                if (weightKg != null)
+                                  Text(
+                                    '🔥 ${formatNumber(calcCalories(record.totalDistance, weightKg)!)} kcal',
+                                    style: const TextStyle(
+                                        color: Colors.orange,
                                         fontSize: 12),
-                                    overflow: TextOverflow.ellipsis,
                                   ),
-                                ),
+                                if (weightKg != null &&
+                                    record.memo != null &&
+                                    record.memo!.isNotEmpty)
+                                  const SizedBox(width: 12),
+                                if (record.memo != null &&
+                                    record.memo!.isNotEmpty)
+                                  Expanded(
+                                    child: Text(
+                                      '📝 ${record.memo}',
+                                      style: TextStyle(
+                                          color: Colors.grey[400],
+                                          fontSize: 12),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
                               ],
-                            ],
-                          ),
+                            ),
+                          ],
                         ],
                       ),
                     ),
