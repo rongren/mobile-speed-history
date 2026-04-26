@@ -222,102 +222,106 @@ class _SpeedometerScreenState extends State<SpeedometerScreen> {
     final ride = context.read<RideProvider>();
     final int? calories = calcCalories(record.totalDistance, weightKg);
 
-    showModalBottomSheet(
+    showDialog(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: const Color(0xFF1e1e1e),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (ctx) => Padding(
-        padding: EdgeInsets.only(
-          left: 24,
-          right: 24,
-          top: 24,
-          bottom: MediaQuery.of(ctx).viewInsets.bottom + 32,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              '주행 완료',
-              style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 20),
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              decoration: BoxDecoration(
-                color: Colors.blue.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.blue.withOpacity(0.3)),
+      barrierDismissible: false,
+      builder: (ctx) => Dialog(
+        backgroundColor: const Color(0xFF1e1e1e),
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20)),
+        insetPadding:
+            const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                '주행 완료',
+                style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold),
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _summaryStatCard('거리',
-                      '${convertDistance(record.totalDistance, useKmh).toStringAsFixed(2)}',
-                      distanceUnit(useKmh)),
-                  _summaryStatCard('시간',
-                      formatDuration(record.duration), ''),
-                  _summaryStatCard('최고속도',
-                      '${convertSpeed(record.maxSpeed, useKmh).toStringAsFixed(1)}',
-                      speedUnit(useKmh)),
-                  if (calories != null)
-                    _summaryStatCard('칼로리', formatNumber(calories), 'kcal')
-                  else
-                    _summaryStatCard('평균속도',
-                        '${convertSpeed(record.avgSpeed, useKmh).toStringAsFixed(1)}',
+              const SizedBox(height: 20),
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                decoration: BoxDecoration(
+                  color: Colors.blue.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border:
+                      Border.all(color: Colors.blue.withOpacity(0.3)),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    _summaryStatCard('거리',
+                        '${convertDistance(record.totalDistance, useKmh).toStringAsFixed(2)}',
+                        distanceUnit(useKmh)),
+                    _summaryStatCard(
+                        '시간', formatDuration(record.duration), ''),
+                    _summaryStatCard('최고속도',
+                        '${convertSpeed(record.maxSpeed, useKmh).toStringAsFixed(1)}',
                         speedUnit(useKmh)),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
-            TextField(
-              controller: ctrl,
-              maxLength: 80,
-              style: const TextStyle(color: Colors.white, fontSize: 14),
-              decoration: InputDecoration(
-                hintText: '메모를 남겨보세요 (선택)',
-                hintStyle:
-                    TextStyle(color: Colors.grey[600], fontSize: 14),
-                filled: true,
-                fillColor: Colors.grey[900],
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide.none,
+                    if (calories != null)
+                      _summaryStatCard(
+                          '칼로리', formatNumber(calories), 'kcal')
+                    else
+                      _summaryStatCard('평균속도',
+                          '${convertSpeed(record.avgSpeed, useKmh).toStringAsFixed(1)}',
+                          speedUnit(useKmh)),
+                  ],
                 ),
-                counterStyle:
-                    const TextStyle(color: Colors.grey, fontSize: 11),
               ),
-            ),
-            const SizedBox(height: 12),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
+              const SizedBox(height: 20),
+              TextField(
+                controller: ctrl,
+                maxLength: 80,
+                maxLines: 3,
+                minLines: 3,
+                style:
+                    const TextStyle(color: Colors.white, fontSize: 14),
+                decoration: InputDecoration(
+                  hintText: '메모를 남겨보세요 (선택)',
+                  hintStyle: TextStyle(
+                      color: Colors.grey[600], fontSize: 14),
+                  filled: true,
+                  fillColor: Colors.grey[900],
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide.none,
+                  ),
+                  counterStyle: const TextStyle(
+                      color: Colors.grey, fontSize: 11),
                 ),
-                onPressed: () async {
-                  final memo = ctrl.text.trim();
-                  if (memo.isNotEmpty && record.id != null) {
-                    await ride.updateMemo(record.id!, memo);
-                  }
-                  if (ctx.mounted) Navigator.pop(ctx);
-                },
-                child: const Text('확인',
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold)),
               ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    padding:
+                        const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                  ),
+                  onPressed: () async {
+                    final memo = ctrl.text.trim();
+                    if (memo.isNotEmpty && record.id != null) {
+                      await ride.updateMemo(record.id!, memo);
+                    }
+                    if (ctx.mounted) Navigator.pop(ctx);
+                  },
+                  child: const Text('확인',
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold)),
+                ),
             ),
-          ],
+            ],
+          ),
         ),
       ),
     );
