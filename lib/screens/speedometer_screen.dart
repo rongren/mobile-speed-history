@@ -37,6 +37,7 @@ class _SpeedometerScreenState extends State<SpeedometerScreen> {
 
     return Scaffold(
       backgroundColor: Colors.black,
+      resizeToAvoidBottomInset: false,
       body: SafeArea(
         bottom: false,
         child: Column(
@@ -225,102 +226,181 @@ class _SpeedometerScreenState extends State<SpeedometerScreen> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (ctx) => Dialog(
-        backgroundColor: const Color(0xFF1e1e1e),
-        shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20)),
-        insetPadding:
-            const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                '주행 완료',
-                style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 20),
-              Container(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                decoration: BoxDecoration(
-                  color: Colors.blue.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                  border:
-                      Border.all(color: Colors.blue.withOpacity(0.3)),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => Dialog(
+          backgroundColor: const Color(0xFF1e1e1e),
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20)),
+          insetPadding:
+              const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  '주행 완료',
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold),
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    _summaryStatCard('거리',
-                        '${convertDistance(record.totalDistance, useKmh).toStringAsFixed(2)}',
-                        distanceUnit(useKmh)),
-                    _summaryStatCard(
-                        '시간', formatDuration(record.duration), ''),
-                    _summaryStatCard('최고속도',
-                        '${convertSpeed(record.maxSpeed, useKmh).toStringAsFixed(1)}',
-                        speedUnit(useKmh)),
-                    if (calories != null)
+                const SizedBox(height: 20),
+                Container(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border:
+                        Border.all(color: Colors.blue.withOpacity(0.3)),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      _summaryStatCard('거리',
+                          '${convertDistance(record.totalDistance, useKmh).toStringAsFixed(2)}',
+                          distanceUnit(useKmh)),
                       _summaryStatCard(
-                          '칼로리', formatNumber(calories), 'kcal')
-                    else
-                      _summaryStatCard('평균속도',
-                          '${convertSpeed(record.avgSpeed, useKmh).toStringAsFixed(1)}',
+                          '시간', formatDuration(record.duration), ''),
+                      _summaryStatCard('최고속도',
+                          '${convertSpeed(record.maxSpeed, useKmh).toStringAsFixed(1)}',
                           speedUnit(useKmh)),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 20),
-              TextField(
-                controller: ctrl,
-                maxLength: 80,
-                maxLines: 3,
-                minLines: 3,
-                style:
-                    const TextStyle(color: Colors.white, fontSize: 14),
-                decoration: InputDecoration(
-                  hintText: '메모를 남겨보세요 (선택)',
-                  hintStyle: TextStyle(
-                      color: Colors.grey[600], fontSize: 14),
-                  filled: true,
-                  fillColor: Colors.grey[900],
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide.none,
+                      if (calories != null)
+                        _summaryStatCard(
+                            '칼로리', formatNumber(calories), 'kcal')
+                      else
+                        _summaryStatCard('평균속도',
+                            '${convertSpeed(record.avgSpeed, useKmh).toStringAsFixed(1)}',
+                            speedUnit(useKmh)),
+                    ],
                   ),
-                  counterStyle: const TextStyle(
-                      color: Colors.grey, fontSize: 11),
                 ),
-              ),
-              const SizedBox(height: 12),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    padding:
-                        const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
-                  ),
-                  onPressed: () async {
-                    final memo = ctrl.text.trim();
-                    if (memo.isNotEmpty && record.id != null) {
-                      await ride.updateMemo(record.id!, memo);
-                    }
-                    if (ctx.mounted) Navigator.pop(ctx);
+                const SizedBox(height: 16),
+                // 메모 표시 영역 (탭하면 바텀시트 입력)
+                GestureDetector(
+                  onTap: () async {
+                    final bsCtrl = TextEditingController(text: ctrl.text);
+                    await showModalBottomSheet(
+                      context: ctx,
+                      isScrollControlled: true,
+                      backgroundColor: Colors.transparent,
+                      builder: (bsCtx) => Padding(
+                        padding: EdgeInsets.only(
+                            bottom: MediaQuery.of(bsCtx).viewInsets.bottom),
+                        child: Container(
+                          decoration: const BoxDecoration(
+                            color: Color(0xFF1e1e1e),
+                            borderRadius: BorderRadius.vertical(
+                                top: Radius.circular(20)),
+                          ),
+                          padding: const EdgeInsets.all(24),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('메모',
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold)),
+                              const SizedBox(height: 12),
+                              TextField(
+                                controller: bsCtrl,
+                                autofocus: true,
+                                maxLength: 80,
+                                maxLines: 5,
+                                minLines: 3,
+                                style: const TextStyle(
+                                    color: Colors.white, fontSize: 14),
+                                decoration: InputDecoration(
+                                  hintText: '메모를 남겨보세요',
+                                  hintStyle: TextStyle(
+                                      color: Colors.grey[600],
+                                      fontSize: 14),
+                                  filled: true,
+                                  fillColor: Colors.grey[900],
+                                  border: OutlineInputBorder(
+                                    borderRadius:
+                                        BorderRadius.circular(10),
+                                    borderSide: BorderSide.none,
+                                  ),
+                                  counterStyle: const TextStyle(
+                                      color: Colors.grey, fontSize: 11),
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              SizedBox(
+                                width: double.infinity,
+                                child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.blue,
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 14),
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(12)),
+                                  ),
+                                  onPressed: () {
+                                    ctrl.text = bsCtrl.text;
+                                    Navigator.pop(bsCtx);
+                                  },
+                                  child: const Text('완료',
+                                      style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold)),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                    if (ctx.mounted) setDialogState(() {});
                   },
-                  child: const Text('확인',
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold)),
+                  child: Container(
+                    width: double.infinity,
+                    constraints: const BoxConstraints(minHeight: 70),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[900],
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: ctrl.text.isEmpty
+                        ? Text('메모를 남겨보세요 (탭하여 입력)',
+                            style: TextStyle(
+                                color: Colors.grey[600], fontSize: 14))
+                        : Text(ctrl.text,
+                            style: const TextStyle(
+                                color: Colors.white, fontSize: 14)),
+                  ),
                 ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                    ),
+                    onPressed: () async {
+                      final memo = ctrl.text.trim();
+                      if (memo.isNotEmpty && record.id != null) {
+                        await ride.updateMemo(record.id!, memo);
+                      }
+                      if (ctx.mounted) Navigator.pop(ctx);
+                    },
+                    child: const Text('확인',
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold)),
+                  ),
+                ),
+              ],
             ),
-            ],
           ),
         ),
       ),

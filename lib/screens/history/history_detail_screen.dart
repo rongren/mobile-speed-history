@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../models/ride_record.dart';
 import '../../providers/ride_provider.dart';
 import '../../providers/settings_provider.dart';
 import 'history_detail_map_screen.dart';
@@ -614,17 +615,8 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> with Automati
                       '${time.minute.toString().padLeft(2, '0')}';
 
                   return GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) =>
-                              HistoryDetailMapScreen(
-                                record: record,
-                              ),
-                        ),
-                      );
-                    },
+                    onTap: () => _showRecordDetail(
+                        context, record, useKmh, weightKg),
                     child: Container(
                       margin: const EdgeInsets.only(
                           bottom: 12),
@@ -651,23 +643,6 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> with Automati
                                   fontWeight:
                                   FontWeight.bold,
                                 ),
-                              ),
-                              const Row(
-                                children: [
-                                  Text(
-                                    '경로 보기',
-                                    style: TextStyle(
-                                      color: Colors.blue,
-                                      fontSize: 13,
-                                    ),
-                                  ),
-                                  SizedBox(width: 4),
-                                  Icon(
-                                    Icons.chevron_right,
-                                    color: Colors.blue,
-                                    size: 18,
-                                  ),
-                                ],
                               ),
                             ],
                           ),
@@ -733,6 +708,246 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> with Automati
           ],
         ),
       ),
+    );
+  }
+
+  void _showRecordDetail(BuildContext context, RideRecord record,
+      bool useKmh, double? weightKg) {
+    final ride = context.read<RideProvider>();
+    final int? calories = calcCalories(record.totalDistance, weightKg);
+    final ctrl = TextEditingController(text: record.memo ?? '');
+    final time = DateTime.fromMillisecondsSinceEpoch(record.createdAt);
+    final timeStr = '${time.hour.toString().padLeft(2, '0')}:'
+        '${time.minute.toString().padLeft(2, '0')}';
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => Dialog(
+          backgroundColor: const Color(0xFF1e1e1e),
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20)),
+          insetPadding:
+              const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '${record.year}년 ${record.month}월 ${record.day}일',
+                          style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold),
+                        ),
+                        Text('$timeStr 출발',
+                            style: const TextStyle(
+                                color: Colors.grey, fontSize: 13)),
+                      ],
+                    ),
+                    GestureDetector(
+                      onTap: () => Navigator.pop(ctx),
+                      child: const Icon(Icons.close,
+                          color: Colors.grey, size: 22),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                        color: Colors.blue.withOpacity(0.3)),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      _detailStat('거리',
+                          '${convertDistance(record.totalDistance, useKmh).toStringAsFixed(2)}',
+                          distanceUnit(useKmh)),
+                      _detailStat(
+                          '시간', formatDuration(record.duration), ''),
+                      _detailStat('최고속도',
+                          '${convertSpeed(record.maxSpeed, useKmh).toStringAsFixed(1)}',
+                          speedUnit(useKmh)),
+                      if (calories != null)
+                        _detailStat('칼로리', formatNumber(calories), 'kcal')
+                      else
+                        _detailStat('평균속도',
+                            '${convertSpeed(record.avgSpeed, useKmh).toStringAsFixed(1)}',
+                            speedUnit(useKmh)),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                GestureDetector(
+                  onTap: () async {
+                    final bsCtrl = TextEditingController(text: ctrl.text);
+                    await showModalBottomSheet(
+                      context: ctx,
+                      isScrollControlled: true,
+                      backgroundColor: Colors.transparent,
+                      builder: (bsCtx) => Padding(
+                        padding: EdgeInsets.only(
+                            bottom:
+                                MediaQuery.of(bsCtx).viewInsets.bottom),
+                        child: Container(
+                          decoration: const BoxDecoration(
+                            color: Color(0xFF1e1e1e),
+                            borderRadius: BorderRadius.vertical(
+                                top: Radius.circular(20)),
+                          ),
+                          padding: const EdgeInsets.all(24),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('메모',
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold)),
+                              const SizedBox(height: 12),
+                              TextField(
+                                controller: bsCtrl,
+                                autofocus: true,
+                                maxLength: 80,
+                                maxLines: 5,
+                                minLines: 3,
+                                style: const TextStyle(
+                                    color: Colors.white, fontSize: 14),
+                                decoration: InputDecoration(
+                                  hintText: '메모를 남겨보세요',
+                                  hintStyle: TextStyle(
+                                      color: Colors.grey[600],
+                                      fontSize: 14),
+                                  filled: true,
+                                  fillColor: Colors.grey[900],
+                                  border: OutlineInputBorder(
+                                    borderRadius:
+                                        BorderRadius.circular(10),
+                                    borderSide: BorderSide.none,
+                                  ),
+                                  counterStyle: const TextStyle(
+                                      color: Colors.grey, fontSize: 11),
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              SizedBox(
+                                width: double.infinity,
+                                child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.blue,
+                                    padding:
+                                        const EdgeInsets.symmetric(
+                                            vertical: 14),
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(12)),
+                                  ),
+                                  onPressed: () {
+                                    ctrl.text = bsCtrl.text;
+                                    Navigator.pop(bsCtx);
+                                  },
+                                  child: const Text('완료',
+                                      style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold)),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                    if (ctx.mounted) {
+                      if (record.id != null) {
+                        await ride.updateMemo(
+                            record.id!, ctrl.text.trim());
+                      }
+                      setDialogState(() {});
+                    }
+                  },
+                  child: Container(
+                    width: double.infinity,
+                    constraints: const BoxConstraints(minHeight: 60),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[900],
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: ctrl.text.isEmpty
+                        ? Text('메모를 남겨보세요 (탭하여 입력)',
+                            style: TextStyle(
+                                color: Colors.grey[600], fontSize: 13))
+                        : Text(ctrl.text,
+                            style: const TextStyle(
+                                color: Colors.white, fontSize: 13)),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.grey[800],
+                      padding:
+                          const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                    ),
+                    onPressed: () {
+                      Navigator.pop(ctx);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) =>
+                                HistoryDetailMapScreen(record: record)),
+                      );
+                    },
+                    icon: const Icon(Icons.map_outlined,
+                        color: Colors.white, size: 18),
+                    label: const Text('경로 보기',
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _detailStat(String label, String value, String unit) {
+    return Column(
+      children: [
+        Text(value,
+            style: const TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.bold)),
+        if (unit.isNotEmpty)
+          Text(unit,
+              style: const TextStyle(color: Colors.blue, fontSize: 11)),
+        const SizedBox(height: 4),
+        Text(label,
+            style: const TextStyle(color: Colors.grey, fontSize: 11)),
+      ],
     );
   }
 
