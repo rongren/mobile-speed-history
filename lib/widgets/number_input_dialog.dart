@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class NumberInputDialog extends StatefulWidget {
   final String title;
-  final int? initialValue;  // null = 빈 상태로 시작
+  final num? initialValue;
   final String unit;
   final int maxDigits;
-  final bool allowEmpty;    // true면 빈 확인 시 clearValue 반환
+  final bool allowEmpty;
+  final bool allowDecimal;
 
-  static const int clearValue = -1;
+  static const double clearValue = -1;
 
   const NumberInputDialog({
     super.key,
@@ -16,17 +18,19 @@ class NumberInputDialog extends StatefulWidget {
     required this.unit,
     this.maxDigits = 4,
     this.allowEmpty = false,
+    this.allowDecimal = false,
   });
 
-  static Future<int?> show(
+  static Future<double?> show(
     BuildContext context, {
     required String title,
-    int? initialValue,
+    num? initialValue,
     required String unit,
     int maxDigits = 4,
     bool allowEmpty = false,
+    bool allowDecimal = false,
   }) {
-    return showDialog<int>(
+    return showDialog<double>(
       context: context,
       builder: (_) => NumberInputDialog(
         title: title,
@@ -34,6 +38,7 @@ class NumberInputDialog extends StatefulWidget {
         unit: unit,
         maxDigits: maxDigits,
         allowEmpty: allowEmpty,
+        allowDecimal: allowDecimal,
       ),
     );
   }
@@ -48,21 +53,55 @@ class _NumberInputDialogState extends State<NumberInputDialog> {
   @override
   void initState() {
     super.initState();
-    _input = widget.initialValue?.toString() ?? '';
+    final v = widget.initialValue;
+    if (v == null) {
+      _input = '';
+    } else if (widget.allowDecimal && v % 1 != 0) {
+      _input = v.toString();
+    } else {
+      _input = v.toInt().toString();
+    }
   }
 
-  int? get _currentValue => int.tryParse(_input);
+  double? get _currentValue => double.tryParse(_input);
 
   bool get _isValid {
     if (_input.isEmpty) return widget.allowEmpty;
+    if (_input.endsWith('.')) return false;
     final v = _currentValue;
     return v != null && v > 0;
   }
 
   void _onDigit(String digit) {
     setState(() {
-      if (_input.isEmpty && digit == '0') return;
-      if (_input.length < widget.maxDigits) _input += digit;
+      if (widget.allowDecimal) {
+        final dotIdx = _input.indexOf('.');
+        if (dotIdx >= 0) {
+          // 소수점 이하 최대 2자리
+          if (_input.length - dotIdx - 1 >= 2) return;
+        } else {
+          // 정수 부분: 선행 0 방지 ("05" → 불가)
+          if (_input == '0') return;
+          if (_input.isEmpty && digit == '0') {
+            _input = '0';
+            return;
+          }
+          if (_input.length >= widget.maxDigits) return;
+        }
+      } else {
+        if (_input.isEmpty && digit == '0') return;
+        if (_input.length >= widget.maxDigits) return;
+      }
+      _input += digit;
+    });
+  }
+
+  void _onDecimalPoint() {
+    setState(() {
+      if (!widget.allowDecimal) return;
+      if (_input.contains('.')) return;
+      if (_input.isEmpty) _input = '0';
+      _input += '.';
     });
   }
 
@@ -79,7 +118,7 @@ class _NumberInputDialogState extends State<NumberInputDialog> {
     if (_input.isEmpty) {
       Navigator.pop(context, NumberInputDialog.clearValue);
     } else {
-      Navigator.pop(context, _currentValue);
+      Navigator.pop(context, _currentValue!);
     }
   }
 
@@ -104,7 +143,6 @@ class _NumberInputDialogState extends State<NumberInputDialog> {
             ),
             const SizedBox(height: 24),
 
-            // 숫자 표시
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.end,
@@ -130,16 +168,17 @@ class _NumberInputDialogState extends State<NumberInputDialog> {
             ),
             const SizedBox(height: 24),
 
-            // 키패드
             _buildKeypad(),
             const SizedBox(height: 20),
 
-            // 취소 / 확인
             Row(
               children: [
                 Expanded(
                   child: GestureDetector(
-                    onTap: () => Navigator.pop(context),
+                    onTap: () {
+                      SystemSound.play(SystemSoundType.click);
+                      Navigator.pop(context);
+                    },
                     child: Container(
                       height: 48,
                       decoration: BoxDecoration(
@@ -159,7 +198,10 @@ class _NumberInputDialogState extends State<NumberInputDialog> {
                 const SizedBox(width: 10),
                 Expanded(
                   child: GestureDetector(
-                    onTap: _isValid ? _confirm : null,
+                    onTap: _isValid ? () {
+                      SystemSound.play(SystemSoundType.click);
+                      _confirm();
+                    } : null,
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 150),
                       height: 48,
@@ -197,7 +239,17 @@ class _NumberInputDialogState extends State<NumberInputDialog> {
         _keyRow(['7', '8', '9']),
         Row(
           children: [
-            const Expanded(child: SizedBox()),
+            Expanded(
+              child: widget.allowDecimal
+                  ? _keyButton(
+                      '.',
+                      onTap: _onDecimalPoint,
+                      textColor: _input.contains('.')
+                          ? Colors.grey[700]!
+                          : Colors.blue,
+                    )
+                  : const SizedBox(),
+            ),
             const SizedBox(width: 6),
             Expanded(child: _keyButton('0', onTap: () => _onDigit('0'))),
             const SizedBox(width: 6),
@@ -236,7 +288,10 @@ class _NumberInputDialogState extends State<NumberInputDialog> {
     double fontSize = 20,
   }) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: () {
+        SystemSound.play(SystemSoundType.click);
+        onTap();
+      },
       child: Container(
         height: 52,
         decoration: BoxDecoration(

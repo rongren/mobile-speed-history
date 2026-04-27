@@ -501,10 +501,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   final result = await NumberInputDialog.show(
                     context,
                     title: '체중 입력',
-                    initialValue: settings.weightKg?.toInt(),
+                    initialValue: settings.weightKg,
                     unit: 'kg',
                     maxDigits: 3,
                     allowEmpty: true,
+                    allowDecimal: true,
                   );
                   if (result == null) return;
                   if (result == NumberInputDialog.clearValue) {
@@ -909,10 +910,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     final result = await NumberInputDialog.show(
                       context,
                       title: '속도 알림 기준',
-                      initialValue: currentKmh,
+                      initialValue: settings.speedAlertKmh,
                       unit: 'km/h',
                       maxDigits: 3,
                       allowEmpty: false,
+                      allowDecimal: true,
                     );
                     if (result == null) return;
                     settings.setSpeedAlertKmh(result.toDouble());

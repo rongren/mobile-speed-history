@@ -16,6 +16,11 @@ class SettingsProvider extends ChangeNotifier {
   static const _keyMinRecordDuration = 'min_record_duration';
   static const _keySpeedAlertKmh = 'speed_alert_kmh';
   static const _keyMapType = 'map_type';
+  static const _keyYearlyGoalKm = 'yearly_goal_km';
+  static const _keyMonthlyGoalKm = 'monthly_goal_km';
+  static const _keyGoalMaxSpeedKmh = 'goal_max_speed_kmh';
+  static const _keyGoalMaxDistanceKm = 'goal_max_distance_km';
+  static const _keyGoalMaxDurationMin = 'goal_max_duration_min';
 
   bool _useKmh = true;
   bool _gpsHighAccuracy = true;
@@ -31,6 +36,11 @@ class SettingsProvider extends ChangeNotifier {
   int _minRecordDurationSec = 0;
   double? _speedAlertKmh;
   String _mapType = 'basic';
+  double? _yearlyGoalKm;
+  double? _monthlyGoalKm;
+  double? _goalMaxSpeedKmh;
+  double? _goalMaxDistanceKm;
+  int? _goalMaxDurationMin;
 
   bool get useKmh => _useKmh;
   bool get gpsHighAccuracy => _gpsHighAccuracy;
@@ -46,6 +56,11 @@ class SettingsProvider extends ChangeNotifier {
   int get minRecordDurationSec => _minRecordDurationSec;
   double? get speedAlertKmh => _speedAlertKmh;
   String get mapType => _mapType;
+  double? get yearlyGoalKm => _yearlyGoalKm;
+  double? get monthlyGoalKm => _monthlyGoalKm;
+  double? get goalMaxSpeedKmh => _goalMaxSpeedKmh;
+  double? get goalMaxDistanceKm => _goalMaxDistanceKm;
+  int? get goalMaxDurationMin => _goalMaxDurationMin;
 
   Future<void> load() async {
     final prefs = await SharedPreferences.getInstance();
@@ -63,6 +78,11 @@ class SettingsProvider extends ChangeNotifier {
     _minRecordDurationSec = prefs.getInt(_keyMinRecordDuration) ?? 0;
     _speedAlertKmh = prefs.getDouble(_keySpeedAlertKmh);
     _mapType = prefs.getString(_keyMapType) ?? 'basic';
+    _yearlyGoalKm = prefs.getDouble(_keyYearlyGoalKm);
+    _monthlyGoalKm = prefs.getDouble(_keyMonthlyGoalKm);
+    _goalMaxSpeedKmh = prefs.getDouble(_keyGoalMaxSpeedKmh);
+    _goalMaxDistanceKm = prefs.getDouble(_keyGoalMaxDistanceKm);
+    _goalMaxDurationMin = prefs.getInt(_keyGoalMaxDurationMin);
     notifyListeners();
   }
 
@@ -170,5 +190,50 @@ class SettingsProvider extends ChangeNotifier {
     notifyListeners();
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_keyMapType, value);
+  }
+
+  Future<void> setYearlyGoalKm(double? value) async {
+    _yearlyGoalKm = value;
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    value != null
+        ? await prefs.setDouble(_keyYearlyGoalKm, value)
+        : await prefs.remove(_keyYearlyGoalKm);
+  }
+
+  Future<void> setMonthlyGoalKm(double? value) async {
+    _monthlyGoalKm = value;
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    value != null
+        ? await prefs.setDouble(_keyMonthlyGoalKm, value)
+        : await prefs.remove(_keyMonthlyGoalKm);
+  }
+
+  Future<void> setGoalMaxSpeedKmh(double? value) async {
+    _goalMaxSpeedKmh = value;
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    value != null
+        ? await prefs.setDouble(_keyGoalMaxSpeedKmh, value)
+        : await prefs.remove(_keyGoalMaxSpeedKmh);
+  }
+
+  Future<void> setGoalMaxDistanceKm(double? value) async {
+    _goalMaxDistanceKm = value;
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    value != null
+        ? await prefs.setDouble(_keyGoalMaxDistanceKm, value)
+        : await prefs.remove(_keyGoalMaxDistanceKm);
+  }
+
+  Future<void> setGoalMaxDurationMin(int? value) async {
+    _goalMaxDurationMin = value;
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    value != null
+        ? await prefs.setInt(_keyGoalMaxDurationMin, value)
+        : await prefs.remove(_keyGoalMaxDurationMin);
   }
 }
