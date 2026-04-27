@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/ride_provider.dart';
 import '../../providers/settings_provider.dart';
+import '../../models/ride_record.dart';
 import '../../utils/format_utils.dart';
 
 class HistoryAverageScreen extends StatelessWidget {
@@ -365,6 +366,16 @@ class HistoryAverageScreen extends StatelessWidget {
             ),
           ),
 
+          const SizedBox(height: 24),
+          _sectionLabel('월별 거리 추이', textColor),
+          const SizedBox(height: 10),
+          _buildMonthlyChart(records, useKmh, isDark, cardColor, textColor, subTextColor),
+
+          const SizedBox(height: 24),
+          _sectionLabel('시간대별 패턴', textColor),
+          const SizedBox(height: 10),
+          _buildTimeOfDayChart(records, isDark, cardColor, textColor, subTextColor),
+
           const SizedBox(height: 16),
         ],
       ),
@@ -494,6 +505,196 @@ class HistoryAverageScreen extends StatelessWidget {
                   color: textColor,
                   fontSize: 14,
                   fontWeight: FontWeight.bold)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMonthlyChart(List<RideRecord> records, bool useKmh, bool isDark,
+      Color cardColor, Color textColor, Color subTextColor) {
+    final Map<String, double> monthly = {};
+    for (final r in records) {
+      final key = '${r.year}-${r.month.toString().padLeft(2, '0')}';
+      monthly[key] = (monthly[key] ?? 0) + r.totalDistance;
+    }
+
+    final sortedKeys = monthly.keys.toList()..sort();
+    final displayKeys = sortedKeys.length > 6
+        ? sortedKeys.sublist(sortedKeys.length - 6)
+        : sortedKeys;
+
+    if (displayKeys.isEmpty) return const SizedBox.shrink();
+
+    final maxDist =
+        displayKeys.map((k) => monthly[k]!).reduce((a, b) => a > b ? a : b);
+    final multiYear =
+        displayKeys.map((k) => k.split('-')[0]).toSet().length > 1;
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+      decoration: BoxDecoration(
+        color: cardColor,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('최근 ${displayKeys.length}개월',
+              style: TextStyle(color: subTextColor, fontSize: 12)),
+          const SizedBox(height: 14),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: displayKeys.map((key) {
+              final dist = monthly[key]!;
+              final ratio = maxDist > 0 ? dist / maxDist : 0.0;
+              final parts = key.split('-');
+              final month = int.parse(parts[1]);
+              final year = parts[0].substring(2);
+              final label = multiYear ? '$month월\n\'$year' : '$month월';
+              final isMax = dist == maxDist;
+              return Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 3),
+                  child: Column(
+                    children: [
+                      Text(
+                        formatDistance(dist, useKmh, decimals: 1),
+                        style: TextStyle(
+                          color: isMax
+                              ? Colors.blue
+                              : (isDark
+                                  ? Colors.grey[600]!
+                                  : Colors.grey[500]!),
+                          fontSize: 9,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 3),
+                      Container(
+                        height: 60 * ratio + 4,
+                        decoration: BoxDecoration(
+                          color: isMax
+                              ? Colors.blue
+                              : (isDark
+                                  ? Colors.grey[700]!
+                                  : Colors.grey[400]!),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        label,
+                        style: TextStyle(
+                          color: isMax ? Colors.blue : subTextColor,
+                          fontSize: 10,
+                          fontWeight:
+                              isMax ? FontWeight.bold : FontWeight.normal,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTimeOfDayChart(List<RideRecord> records, bool isDark,
+      Color cardColor, Color textColor, Color subTextColor) {
+    const slotLabels = ['새벽\n0-6시', '오전\n6-12시', '오후\n12-18시', '저녁\n18-24시'];
+    const slotColors = [Colors.indigo, Colors.orange, Colors.blue, Colors.deepPurple];
+    final counts = [0, 0, 0, 0];
+
+    for (final r in records) {
+      final hour = DateTime.fromMillisecondsSinceEpoch(r.createdAt).hour;
+      if (hour < 6) {
+        counts[0]++;
+      } else if (hour < 12) {
+        counts[1]++;
+      } else if (hour < 18) {
+        counts[2]++;
+      } else {
+        counts[3]++;
+      }
+    }
+
+    final maxCount = counts.reduce((a, b) => a > b ? a : b);
+    if (maxCount == 0) return const SizedBox.shrink();
+    final bestIdx = counts.indexOf(maxCount);
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+      decoration: BoxDecoration(
+        color: cardColor,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('시간대별 주행 패턴',
+              style: TextStyle(color: subTextColor, fontSize: 12)),
+          const SizedBox(height: 14),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: List.generate(4, (i) {
+              final ratio = counts[i] / maxCount;
+              final isMax = i == bestIdx;
+              return Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 3),
+                  child: Column(
+                    children: [
+                      counts[i] > 0
+                          ? Text(
+                              '${counts[i]}회',
+                              style: TextStyle(
+                                color: isMax
+                                    ? slotColors[i]
+                                    : (isDark
+                                        ? Colors.grey[600]!
+                                        : Colors.grey[500]!),
+                                fontSize: 9,
+                              ),
+                              textAlign: TextAlign.center,
+                            )
+                          : const SizedBox(height: 13),
+                      const SizedBox(height: 3),
+                      Container(
+                        height: 60 * ratio + (counts[i] > 0 ? 4 : 0),
+                        decoration: BoxDecoration(
+                          color: isMax
+                              ? slotColors[i]
+                              : (counts[i] > 0
+                                  ? (isDark
+                                      ? Colors.grey[700]!
+                                      : Colors.grey[400]!)
+                                  : (isDark
+                                      ? Colors.grey[850]!
+                                      : Colors.grey[300]!)),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        slotLabels[i],
+                        style: TextStyle(
+                          color: isMax ? slotColors[i] : subTextColor,
+                          fontSize: 10,
+                          fontWeight:
+                              isMax ? FontWeight.bold : FontWeight.normal,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }),
+          ),
         ],
       ),
     );
