@@ -30,15 +30,23 @@ class NumberInputDialog extends StatefulWidget {
     bool allowEmpty = false,
     bool allowDecimal = false,
   }) {
-    return showDialog<double>(
+    return showGeneralDialog<double>(
       context: context,
-      builder: (_) => NumberInputDialog(
+      barrierDismissible: false,
+      barrierColor: Colors.black54,
+      barrierLabel: '',
+      transitionDuration: const Duration(milliseconds: 80),
+      pageBuilder: (_, __, ___) => NumberInputDialog(
         title: title,
         initialValue: initialValue,
         unit: unit,
         maxDigits: maxDigits,
         allowEmpty: allowEmpty,
         allowDecimal: allowDecimal,
+      ),
+      transitionBuilder: (_, animation, __, child) => FadeTransition(
+        opacity: CurvedAnimation(parent: animation, curve: Curves.easeOut),
+        child: child,
       ),
     );
   }
