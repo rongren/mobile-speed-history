@@ -23,6 +23,7 @@ Flutter의 일부 위젯(예: `Switch`, `Checkbox`, `Radio`)은 자체적으로 
 ### 공통화·유틸화
 억지로 묶지 않되, 동일한 로직이나 UI 패턴이 여러 곳에서 반복된다고 판단되면 `lib/utils/` 또는 `lib/widgets/`로 분리한다. 현재 공통 자산:
 - `lib/utils/format_utils.dart` — 속도·거리·시간·숫자 포맷, 단위 변환, 칼로리 계산
+- `lib/widgets/number_input_dialog.dart` — 숫자 키패드 입력 다이얼로그. `allowDecimal: true`로 소수점 입력 활성화 가능. 반환 타입 `double?`, 빈 확인 시 `clearValue(-1)` 반환
 - `lib/widgets/` — 재사용 위젯 모음
 
 ## 명령어
@@ -58,7 +59,7 @@ Android를 주 타겟으로 하는 자전거 속도계 앱. 상태관리는 **Pr
 
 **`RideProvider`** (`lib/providers/ride_provider.dart`) — 앱의 핵심 런타임 상태 머신. GPS 스트림 구독, 200ms 보간 타이머, 거리 누적, 자동 일시정지 로직, 속도 알림 진동을 담당한다. `startRide()`로 스트림을 열고, `stopRide()`로 취소하고 DB에 기록을 저장한다. 최소 거리/시간 조건 미달 시 `null`을 반환하며 `stopFailReason`에 원인(`'distance'` 또는 `'duration'`)을 설정한다.
 
-**`SettingsProvider`** (`lib/providers/settings_provider.dart`) — 모든 사용자 설정을 `SharedPreferences`로 영속화하는 래퍼. 앱 시작 시 `main()`에서 `settings.load()`를 호출한다. 각 setter는 `notifyListeners()` 후 즉시 `await prefs.set*()`으로 기록한다.
+**`SettingsProvider`** (`lib/providers/settings_provider.dart`) — 모든 사용자 설정을 `SharedPreferences`로 영속화하는 래퍼. 앱 시작 시 `main()`에서 `settings.load()`를 호출한다. 각 setter는 `notifyListeners()` 후 즉시 `await prefs.set*()`으로 기록한다. 목표 관련 설정(`yearlyGoalKm`, `monthlyGoalKm`, `goalMaxSpeedKmh`, `goalMaxDistanceKm`, `goalMaxDurationMin`)도 이 Provider에서 관리한다.
 
 두 Provider는 `main.dart`의 루트 `MultiProvider`에서 제공된다.
 
@@ -99,6 +100,13 @@ GPS 업데이트마다 아래 세 필터를 순서대로 적용한다:
 ### 네이버 지도
 
 `flutter_naver_map`은 `main()`에서 클라이언트 ID `ua4rpblyze`로 초기화된다. 지도 타입(basic/satellite/hybrid)은 `SettingsProvider.mapType`에 저장된다.
+
+### 목표 화면 (`GoalScreen`)
+
+`RideProvider.records`와 `SettingsProvider` 목표값만으로 동작하며 별도 DB 없음. 구성:
+- **거리 목표** (올해/이번달) — 진행률 바, 달성 시 초록 체크. 목표값은 내부적으로 km 저장, 표시는 useKmh 단위 변환
+- **도전 목표** (최고속도/최장거리/최장시간) — 현재 기록 대비 목표 표시. 최장시간은 분 단위 입력, 초 단위 저장
+- **스트릭** — 설정 없음. records 날짜로 현재 연속일·역대 최장 계산. 오늘 또는 어제 주행이 있으면 스트릭 유지
 
 ### 주요 설계 제약
 
