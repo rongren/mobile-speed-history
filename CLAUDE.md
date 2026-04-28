@@ -24,7 +24,14 @@ Flutter의 일부 위젯(예: `Switch`, `Checkbox`, `Radio`)은 자체적으로 
 억지로 묶지 않되, 동일한 로직이나 UI 패턴이 여러 곳에서 반복된다고 판단되면 `lib/utils/` 또는 `lib/widgets/`로 분리한다. 현재 공통 자산:
 - `lib/utils/format_utils.dart` — 속도·거리·시간·숫자 포맷, 단위 변환, 칼로리 계산
 - `lib/widgets/number_input_dialog.dart` — 숫자 키패드 입력 다이얼로그. `allowDecimal: true`로 소수점 입력 활성화 가능. 반환 타입 `double?`, 빈 확인 시 `clearValue(-1)` 반환
+- `lib/widgets/memo_bottom_sheet.dart` — 메모 입력 바텀시트. `showMemoBottomSheet(context, controller: ctrl, isDark: isDark)` 호출. 완료 시 `controller.text`에 값이 쓰여 반환되므로 호출 후 직접 읽으면 된다.
+- `lib/widgets/stat_item.dart` — 통계 표시 위젯 2종:
+  - `StatDetailItem(label, value, unit, textColor)` — 값(16px 굵게) + 단위(파란색, 선택) + 라벨(회색 11px). 주행 상세/요약 행에 사용.
+  - `StatItem(label, value, textColor, {labelBlue})` — 값(13px 굵게) + 라벨(기본 회색, `labelBlue: true`이면 파란색). 목록 카드 내 통계 행에 사용.
 - `lib/widgets/` — 재사용 위젯 모음
+
+### 색상 인덱스 주의
+`Colors.grey`의 유효 인덱스는 50·100·200·300·400·500·600·700·800·**850**·**900**까지다. `Colors.grey[950]` 등 존재하지 않는 인덱스는 `null`을 반환하므로 `!` 연산자와 함께 쓰면 런타임 에러가 발생한다.
 
 ## 명령어
 
