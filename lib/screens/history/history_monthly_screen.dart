@@ -42,7 +42,7 @@ class _HistoryMonthlyScreenState extends State<HistoryMonthlyScreen>
     final isDark = settings.appTheme == 'dark';
 
     final cardColor = isDark ? const Color(0xFF1e1e1e) : Colors.white;
-    final panelColor = isDark ? Colors.grey[950]! : const Color(0xFFEEF0F3);
+    final panelColor = isDark ? Colors.grey[900]! : const Color(0xFFEEF0F3);
     final textColor = isDark ? Colors.white : Colors.black87;
     final dividerColor = isDark ? Colors.grey[800]! : Colors.grey[300]!;
     final borderColor = isDark ? Colors.grey[800]! : Colors.grey[300]!;

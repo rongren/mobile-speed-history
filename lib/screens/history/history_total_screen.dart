@@ -6,6 +6,8 @@ import '../../providers/settings_provider.dart';
 import 'history_detail_map_screen.dart';
 import '../../widgets/record_badges.dart';
 import '../../utils/format_utils.dart';
+import '../../widgets/memo_bottom_sheet.dart';
+import '../../widgets/stat_item.dart';
 
 enum SortType {
   dateDesc,
@@ -435,17 +437,10 @@ class _HistoryTotalScreenState extends State<HistoryTotalScreen>
                                       Row(
                                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                                         children: [
-                                          _statItem('거리',
-                                              '${formatDistance(record.totalDistance, useKmh)} ${distanceUnit(useKmh)}',
-                                              textColor),
-                                          _statItem('시간',
-                                              formatDuration(record.duration), textColor),
-                                          _statItem('최고속도',
-                                              '${formatSpeed(record.maxSpeed, useKmh)} ${speedUnit(useKmh)}',
-                                              textColor),
-                                          _statItem('평균속도',
-                                              '${formatSpeed(record.avgSpeed, useKmh)} ${speedUnit(useKmh)}',
-                                              textColor),
+                                          StatItem(label: '거리', value: '${formatDistance(record.totalDistance, useKmh)} ${distanceUnit(useKmh)}', textColor: textColor),
+                                          StatItem(label: '시간', value: formatDuration(record.duration), textColor: textColor),
+                                          StatItem(label: '최고속도', value: '${formatSpeed(record.maxSpeed, useKmh)} ${speedUnit(useKmh)}', textColor: textColor),
+                                          StatItem(label: '평균속도', value: '${formatSpeed(record.avgSpeed, useKmh)} ${speedUnit(useKmh)}', textColor: textColor),
                                         ],
                                       ),
                                       if (weightKg != null) ...[
@@ -629,23 +624,17 @@ class _HistoryTotalScreenState extends State<HistoryTotalScreen>
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
-                          _detailStat('거리',
-                              '${formatDistance(record.totalDistance, useKmh)}',
-                              distanceUnit(useKmh), textColor),
-                          _detailStat('시간', formatDuration(record.duration), '', textColor),
-                          _detailStat('최고속도',
-                              '${formatSpeed(record.maxSpeed, useKmh)}',
-                              speedUnit(useKmh), textColor),
-                          _detailStat('평균속도',
-                              '${formatSpeed(record.avgSpeed, useKmh)}',
-                              speedUnit(useKmh), textColor),
+                          StatDetailItem(label: '거리', value: formatDistance(record.totalDistance, useKmh), unit: distanceUnit(useKmh), textColor: textColor),
+                          StatDetailItem(label: '시간', value: formatDuration(record.duration), textColor: textColor),
+                          StatDetailItem(label: '최고속도', value: formatSpeed(record.maxSpeed, useKmh), unit: speedUnit(useKmh), textColor: textColor),
+                          StatDetailItem(label: '평균속도', value: formatSpeed(record.avgSpeed, useKmh), unit: speedUnit(useKmh), textColor: textColor),
                         ],
                       ),
                       if (calories != null) ...[
                         const SizedBox(height: 10),
                         Divider(color: Colors.blue.withOpacity(0.3), height: 1),
                         const SizedBox(height: 10),
-                        _detailStat('칼로리', formatNumber(calories), 'kcal', textColor),
+                        StatDetailItem(label: '칼로리', value: formatNumber(calories), unit: 'kcal', textColor: textColor),
                       ],
                     ],
                   ),
@@ -653,78 +642,7 @@ class _HistoryTotalScreenState extends State<HistoryTotalScreen>
                 const SizedBox(height: 16),
                 GestureDetector(
                   onTap: () async {
-                    final bsCtrl = TextEditingController(text: ctrl.text);
-                    await showModalBottomSheet(
-                      context: ctx,
-                      isScrollControlled: true,
-                      backgroundColor: Colors.transparent,
-                      builder: (bsCtx) => Padding(
-                        padding: EdgeInsets.only(
-                            bottom: MediaQuery.of(bsCtx).viewInsets.bottom),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: dialogBg,
-                            borderRadius: const BorderRadius.vertical(
-                                top: Radius.circular(20)),
-                          ),
-                          padding: const EdgeInsets.all(24),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('메모',
-                                  style: TextStyle(
-                                      color: textColor,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold)),
-                              const SizedBox(height: 12),
-                              TextField(
-                                controller: bsCtrl,
-                                autofocus: true,
-                                maxLength: 80,
-                                maxLines: 5,
-                                minLines: 3,
-                                style: TextStyle(color: textColor, fontSize: 14),
-                                decoration: InputDecoration(
-                                  hintText: '메모를 남겨보세요',
-                                  hintStyle: TextStyle(
-                                      color: Colors.grey[600], fontSize: 14),
-                                  filled: true,
-                                  fillColor: memoBoxColor,
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(10),
-                                    borderSide: BorderSide.none,
-                                  ),
-                                  counterStyle: const TextStyle(
-                                      color: Colors.grey, fontSize: 11),
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-                              SizedBox(
-                                width: double.infinity,
-                                child: ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.blue,
-                                    padding: const EdgeInsets.symmetric(vertical: 14),
-                                    shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(12)),
-                                  ),
-                                  onPressed: () {
-                                    ctrl.text = bsCtrl.text;
-                                    Navigator.pop(bsCtx);
-                                  },
-                                  child: const Text('완료',
-                                      style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold)),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    );
+                    await showMemoBottomSheet(ctx, controller: ctrl, isDark: isDark);
                     if (ctx.mounted) {
                       if (record.id != null) {
                         await ride.updateMemo(record.id!, ctrl.text.trim());
@@ -781,34 +699,4 @@ class _HistoryTotalScreenState extends State<HistoryTotalScreen>
     );
   }
 
-  Widget _detailStat(String label, String value, String unit, Color textColor) {
-    return Column(
-      children: [
-        Text(value,
-            style: TextStyle(
-                color: textColor, fontSize: 16, fontWeight: FontWeight.bold)),
-        if (unit.isNotEmpty)
-          Text(unit, style: const TextStyle(color: Colors.blue, fontSize: 11)),
-        const SizedBox(height: 4),
-        Text(label, style: const TextStyle(color: Colors.grey, fontSize: 11)),
-      ],
-    );
-  }
-
-  Widget _statItem(String label, String value, Color textColor) {
-    return Column(
-      children: [
-        Text(
-          value,
-          style: TextStyle(
-            color: textColor,
-            fontSize: 13,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(label, style: const TextStyle(color: Colors.grey, fontSize: 11)),
-      ],
-    );
-  }
 }

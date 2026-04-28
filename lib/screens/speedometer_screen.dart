@@ -5,6 +5,8 @@ import '../providers/ride_provider.dart';
 import '../providers/settings_provider.dart';
 import '../models/ride_record.dart';
 import '../utils/format_utils.dart';
+import '../widgets/memo_bottom_sheet.dart';
+import '../widgets/stat_item.dart';
 
 class SpeedometerScreen extends StatefulWidget {
   const SpeedometerScreen({super.key});
@@ -247,8 +249,6 @@ class _SpeedometerScreenState extends State<SpeedometerScreen> {
     final titleTextColor = isDark ? Colors.white : Colors.black87;
     final memoTextColor = isDark ? Colors.white : Colors.black87;
     final memoHintColor = isDark ? Colors.grey[600]! : Colors.grey[400]!;
-    final bsContainerColor = isDark ? const Color(0xFF1e1e1e) : Colors.white;
-    final bsFieldFillColor = isDark ? Colors.grey[900]! : Colors.grey[100]!;
 
     showDialog(
       context: context,
@@ -283,21 +283,13 @@ class _SpeedometerScreenState extends State<SpeedometerScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      _summaryStatCard('거리',
-                          '${formatDistance(record.totalDistance, useKmh)}',
-                          distanceUnit(useKmh), titleTextColor),
-                      _summaryStatCard(
-                          '시간', formatDuration(record.duration), '', titleTextColor),
-                      _summaryStatCard('최고속도',
-                          '${formatSpeed(record.maxSpeed, useKmh)}',
-                          speedUnit(useKmh), titleTextColor),
+                      StatDetailItem(label: '거리', value: formatDistance(record.totalDistance, useKmh), unit: distanceUnit(useKmh), textColor: titleTextColor),
+                      StatDetailItem(label: '시간', value: formatDuration(record.duration), textColor: titleTextColor),
+                      StatDetailItem(label: '최고속도', value: formatSpeed(record.maxSpeed, useKmh), unit: speedUnit(useKmh), textColor: titleTextColor),
                       if (calories != null)
-                        _summaryStatCard(
-                            '칼로리', formatNumber(calories), 'kcal', titleTextColor)
+                        StatDetailItem(label: '칼로리', value: formatNumber(calories), unit: 'kcal', textColor: titleTextColor)
                       else
-                        _summaryStatCard('평균속도',
-                            '${formatSpeed(record.avgSpeed, useKmh)}',
-                            speedUnit(useKmh), titleTextColor),
+                        StatDetailItem(label: '평균속도', value: formatSpeed(record.avgSpeed, useKmh), unit: speedUnit(useKmh), textColor: titleTextColor),
                     ],
                   ),
                 ),
@@ -305,81 +297,7 @@ class _SpeedometerScreenState extends State<SpeedometerScreen> {
                 // 메모 표시 영역 (탭하면 바텀시트 입력)
                 GestureDetector(
                   onTap: () async {
-                    final bsCtrl = TextEditingController(text: ctrl.text);
-                    await showModalBottomSheet(
-                      context: ctx,
-                      isScrollControlled: true,
-                      backgroundColor: Colors.transparent,
-                      builder: (bsCtx) => Padding(
-                        padding: EdgeInsets.only(
-                            bottom: MediaQuery.of(bsCtx).viewInsets.bottom),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: bsContainerColor,
-                            borderRadius: const BorderRadius.vertical(
-                                top: Radius.circular(20)),
-                          ),
-                          padding: const EdgeInsets.all(24),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('메모',
-                                  style: TextStyle(
-                                      color: titleTextColor,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold)),
-                              const SizedBox(height: 12),
-                              TextField(
-                                controller: bsCtrl,
-                                autofocus: true,
-                                maxLength: 80,
-                                maxLines: 5,
-                                minLines: 3,
-                                style: TextStyle(
-                                    color: memoTextColor, fontSize: 14),
-                                decoration: InputDecoration(
-                                  hintText: '메모를 남겨보세요',
-                                  hintStyle: TextStyle(
-                                      color: memoHintColor, fontSize: 14),
-                                  filled: true,
-                                  fillColor: bsFieldFillColor,
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(10),
-                                    borderSide: BorderSide.none,
-                                  ),
-                                  counterStyle: const TextStyle(
-                                      color: Colors.grey, fontSize: 11),
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-                              SizedBox(
-                                width: double.infinity,
-                                child: ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.blue,
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 14),
-                                    shape: RoundedRectangleBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(12)),
-                                  ),
-                                  onPressed: () {
-                                    ctrl.text = bsCtrl.text;
-                                    Navigator.pop(bsCtx);
-                                  },
-                                  child: const Text('완료',
-                                      style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold)),
-                                ),
-              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    );
+                    await showMemoBottomSheet(ctx, controller: ctrl, isDark: isDark);
                     if (ctx.mounted) setDialogState(() {});
                   },
                   child: Container(
@@ -426,24 +344,6 @@ class _SpeedometerScreenState extends State<SpeedometerScreen> {
           ),
         ),
       ),
-    );
-  }
-
-  Widget _summaryStatCard(String label, String value, String unit, Color textColor) {
-    return Column(
-      children: [
-        Text(
-          value,
-          style: TextStyle(
-              color: textColor,
-              fontSize: 16,
-              fontWeight: FontWeight.bold),
-        ),
-        if (unit.isNotEmpty)
-          Text(unit, style: const TextStyle(color: Colors.blue, fontSize: 11)),
-        const SizedBox(height: 4),
-        Text(label, style: const TextStyle(color: Colors.grey, fontSize: 11)),
-      ],
     );
   }
 
