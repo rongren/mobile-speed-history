@@ -102,6 +102,18 @@ class DatabaseHelper {
     return maps.map((m) => RideRecord.fromMap(m)).toList();
   }
 
+  Future<bool> insertRecordIfNotExists(RideRecord record) async {
+    final db = await database;
+    final existing = await db.query(
+      'ride_records',
+      where: 'createdAt = ?',
+      whereArgs: [record.createdAt],
+    );
+    if (existing.isNotEmpty) return false;
+    await db.insert('ride_records', record.toMap());
+    return true;
+  }
+
   Future<int> deleteRecord(int id) async {
     final db = await database;
     return await db.delete('ride_records', where: 'id = ?', whereArgs: [id]);

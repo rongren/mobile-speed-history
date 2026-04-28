@@ -47,6 +47,11 @@ dependencies:
   # 권한처리
   permission_handler: ^11.1.0
 
+  # 백업/내보내기
+  path_provider: ^2.1.0
+  file_picker: ^8.0.0
+  share_plus: ^10.0.0
+
   # 백그라운드 유지
   # flutter_foreground_task: ^9.2.2
   # awesome_notifications: ^0.9.3

@@ -7,6 +7,8 @@ import '../db/sample_data.dart';
 import '../providers/ride_provider.dart';
 import '../providers/settings_provider.dart';
 import '../widgets/number_input_dialog.dart';
+import '../utils/backup_utils.dart';
+import '../widgets/loading_overlay.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -18,6 +20,9 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   bool _isDeleting = false;
   bool _isGenerating = false;
+  bool _isExporting = false;
+  bool _isImporting = false;
+  bool _isSharingExport = false;
   String _appVersion = '';
 
   @override
@@ -72,6 +77,197 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
       );
     }
+  }
+
+  void _showBackupSheet(bool isDark, Color panelColor) {
+    final bgColor = isDark ? const Color(0xFF1e1e1e) : Colors.white;
+    final textColor = isDark ? Colors.white : Colors.black87;
+    final subColor = isDark ? Colors.grey : Colors.grey[600]!;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: bgColor,
+      useSafeArea: true,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.fromLTRB(24, 20, 24, 32 + MediaQuery.of(ctx).viewPadding.bottom),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('백업 / 내보내기',
+                style: TextStyle(
+                    color: textColor,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold)),
+            const SizedBox(height: 20),
+            _backupOptionTile(
+              icon: Icons.share_outlined,
+              color: Colors.orange,
+              title: '공유하기',
+              subtitle: '카카오톡·메일 등 앱으로 전송',
+              textColor: textColor,
+              subColor: subColor,
+              panelColor: panelColor,
+              onTap: () async {
+                Navigator.pop(ctx);
+                setState(() => _isSharingExport = true);
+                try {
+                  await shareBackup();
+                } catch (e) {
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('공유 실패: $e'), backgroundColor: Colors.red),
+                    );
+                  }
+                } finally {
+                  if (mounted) setState(() => _isSharingExport = false);
+                }
+              },
+            ),
+            const SizedBox(height: 10),
+            _backupOptionTile(
+              icon: Icons.upload_file,
+              color: Colors.teal,
+              title: '파일로 저장',
+              subtitle: '기기 내 원하는 위치에 JSON 저장',
+              textColor: textColor,
+              subColor: subColor,
+              panelColor: panelColor,
+              onTap: () async {
+                Navigator.pop(ctx);
+                setState(() => _isExporting = true);
+                try {
+                  final saved = await exportBackup();
+                  if (mounted && saved) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('백업 파일이 저장되었습니다'),
+                        backgroundColor: Colors.teal,
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('내보내기 실패: $e'), backgroundColor: Colors.red),
+                    );
+                  }
+                } finally {
+                  if (mounted) setState(() => _isExporting = false);
+                }
+              },
+            ),
+            const SizedBox(height: 10),
+            _backupOptionTile(
+              icon: Icons.download,
+              color: Colors.blue,
+              title: '가져오기',
+              subtitle: '백업 파일에서 기록 복원 (중복 제외)',
+              textColor: textColor,
+              subColor: subColor,
+              panelColor: panelColor,
+              onTap: () async {
+                Navigator.pop(ctx);
+                setState(() => _isImporting = true);
+                try {
+                  final path = await pickBackupFile();
+                  if (path == null) return;
+                  if (!mounted) return;
+
+                  final count = await runWithLoading<int>(
+                    context,
+                    label: '불러오는 중...',
+                    task: (setProgress) =>
+                        importFromPath(path, onProgress: setProgress),
+                  );
+
+                  if (!mounted) return;
+                  await context.read<RideProvider>().loadRecords();
+                  if (!mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(count > 0
+                          ? '$count건 복원되었습니다'
+                          : '새로 추가된 기록이 없습니다'),
+                      backgroundColor: count > 0 ? Colors.teal : Colors.grey,
+                      duration: const Duration(seconds: 3),
+                    ),
+                  );
+                } catch (e) {
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                          content: Text('가져오기 실패: $e'),
+                          backgroundColor: Colors.red),
+                    );
+                  }
+                } finally {
+                  if (mounted) setState(() => _isImporting = false);
+                }
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _backupOptionTile({
+    required IconData icon,
+    required Color color,
+    required String title,
+    required String subtitle,
+    required Color textColor,
+    required Color subColor,
+    required Color panelColor,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: () {
+        SystemSound.play(SystemSoundType.click);
+        onTap();
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: panelColor,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(icon, color: color, size: 20),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title,
+                      style: TextStyle(
+                          color: textColor,
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 2),
+                  Text(subtitle,
+                      style: TextStyle(color: subColor, fontSize: 12)),
+                ],
+              ),
+            ),
+            Icon(Icons.chevron_right, color: Colors.grey, size: 20),
+          ],
+        ),
+      ),
+    );
   }
 
   Future<void> _generateSampleData() async {
@@ -212,9 +408,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
               icon: Icons.upload_file,
               iconColor: Colors.teal,
               title: '백업 / 내보내기',
-              subtitle: '주행 기록을 파일로 저장',
-              onTap: null,
-              isLoading: false,
+              subtitle: '주행 기록을 파일로 저장 · 복원',
+              onTap: () => _showBackupSheet(isDark, panelColor),
+              isLoading: _isExporting || _isImporting || _isSharingExport,
               loadingColor: Colors.teal,
               panelColor: panelColor,
               titleColor: titleColor,

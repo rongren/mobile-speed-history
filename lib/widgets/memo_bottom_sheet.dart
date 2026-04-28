@@ -13,6 +13,7 @@ Future<void> showMemoBottomSheet(
   await showModalBottomSheet(
     context: context,
     isScrollControlled: true,
+    useSafeArea: true,
     backgroundColor: Colors.transparent,
     builder: (bsCtx) => Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.of(bsCtx).viewInsets.bottom),
@@ -21,7 +22,7 @@ Future<void> showMemoBottomSheet(
           color: bgColor,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
         ),
-        padding: const EdgeInsets.all(24),
+        padding: EdgeInsets.fromLTRB(24, 24, 24, 24 + MediaQuery.of(bsCtx).viewPadding.bottom),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,

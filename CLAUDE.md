@@ -28,7 +28,29 @@ Flutter의 일부 위젯(예: `Switch`, `Checkbox`, `Radio`)은 자체적으로 
 - `lib/widgets/stat_item.dart` — 통계 표시 위젯 2종:
   - `StatDetailItem(label, value, unit, textColor)` — 값(16px 굵게) + 단위(파란색, 선택) + 라벨(회색 11px). 주행 상세/요약 행에 사용.
   - `StatItem(label, value, textColor, {labelBlue})` — 값(13px 굵게) + 라벨(기본 회색, `labelBlue: true`이면 파란색). 목록 카드 내 통계 행에 사용.
+- `lib/utils/backup_utils.dart` — 백업/복원 유틸. `shareBackup()` : 임시 파일 생성 후 공유 시트 표시. `exportBackup()` : `FilePicker.saveFile(bytes:)`로 저장 위치 선택 → `true`=저장완료/`false`=취소. `pickBackupFile()` : 파일 선택 다이얼로그만 표시 → 선택한 경로 반환 (`null`=취소). `importFromPath(path, {onProgress})` : 경로에서 파싱·삽입 → 새로 추가된 건수 반환. 진행률 콜백은 0.0~1.0 범위. 가져오기 후 반드시 `ride.loadRecords()` 호출로 Provider 갱신.
+- `lib/widgets/loading_overlay.dart` — 전화면 터치 차단 로딩 오버레이. `runWithLoading<T>(context, task: (setProgress) async { ... }, label: '...')` 호출. `setProgress(0.0~1.0)` 전달 시 진행률 바 표시, `null` 전달 시 무한 스피너. `AbsorbPointer`로 오버레이 뒤 모든 터치 차단.
 - `lib/widgets/` — 재사용 위젯 모음
+
+### 시스템 네비게이션 바 패딩
+Android 제스처 내비게이션 또는 버튼 내비게이션 바가 화면 하단을 가린다. `showModalBottomSheet`를 사용할 때는 반드시 아래 두 가지를 적용한다:
+1. `useSafeArea: true` — 네비게이션 바 영역을 자동으로 피함
+2. 컨텐츠 하단 패딩에 `MediaQuery.of(ctx).viewPadding.bottom` 추가 — 내부 여백도 네비게이션 바 높이만큼 확보
+
+키보드 대응(`viewInsets.bottom`)과 네비게이션 바 대응(`viewPadding.bottom`)은 별개다. 키보드가 올라올 때 잘리는 경우는 `viewInsets.bottom`, 네비게이션 바에 잘리는 경우는 `viewPadding.bottom`을 사용한다.
+
+```dart
+showModalBottomSheet(
+  useSafeArea: true,
+  isScrollControlled: true, // 키보드 대응 시 필요
+  builder: (ctx) => Padding(
+    padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom), // 키보드
+    child: Container(
+      padding: EdgeInsets.fromLTRB(24, 24, 24, 24 + MediaQuery.of(ctx).viewPadding.bottom), // 네비게이션 바
+    ),
+  ),
+);
+```
 
 ### 색상 인덱스 주의
 `Colors.grey`의 유효 인덱스는 50·100·200·300·400·500·600·700·800·**850**·**900**까지다. `Colors.grey[950]` 등 존재하지 않는 인덱스는 `null`을 반환하므로 `!` 연산자와 함께 쓰면 런타임 에러가 발생한다.
