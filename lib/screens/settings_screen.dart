@@ -1142,7 +1142,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       unit: 'km/h',
                       maxDigits: 3,
                       allowEmpty: false,
-                      allowDecimal: true,
+                      allowDecimal: false,
                     );
                     if (result == null) return;
                     settings.setSpeedAlertKmh(result.toDouble());
