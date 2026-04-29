@@ -29,6 +29,7 @@ Flutter의 일부 위젯(예: `Switch`, `Checkbox`, `Radio`)은 자체적으로 
   - `StatDetailItem(label, value, unit, textColor)` — 값(16px 굵게) + 단위(파란색, 선택) + 라벨(회색 11px). 주행 상세/요약 행에 사용.
   - `StatItem(label, value, textColor, {labelBlue})` — 값(13px 굵게) + 라벨(기본 회색, `labelBlue: true`이면 파란색). 목록 카드 내 통계 행에 사용.
 - `lib/utils/backup_utils.dart` — 백업/복원 유틸. `shareBackup()` : 임시 파일 생성 후 공유 시트 표시. `exportBackup()` : `FilePicker.saveFile(bytes:)`로 저장 위치 선택 → `true`=저장완료/`false`=취소. `pickBackupFile()` : 파일 선택 다이얼로그만 표시 → 선택한 경로 반환 (`null`=취소). `importFromPath(path, {onProgress})` : 경로에서 파싱·삽입 → 새로 추가된 건수 반환. 진행률 콜백은 0.0~1.0 범위. 가져오기 후 반드시 `ride.loadRecords()` 호출로 Provider 갱신.
+- `lib/utils/gpx_utils.dart` — GPX 내보내기 유틸. `shareGpx(record)` : 단일 주행을 GPX 파일로 공유. `shareAllGpx()` : 전체 기록을 다중 트랙 GPX 파일 하나로 묶어 공유. 표준 GPX 1.1 포맷 (Strava 등 호환).
 - `lib/widgets/loading_overlay.dart` — 전화면 터치 차단 로딩 오버레이. `runWithLoading<T>(context, task: (setProgress) async { ... }, label: '...')` 호출. `setProgress(0.0~1.0)` 전달 시 진행률 바 표시, `null` 전달 시 무한 스피너. `AbsorbPointer`로 오버레이 뒤 모든 터치 차단.
 - `lib/widgets/` — 재사용 위젯 모음
 
@@ -137,8 +138,18 @@ GPS 업데이트마다 아래 세 필터를 순서대로 적용한다:
 - **도전 목표** (최고속도/최장거리/최장시간) — 현재 기록 대비 목표 표시. 최장시간은 분 단위 입력, 초 단위 저장
 - **스트릭** — 설정 없음. records 날짜로 현재 연속일·역대 최장 계산. 오늘 또는 어제 주행이 있으면 스트릭 유지
 
+### 속도 알림 (`speedAlertKmh`)
+
+설정에서 켜면 두 가지 피드백이 동작한다:
+- **진동** — 임계값 상향 돌파 시 1회 `HapticFeedback.heavyImpact()` (edge-trigger)
+- **시각** — `currentSpeed >= speedAlertKmh`인 동안 속도계 숫자·게이지 호·바늘이 빨간색으로 변경. 하단 통계 카드는 색 변화 없음. `SpeedometerPainter`의 `isOverAlert` 파라미터로 제어.
+
+속도 알림 최솟값은 릴리즈 1 km/h, 디버그 0 km/h (`kDebugMode` 분기).
+
 ### 주요 설계 제약
 
-- 설정 화면의 `'백업 / 내보내기'` 타일은 플레이스홀더 — `onTap: null`로 의도적으로 비활성화되어 있다.
-- `개발` 섹션(데이터 제거 / 데이터 생성)은 릴리즈 빌드에 그대로 남아있는 디버그 도구다.
+- 설정 화면 `'백업 / 내보내기'` 타일 — 공유·파일저장·가져오기·GPX 내보내기 4가지 옵션을 바텀시트로 제공.
+- 기록 상세 팝업 하단 버튼 — `[경로 보기] [GPX 공유]` 두 버튼 Row 구성.
+- 설정 화면 `'앱 정보'` 타일 — 탭 시 앱명·버전·업데이트일·개발자·이메일 팝업 표시. 값은 `_SettingsScreenState`의 `static const _kAppName` 등 상수로 수기 관리.
+- `개발` 섹션(데이터 제거 / 데이터 생성)은 `kDebugMode`일 때만 표시 — 릴리즈 빌드에서 자동 숨김.
 - `wakelock_plus`로 주행 중 화면이 꺼지지 않도록 한다. `startRide()`에서 활성화, `stopRide()`에서 비활성화.
