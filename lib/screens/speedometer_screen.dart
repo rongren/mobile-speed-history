@@ -38,9 +38,12 @@ class _SpeedometerScreenState extends State<SpeedometerScreen> {
     final useKmh = settings.useKmh;
     final isDark = settings.appTheme == 'dark';
 
+    final alertKmh = settings.speedAlertKmh;
+    final isOverAlert = alertKmh != null && ride.isRiding && ride.currentSpeed >= alertKmh;
+
     final bgColor = isDark ? Colors.black : const Color(0xFFF2F4F7);
     final panelColor = isDark ? Colors.grey[900]! : Colors.white;
-    final speedTextColor = isDark ? Colors.white : Colors.black87;
+    final speedTextColor = isOverAlert ? Colors.red : (isDark ? Colors.white : Colors.black87);
     final unitTextColor = isDark ? Colors.grey : Colors.grey[600]!;
     final selectorBgColor = isDark ? Colors.grey[900]! : Colors.grey[200]!;
     final selectorBorderColor = isDark ? Colors.grey[700]! : Colors.grey[300]!;
@@ -104,6 +107,7 @@ class _SpeedometerScreenState extends State<SpeedometerScreen> {
                   speed: ride.currentSpeed,
                   maxSpeed: _maxSpeed,
                   isDark: isDark,
+                  isOverAlert: isOverAlert,
                 ),
                 child: Center(
                   child: Column(
@@ -429,8 +433,14 @@ class SpeedometerPainter extends CustomPainter {
   final double speed;
   final double maxSpeed;
   final bool isDark;
+  final bool isOverAlert;
 
-  SpeedometerPainter({required this.speed, required this.maxSpeed, this.isDark = true});
+  SpeedometerPainter({
+    required this.speed,
+    required this.maxSpeed,
+    this.isDark = true,
+    this.isOverAlert = false,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -461,7 +471,9 @@ class SpeedometerPainter extends CustomPainter {
 
     if (speedSweep > 0) {
       final Color arcColor;
-      if (speedRatio < 0.5) {
+      if (isOverAlert) {
+        arcColor = Colors.red;
+      } else if (speedRatio < 0.5) {
         arcColor = Colors.blue;
       } else if (speedRatio < 0.75) {
         arcColor = Colors.green;
@@ -580,7 +592,7 @@ class SpeedometerPainter extends CustomPainter {
       tailEnd,
       needleEnd,
       Paint()
-        ..color = isDark ? Colors.white : Colors.black87
+        ..color = isOverAlert ? Colors.red : (isDark ? Colors.white : Colors.black87)
         ..strokeWidth = 3
         ..strokeCap = StrokeCap.round,
     );
@@ -590,6 +602,7 @@ class SpeedometerPainter extends CustomPainter {
   bool shouldRepaint(SpeedometerPainter oldDelegate) {
     return oldDelegate.speed != speed ||
         oldDelegate.maxSpeed != maxSpeed ||
-        oldDelegate.isDark != isDark;
+        oldDelegate.isDark != isDark ||
+        oldDelegate.isOverAlert != isOverAlert;
   }
 }

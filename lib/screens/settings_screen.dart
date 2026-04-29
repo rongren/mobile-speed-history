@@ -1118,7 +1118,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 GestureDetector(
                   onTap: () {
                     SystemSound.play(SystemSoundType.click);
-                    final next = (currentKmh - 5).clamp(1, 999);
+                    final next = (currentKmh - 5).clamp(kDebugMode ? 0 : 1, 999);
                     settings.setSpeedAlertKmh(next.toDouble());
                   },
                   child: Container(
@@ -1169,7 +1169,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 GestureDetector(
                   onTap: () {
                     SystemSound.play(SystemSoundType.click);
-                    final next = (currentKmh + 5).clamp(1, 999);
+                    final next = (currentKmh + 5).clamp(kDebugMode ? 0 : 1, 999);
                     settings.setSpeedAlertKmh(next.toDouble());
                   },
                   child: Container(
