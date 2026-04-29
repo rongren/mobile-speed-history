@@ -175,7 +175,7 @@ class SettingsProvider extends ChangeNotifier {
   }
 
   Future<void> setSpeedAlertKmh(double? value) async {
-    _speedAlertKmh = value != null ? value.clamp(1.0, 999.0) : null;
+    _speedAlertKmh = value != null ? value.clamp(kDebugMode ? 0.0 : 1.0, 999.0) : null;
     notifyListeners();
     final prefs = await SharedPreferences.getInstance();
     if (_speedAlertKmh != null) {

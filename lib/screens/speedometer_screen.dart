@@ -44,6 +44,7 @@ class _SpeedometerScreenState extends State<SpeedometerScreen> {
     final bgColor = isDark ? Colors.black : const Color(0xFFF2F4F7);
     final panelColor = isDark ? Colors.grey[900]! : Colors.white;
     final speedTextColor = isOverAlert ? Colors.red : (isDark ? Colors.white : Colors.black87);
+    final statTextColor = isDark ? Colors.white : Colors.black87;
     final unitTextColor = isDark ? Colors.grey : Colors.grey[600]!;
     final selectorBgColor = isDark ? Colors.grey[900]! : Colors.grey[200]!;
     final selectorBorderColor = isDark ? Colors.grey[700]! : Colors.grey[300]!;
@@ -143,7 +144,7 @@ class _SpeedometerScreenState extends State<SpeedometerScreen> {
               panelColor: panelColor,
               dividerColor: dividerColor,
               labelColor: statLabelColor,
-              valueColor: speedTextColor),
+              valueColor: statTextColor),
 
           const SizedBox(height: 16),
 

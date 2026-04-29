@@ -20,6 +20,11 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
+  static const _kAppName = 'Speed';
+  static const _kUpdateDate = '2026-04-29';
+  static const _kDeveloperName = '김정훈';
+  static const _kDeveloperEmail = 'kimjunghun816@gmail.com';
+
   bool _isDeleting = false;
   bool _isGenerating = false;
   bool _isExporting = false;
@@ -39,6 +44,77 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (mounted) {
       setState(() => _appVersion = info.version);
     }
+  }
+
+  void _showAppInfoDialog(bool isDark) {
+    final dialogBg = isDark ? const Color(0xFF1e1e1e) : Colors.white;
+    final textColor = isDark ? Colors.white : Colors.black87;
+    final subColor = isDark ? Colors.grey : Colors.grey[600]!;
+    final divColor = isDark ? Colors.grey[800]! : Colors.grey[200]!;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => Dialog(
+        backgroundColor: dialogBg,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 40),
+        child: Padding(
+          padding: const EdgeInsets.all(28),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  color: Colors.blue.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: const Icon(Icons.speed, color: Colors.blue, size: 30),
+              ),
+              const SizedBox(height: 14),
+              Text(
+                _kAppName,
+                style: TextStyle(color: textColor, fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                _appVersion.isEmpty ? '-' : 'v$_appVersion',
+                style: TextStyle(color: Colors.blue, fontSize: 14),
+              ),
+              const SizedBox(height: 20),
+              Divider(color: divColor, height: 1),
+              const SizedBox(height: 16),
+              _infoRow('업데이트', _kUpdateDate, textColor, subColor),
+              const SizedBox(height: 16),
+              Divider(color: divColor, height: 1),
+              const SizedBox(height: 16),
+              _infoRow('개발자', _kDeveloperName, textColor, subColor),
+              const SizedBox(height: 12),
+              _infoRow('이메일', _kDeveloperEmail, textColor, subColor),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: Text('닫기', style: TextStyle(color: subColor, fontSize: 14)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _infoRow(String label, String value, Color textColor, Color subColor) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label, style: TextStyle(color: subColor, fontSize: 13)),
+        Text(value, style: TextStyle(color: textColor, fontSize: 13, fontWeight: FontWeight.w500)),
+      ],
+    );
   }
 
   Future<void> _deleteAllData() async {
@@ -449,13 +525,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
             const SizedBox(height: 24),
 
             _sectionTitle('앱 정보', sectionColor),
-            _infoTile(
+            _settingTile(
               icon: Icons.info_outline,
               iconColor: Colors.grey,
-              title: '버전',
-              value: _appVersion.isEmpty ? '-' : 'v$_appVersion',
+              title: '앱 정보',
+              subtitle: _appVersion.isEmpty ? _kAppName : '$_kAppName  v$_appVersion',
+              onTap: () => _showAppInfoDialog(isDark),
+              isLoading: false,
+              loadingColor: Colors.grey,
               panelColor: panelColor,
               titleColor: titleColor,
+              subtitleColor: subtitleColor,
             ),
             const SizedBox(height: 24),
 
@@ -1326,46 +1406,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
             activeTrackColor: Colors.blue.withOpacity(0.4),
             inactiveTrackColor: isDark ? Colors.grey[700] : Colors.grey[300],
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _infoTile({
-    required IconData icon,
-    required Color iconColor,
-    required String title,
-    required String value,
-    required Color panelColor,
-    required Color titleColor,
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      decoration: BoxDecoration(
-        color: panelColor,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: iconColor.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(icon, color: iconColor, size: 20),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Text(title,
-                style: TextStyle(
-                    color: titleColor,
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold)),
-          ),
-          Text(value,
-              style: const TextStyle(color: Colors.grey, fontSize: 13)),
         ],
       ),
     );
