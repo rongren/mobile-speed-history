@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # =========================
 # Miscellaneous
 # =========================
@@ -7,9 +6,13 @@
 *.log
 *.pyc
 *.swp
+.DS_Store
+.build/
 .buildlog/
 .history/
-.DS_Store
+.svn/
+.swiftpm/
+migrate_working_dir/
 
 # =========================
 # IDE (Android Studio / IntelliJ)
@@ -26,24 +29,19 @@
 .flutter-plugins
 .flutter-plugins-dependencies
 .packages
-.packages.generated
 .pub/
 .pub-cache/
-.pub-preload-cache/
 build/
 coverage/
 version
-flutter_*.png
-linked_*.ds
-unlinked.ds
-unlinked_spec.ds
 
-# Generated plugin files
+# Generated files
 **/generated_plugin_registrant.dart
 
 # =========================
 # Android
 # =========================
+.gradle/
 **/android/**/gradle-wrapper.jar
 **/android/captures/
 **/android/gradlew
@@ -51,22 +49,17 @@ unlinked_spec.ds
 **/android/local.properties
 **/android/key.properties
 **/android/**/GeneratedPluginRegistrant.java
-.gradle/
+/android/app/debug
+/android/app/profile
+/android/app/release
+
+# build outputs
 **/build/
 app/build/
 
 # Keystore (민감)
 *.jks
 *.keystore
-
-# =========================
-# Secrets / Env
-# =========================
-.env
-*.env
-secrets.properties
-google-services.json
-GoogleService-Info.plist
 
 # =========================
 # iOS / macOS
@@ -106,57 +99,20 @@ GoogleService-Info.plist
 # Coverage / Symbols
 # =========================
 app.*.symbols
+app.*.map.json
 coverage/
+
+# =========================
+# Secrets / Env (중요)
+# =========================
+.env
+*.env
+secrets.properties
+google-services.json
+GoogleService-Info.plist
 
 # =========================
 # Exceptions
 # =========================
 !**/ios/**/default.*
 !/packages/flutter_tools/test/data/dart_dependencies_test/**/.packages
-=======
-# Miscellaneous
-*.class
-*.log
-*.pyc
-*.swp
-.DS_Store
-.atom/
-.build/
-.buildlog/
-.history
-.svn/
-.swiftpm/
-migrate_working_dir/
-
-# IntelliJ related
-*.iml
-*.ipr
-*.iws
-.idea/
-
-# The .vscode folder contains launch configuration and tasks you configure in
-# VS Code which you may wish to be included in version control, so this line
-# is commented out by default.
-#.vscode/
-
-# Flutter/Dart/Pub related
-**/doc/api/
-**/ios/Flutter/.last_build_id
-.dart_tool/
-.flutter-plugins-dependencies
-.pub-cache/
-.pub/
-/build/
-/coverage/
-
-# Symbolication related
-app.*.symbols
-
-# Obfuscation related
-app.*.map.json
-
-# Android Studio will place build artifacts here
-/android/app/debug
-/android/app/profile
-/android/app/release
->>>>>>> 9fc7d11 (first commit)
