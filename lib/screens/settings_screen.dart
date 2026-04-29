@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -8,6 +9,7 @@ import '../providers/ride_provider.dart';
 import '../providers/settings_provider.dart';
 import '../widgets/number_input_dialog.dart';
 import '../utils/backup_utils.dart';
+import '../utils/gpx_utils.dart';
 import '../widgets/loading_overlay.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -23,6 +25,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _isExporting = false;
   bool _isImporting = false;
   bool _isSharingExport = false;
+  bool _isExportingGpx = false;
   String _appVersion = '';
 
   @override
@@ -206,6 +209,33 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   }
                 } finally {
                   if (mounted) setState(() => _isImporting = false);
+                }
+              },
+            ),
+            const SizedBox(height: 10),
+            _backupOptionTile(
+              icon: Icons.route,
+              color: Colors.deepPurple,
+              title: 'GPX 내보내기',
+              subtitle: '전체 기록을 GPX 파일로 공유 (Strava 등 호환)',
+              textColor: textColor,
+              subColor: subColor,
+              panelColor: panelColor,
+              onTap: () async {
+                Navigator.pop(ctx);
+                setState(() => _isExportingGpx = true);
+                try {
+                  await shareAllGpx();
+                } catch (e) {
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                          content: Text('GPX 내보내기 실패: $e'),
+                          backgroundColor: Colors.red),
+                    );
+                  }
+                } finally {
+                  if (mounted) setState(() => _isExportingGpx = false);
                 }
               },
             ),
@@ -410,7 +440,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               title: '백업 / 내보내기',
               subtitle: '주행 기록을 파일로 저장 · 복원',
               onTap: () => _showBackupSheet(isDark, panelColor),
-              isLoading: _isExporting || _isImporting || _isSharingExport,
+              isLoading: _isExporting || _isImporting || _isSharingExport || _isExportingGpx,
               loadingColor: Colors.teal,
               panelColor: panelColor,
               titleColor: titleColor,
@@ -429,32 +459,34 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             const SizedBox(height: 24),
 
-            _sectionTitle('개발', sectionColor),
-            _settingTile(
-              icon: Icons.delete_outline,
-              iconColor: Colors.red,
-              title: '데이터 제거',
-              subtitle: '전체 기록 삭제',
-              onTap: (_isDeleting || _isGenerating) ? null : _deleteAllData,
-              isLoading: _isDeleting,
-              loadingColor: Colors.red,
-              panelColor: panelColor,
-              titleColor: titleColor,
-              subtitleColor: subtitleColor,
-            ),
-            const SizedBox(height: 10),
-            _settingTile(
-              icon: Icons.add_chart,
-              iconColor: Colors.blue,
-              title: '데이터 생성',
-              subtitle: '임시 샘플 데이터 삽입',
-              onTap: (_isDeleting || _isGenerating) ? null : _generateSampleData,
-              isLoading: _isGenerating,
-              loadingColor: Colors.blue,
-              panelColor: panelColor,
-              titleColor: titleColor,
-              subtitleColor: subtitleColor,
-            ),
+            if (kDebugMode) ...[
+              _sectionTitle('개발', sectionColor),
+              _settingTile(
+                icon: Icons.delete_outline,
+                iconColor: Colors.red,
+                title: '데이터 제거',
+                subtitle: '전체 기록 삭제',
+                onTap: (_isDeleting || _isGenerating) ? null : _deleteAllData,
+                isLoading: _isDeleting,
+                loadingColor: Colors.red,
+                panelColor: panelColor,
+                titleColor: titleColor,
+                subtitleColor: subtitleColor,
+              ),
+              const SizedBox(height: 10),
+              _settingTile(
+                icon: Icons.add_chart,
+                iconColor: Colors.blue,
+                title: '데이터 생성',
+                subtitle: '임시 샘플 데이터 삽입',
+                onTap: (_isDeleting || _isGenerating) ? null : _generateSampleData,
+                isLoading: _isGenerating,
+                loadingColor: Colors.blue,
+                panelColor: panelColor,
+                titleColor: titleColor,
+                subtitleColor: subtitleColor,
+              ),
+            ],
           ],
         ),
       ),

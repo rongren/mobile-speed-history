@@ -6,6 +6,7 @@ import '../../providers/settings_provider.dart';
 import 'history_detail_map_screen.dart';
 import '../../widgets/record_badges.dart';
 import '../../utils/format_utils.dart';
+import '../../utils/gpx_utils.dart';
 import '../../widgets/memo_bottom_sheet.dart';
 import '../../widgets/stat_item.dart';
 
@@ -574,6 +575,7 @@ class _HistoryTotalScreenState extends State<HistoryTotalScreen>
     final memoBoxColor = isDark ? Colors.grey[900]! : Colors.grey[100]!;
     final btnBg = isDark ? Colors.grey[800]! : Colors.grey[200]!;
     final textColor = isDark ? Colors.white : Colors.black87;
+    bool isSharing = false;
 
     showDialog(
       context: context,
@@ -666,30 +668,65 @@ class _HistoryTotalScreenState extends State<HistoryTotalScreen>
                   ),
                 ),
                 const SizedBox(height: 16),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: btnBg,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: btnBg,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12)),
+                        ),
+                        onPressed: () {
+                          Navigator.pop(ctx);
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => HistoryDetailMapScreen(record: record)),
+                          );
+                        },
+                        icon: Icon(Icons.map_outlined, color: textColor, size: 18),
+                        label: Text('경로 보기',
+                            style: TextStyle(
+                                color: textColor,
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold)),
+                      ),
                     ),
-                    onPressed: () {
-                      Navigator.pop(ctx);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (_) => HistoryDetailMapScreen(record: record)),
-                      );
-                    },
-                    icon: Icon(Icons.map_outlined, color: textColor, size: 18),
-                    label: Text('경로 보기',
-                        style: TextStyle(
-                            color: textColor,
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold)),
-                  ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: btnBg,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12)),
+                        ),
+                        onPressed: isSharing ? null : () async {
+                          setDialogState(() => isSharing = true);
+                          try {
+                            await shareGpx(record);
+                          } finally {
+                            if (ctx.mounted) setDialogState(() => isSharing = false);
+                          }
+                        },
+                        icon: isSharing
+                            ? SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(
+                                    strokeWidth: 2, color: textColor))
+                            : const Icon(Icons.route,
+                                color: Colors.deepPurple, size: 18),
+                        label: Text('GPX 공유',
+                            style: TextStyle(
+                                color: isSharing ? Colors.grey : textColor,
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold)),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
