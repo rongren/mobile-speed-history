@@ -135,10 +135,11 @@ class RideProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  static const double _maxAccuracyMeters = 25.0;  // 이 이상 오차면 무시
-  static const double _minMovementMeters = 3.0;   // 이 미만 이동은 드리프트로 간주
+  static const double _maxAccuracyMeters = 15.0;  // 이 이상 오차면 무시 (실내 GPS 차단)
+  static const double _minMovementMeters = 5.0;   // 이 미만 이동은 드리프트로 간주
   static const double _maxSpeedJumpRatio = 3.0;   // 이전 속도의 3배 이상 급등 시 무시
   static const double _maxSpeedJumpMinKmh = 20.0; // 급등 필터 적용 최소 기준
+  static const double _minDisplaySpeedKmh = 1.5;  // 이 미만 속도는 정지로 간주
 
   void _onPositionUpdate(Position position) {
     // GPS 정확도가 낮으면 스킵
@@ -146,6 +147,8 @@ class RideProvider extends ChangeNotifier {
 
     double rawSpeed = position.speed * 3.6;
     if (rawSpeed < 0) rawSpeed = 0;
+    // 소음 수준의 미세 속도는 정지로 처리
+    if (rawSpeed < _minDisplaySpeedKmh) rawSpeed = 0;
 
     // 속도 스파이크 필터: 이전 속도 대비 3배 이상 급등 시 무시
     if (rawSpeed > _maxSpeedJumpMinKmh &&

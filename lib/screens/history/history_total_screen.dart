@@ -579,7 +579,9 @@ class _HistoryTotalScreenState extends State<HistoryTotalScreen>
 
     showDialog(
       context: context,
-      builder: (ctx) => StatefulBuilder(
+      builder: (ctx) => MediaQuery(
+        data: MediaQuery.of(ctx).copyWith(viewInsets: EdgeInsets.zero),
+        child: StatefulBuilder(
         builder: (ctx, setDialogState) => Dialog(
           backgroundColor: dialogBg,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -732,6 +734,7 @@ class _HistoryTotalScreenState extends State<HistoryTotalScreen>
             ),
           ),
         ),
+      ),
       ),
     );
   }

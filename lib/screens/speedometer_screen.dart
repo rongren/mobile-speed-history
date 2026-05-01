@@ -252,7 +252,9 @@ class _SpeedometerScreenState extends State<SpeedometerScreen> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (ctx) => StatefulBuilder(
+      builder: (ctx) => MediaQuery(
+        data: MediaQuery.of(ctx).copyWith(viewInsets: EdgeInsets.zero),
+        child: StatefulBuilder(
         builder: (ctx, setDialogState) => Dialog(
           shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(20)),
@@ -340,6 +342,7 @@ class _SpeedometerScreenState extends State<SpeedometerScreen> {
             ),
           ),
         ),
+      ),
       ),
     );
   }
