@@ -12,6 +12,7 @@ import 'screens/map_screen.dart';
 import 'screens/history/history_screen.dart';
 import 'screens/goal_screen.dart';
 import 'screens/settings_screen.dart';
+import 'screens/onboarding_screen.dart';
 import 'services/foreground_service.dart';
 
 void main() async {
@@ -84,7 +85,9 @@ class _MyAppState extends State<MyApp> {
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       themeMode: settings.themeMode,
-      home: const MainScreen(),
+      home: settings.shouldShowOnboarding
+          ? const OnboardingScreen()
+          : const MainScreen(),
     );
   }
 }
