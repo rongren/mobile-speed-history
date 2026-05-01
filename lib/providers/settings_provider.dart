@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsProvider extends ChangeNotifier {
@@ -53,6 +54,8 @@ class SettingsProvider extends ChangeNotifier {
   bool get showMaxSpeed => _showMaxSpeed;
   bool get showAvgSpeed => _showAvgSpeed;
   String get appTheme => _appTheme;
+  ThemeMode get themeMode =>
+      _appTheme == 'dark' ? ThemeMode.dark : ThemeMode.light;
   int get minRecordDurationSec => _minRecordDurationSec;
   double? get speedAlertKmh => _speedAlertKmh;
   String get mapType => _mapType;

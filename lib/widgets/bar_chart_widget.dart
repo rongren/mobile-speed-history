@@ -157,7 +157,7 @@ class _BarChartWidgetState extends State<BarChartWidget>
 
   @override
   Widget build(BuildContext context) {
-    final isDark = context.watch<SettingsProvider>().appTheme == 'dark';
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       children: [
         Padding(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
+import 'core/theme/app_theme.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
@@ -77,32 +78,12 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = context.watch<SettingsProvider>().appTheme == 'dark';
-    final navBg = isDark ? Colors.black : Colors.white;
-    final unselectedColor = isDark ? Colors.grey : Colors.grey[600]!;
-
+    final settings = context.watch<SettingsProvider>();
     return MaterialApp(
       title: '모바일 속도계',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-        useMaterial3: true,
-        navigationBarTheme: NavigationBarThemeData(
-          backgroundColor: navBg,
-          indicatorColor: Colors.blue.withOpacity(0.2),
-          iconTheme: WidgetStateProperty.resolveWith((states) {
-            if (states.contains(WidgetState.selected)) {
-              return const IconThemeData(color: Colors.blue);
-            }
-            return IconThemeData(color: unselectedColor);
-          }),
-          labelTextStyle: WidgetStateProperty.resolveWith((states) {
-            if (states.contains(WidgetState.selected)) {
-              return const TextStyle(color: Colors.blue, fontSize: 12);
-            }
-            return TextStyle(color: unselectedColor, fontSize: 12);
-          }),
-        ),
-      ),
+      theme: AppTheme.light,
+      darkTheme: AppTheme.dark,
+      themeMode: settings.themeMode,
       home: const MainScreen(),
     );
   }
@@ -121,8 +102,6 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = context.watch<SettingsProvider>().appTheme == 'dark';
-
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) async {
@@ -143,7 +122,6 @@ class _MainScreenState extends State<MainScreen> {
         }
       },
       child: Scaffold(
-        backgroundColor: isDark ? Colors.black : const Color(0xFFF2F4F7),
         body: IndexedStack(
           index: _currentIndex,
           children: const [

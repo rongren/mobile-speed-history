@@ -121,7 +121,15 @@ GPS 업데이트마다 아래 세 필터를 순서대로 적용한다:
 
 ### 테마
 
-테마는 `SettingsProvider.appTheme`(`'dark'` 또는 `'light'`)으로 전적으로 제어된다. **`ThemeData` 교체 방식을 사용하지 않는다** — 모든 화면과 위젯이 `isDark = settings.appTheme == 'dark'`를 읽어 색상을 직접 계산한다. 새 UI 추가 시 이 패턴을 따라야 한다.
+테마는 Flutter의 `ThemeData` 교체 방식으로 관리된다. `lib/core/theme/app_theme.dart`에 `AppTheme.dark` / `AppTheme.light`가 정의되어 있고, `MaterialApp`에 `theme` / `darkTheme` / `themeMode`로 주입된다. `SettingsProvider.themeMode`가 `ThemeMode`를 반환하며, `SettingsProvider.appTheme`(`'dark'`/`'light'`)은 설정 저장·UI 버튼에만 사용한다.
+
+새 UI 추가 시 `final cs = Theme.of(context).colorScheme;`으로 색상을 가져온다:
+- 배경: `cs.surface` · 카드/패널: `cs.surfaceContainer` · 버튼 비활성 배경: `cs.surfaceContainerHighest`
+- 주 텍스트: `cs.onSurface` · 보조 텍스트: `cs.onSurfaceVariant`
+- 구분선/테두리: `cs.outlineVariant` · 섹션 라벨: `cs.outline`
+- `CustomPainter`처럼 context가 없는 경우엔 `isDark = Theme.of(context).brightness == Brightness.dark`를 부모에서 계산해 파라미터로 전달한다.
+
+`showMemoBottomSheet`는 `isDark` 파라미터 없이 `(context, controller: ctrl)` 형태로 호출한다.
 
 ### 단위 변환
 

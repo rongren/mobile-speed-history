@@ -36,24 +36,22 @@ class _SpeedometerScreenState extends State<SpeedometerScreen> {
     final ride = context.watch<RideProvider>();
     final settings = context.watch<SettingsProvider>();
     final useKmh = settings.useKmh;
-    final isDark = settings.appTheme == 'dark';
+    final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final alertKmh = settings.speedAlertKmh;
     final isOverAlert = alertKmh != null && ride.isRiding && ride.currentSpeed >= alertKmh;
 
-    final bgColor = isDark ? Colors.black : const Color(0xFFF2F4F7);
-    final panelColor = isDark ? Colors.grey[900]! : Colors.white;
-    final speedTextColor = isOverAlert ? Colors.red : (isDark ? Colors.white : Colors.black87);
-    final statTextColor = isDark ? Colors.white : Colors.black87;
-    final unitTextColor = isDark ? Colors.grey : Colors.grey[600]!;
-    final selectorBgColor = isDark ? Colors.grey[900]! : Colors.grey[200]!;
-    final selectorBorderColor = isDark ? Colors.grey[700]! : Colors.grey[300]!;
-    final selectorTextColor = isDark ? Colors.grey : Colors.grey[600]!;
-    final dividerColor = isDark ? Colors.grey[700]! : Colors.grey[300]!;
-    final statLabelColor = isDark ? Colors.grey : Colors.grey[600]!;
+    final speedTextColor = isOverAlert ? Colors.red : cs.onSurface;
+    final panelColor = cs.surfaceContainer;
+    final unitTextColor = cs.onSurfaceVariant;
+    final selectorBgColor = cs.surfaceContainerHighest;
+    final selectorBorderColor = cs.outlineVariant;
+    final selectorTextColor = cs.onSurfaceVariant;
+    final dividerColor = cs.outlineVariant;
+    final statLabelColor = cs.onSurfaceVariant;
 
     return Scaffold(
-      backgroundColor: bgColor,
       resizeToAvoidBottomInset: false,
       body: SafeArea(
         bottom: false,
@@ -144,7 +142,8 @@ class _SpeedometerScreenState extends State<SpeedometerScreen> {
               panelColor: panelColor,
               dividerColor: dividerColor,
               labelColor: statLabelColor,
-              valueColor: statTextColor),
+              valueColor: cs.onSurface,
+              isDark: isDark),
 
           const SizedBox(height: 16),
 
@@ -198,7 +197,7 @@ class _SpeedometerScreenState extends State<SpeedometerScreen> {
                     ),
                   );
                 } else {
-                  _showRideSummary(context, savedRecord, useKmh, weightKg, isDark);
+                  _showRideSummary(context, savedRecord, useKmh, weightKg);
                 }
               } else {
                 ride.startRide(
@@ -244,23 +243,17 @@ class _SpeedometerScreenState extends State<SpeedometerScreen> {
   }
 
   void _showRideSummary(BuildContext context, RideRecord record,
-      bool useKmh, double? weightKg, bool isDark) {
+      bool useKmh, double? weightKg) {
+    final cs = Theme.of(context).colorScheme;
     final ctrl = TextEditingController();
     final ride = context.read<RideProvider>();
     final int? calories = calcCalories(record.totalDistance, weightKg);
-
-    final dialogBg = isDark ? const Color(0xFF1e1e1e) : Colors.white;
-    final memoBoxColor = isDark ? Colors.grey[900]! : Colors.grey[100]!;
-    final titleTextColor = isDark ? Colors.white : Colors.black87;
-    final memoTextColor = isDark ? Colors.white : Colors.black87;
-    final memoHintColor = isDark ? Colors.grey[600]! : Colors.grey[400]!;
 
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDialogState) => Dialog(
-          backgroundColor: dialogBg,
           shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(20)),
           insetPadding:
@@ -273,7 +266,7 @@ class _SpeedometerScreenState extends State<SpeedometerScreen> {
                 Text(
                   '주행 완료',
                   style: TextStyle(
-                      color: titleTextColor,
+                      color: cs.onSurface,
                       fontSize: 18,
                       fontWeight: FontWeight.bold),
                 ),
@@ -288,21 +281,20 @@ class _SpeedometerScreenState extends State<SpeedometerScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      StatDetailItem(label: '거리', value: formatDistance(record.totalDistance, useKmh), unit: distanceUnit(useKmh), textColor: titleTextColor),
-                      StatDetailItem(label: '시간', value: formatDuration(record.duration), textColor: titleTextColor),
-                      StatDetailItem(label: '최고속도', value: formatSpeed(record.maxSpeed, useKmh), unit: speedUnit(useKmh), textColor: titleTextColor),
+                      StatDetailItem(label: '거리', value: formatDistance(record.totalDistance, useKmh), unit: distanceUnit(useKmh), textColor: cs.onSurface),
+                      StatDetailItem(label: '시간', value: formatDuration(record.duration), textColor: cs.onSurface),
+                      StatDetailItem(label: '최고속도', value: formatSpeed(record.maxSpeed, useKmh), unit: speedUnit(useKmh), textColor: cs.onSurface),
                       if (calories != null)
-                        StatDetailItem(label: '칼로리', value: formatNumber(calories), unit: 'kcal', textColor: titleTextColor)
+                        StatDetailItem(label: '칼로리', value: formatNumber(calories), unit: 'kcal', textColor: cs.onSurface)
                       else
-                        StatDetailItem(label: '평균속도', value: formatSpeed(record.avgSpeed, useKmh), unit: speedUnit(useKmh), textColor: titleTextColor),
+                        StatDetailItem(label: '평균속도', value: formatSpeed(record.avgSpeed, useKmh), unit: speedUnit(useKmh), textColor: cs.onSurface),
                     ],
                   ),
                 ),
                 const SizedBox(height: 16),
-                // 메모 표시 영역 (탭하면 바텀시트 입력)
                 GestureDetector(
                   onTap: () async {
-                    await showMemoBottomSheet(ctx, controller: ctrl, isDark: isDark);
+                    await showMemoBottomSheet(ctx, controller: ctrl);
                     if (ctx.mounted) setDialogState(() {});
                   },
                   child: Container(
@@ -310,14 +302,14 @@ class _SpeedometerScreenState extends State<SpeedometerScreen> {
                     constraints: const BoxConstraints(minHeight: 70),
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: memoBoxColor,
+                      color: cs.surfaceContainerHighest,
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: ctrl.text.isEmpty
                         ? Text('메모를 남겨보세요 (탭하여 입력)',
-                            style: TextStyle(color: memoHintColor, fontSize: 14))
+                            style: TextStyle(color: cs.onSurfaceVariant, fontSize: 14))
                         : Text(ctrl.text,
-                            style: TextStyle(color: memoTextColor, fontSize: 14)),
+                            style: TextStyle(color: cs.onSurface, fontSize: 14)),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -358,6 +350,7 @@ class _SpeedometerScreenState extends State<SpeedometerScreen> {
       required Color dividerColor,
       required Color labelColor,
       required Color valueColor,
+      required bool isDark,
   }) {
     final currentAvgSpeed = ride.duration > 0
         ? ride.totalDistance / (ride.duration / 3600.0)
@@ -385,8 +378,8 @@ class _SpeedometerScreenState extends State<SpeedometerScreen> {
         decoration: BoxDecoration(
           color: panelColor,
           borderRadius: BorderRadius.circular(16),
-          boxShadow: panelColor == Colors.white
-              ? [BoxShadow(color: Colors.black12, blurRadius: 8, offset: const Offset(0, 2))]
+          boxShadow: !isDark
+              ? [const BoxShadow(color: Colors.black12, blurRadius: 8, offset: Offset(0, 2))]
               : null,
         ),
         child: Row(

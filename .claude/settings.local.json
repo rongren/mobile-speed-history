@@ -5,7 +5,9 @@
       "Bash(flutter analyze *)",
       "Bash(flutter clean *)",
       "Bash(flutter build *)",
-      "Skill(update-config)"
+      "Skill(update-config)",
+      "Bash(Get-ChildItem -Path \"C:\\\\flutter-workspace\\\\bus-and-subway\" -Recurse -Name -Include \"*.dart\")",
+      "Bash(Select-String \"main|theme\")"
     ]
   }
 }

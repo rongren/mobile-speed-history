@@ -46,7 +46,7 @@ class _HistoryDetailMapScreenState extends State<HistoryDetailMapScreen> {
     final points = _parsePathPoints();
     final settings = context.watch<SettingsProvider>();
     final useKmh = settings.useKmh;
-    final isDark = settings.appTheme == 'dark';
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final bgColor = isDark ? Colors.black : Colors.white;
     final cardColor = isDark ? Colors.grey[900]! : Colors.white;

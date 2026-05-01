@@ -14,7 +14,7 @@ class HistoryAverageScreen extends StatelessWidget {
     final settings = context.watch<SettingsProvider>();
     final useKmh = settings.useKmh;
     final weightKg = settings.weightKg;
-    final isDark = settings.appTheme == 'dark';
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final cardColor = isDark ? Colors.grey[900]! : Colors.white;
     final textColor = isDark ? Colors.white : Colors.black87;

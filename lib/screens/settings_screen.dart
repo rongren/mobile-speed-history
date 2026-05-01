@@ -46,16 +46,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  void _showAppInfoDialog(bool isDark) {
-    final dialogBg = isDark ? const Color(0xFF1e1e1e) : Colors.white;
-    final textColor = isDark ? Colors.white : Colors.black87;
-    final subColor = isDark ? Colors.grey : Colors.grey[600]!;
-    final divColor = isDark ? Colors.grey[800]! : Colors.grey[200]!;
+  void _showAppInfoDialog() {
+    final cs = Theme.of(context).colorScheme;
+    final textColor = cs.onSurface;
+    final subColor = cs.onSurfaceVariant;
+    final divColor = cs.outlineVariant;
 
     showDialog(
       context: context,
       builder: (ctx) => Dialog(
-        backgroundColor: dialogBg,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         insetPadding: const EdgeInsets.symmetric(horizontal: 40),
         child: Padding(
@@ -121,17 +120,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1e1e1e),
-        title: const Text('데이터 제거 확인',
-            style: TextStyle(color: Colors.white)),
-        content: const Text(
-          '모든 기록을 삭제합니다.\n되돌릴 수 없어요.',
-          style: TextStyle(color: Colors.grey),
-        ),
+        title: const Text('데이터 제거 확인'),
+        content: const Text('모든 기록을 삭제합니다.\n되돌릴 수 없어요.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('취소', style: TextStyle(color: Colors.grey)),
+            child: const Text('취소'),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
@@ -158,14 +152,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  void _showBackupSheet(bool isDark, Color panelColor) {
-    final bgColor = isDark ? const Color(0xFF1e1e1e) : Colors.white;
-    final textColor = isDark ? Colors.white : Colors.black87;
-    final subColor = isDark ? Colors.grey : Colors.grey[600]!;
+  void _showBackupSheet() {
+    final cs = Theme.of(context).colorScheme;
+    final textColor = cs.onSurface;
+    final subColor = cs.onSurfaceVariant;
+    final panelColor = cs.surfaceContainerHighest;
 
     showModalBottomSheet(
       context: context,
-      backgroundColor: bgColor,
+      backgroundColor: cs.surfaceContainer,
       useSafeArea: true,
       shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
@@ -380,17 +375,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1e1e1e),
-        title: const Text('데이터 생성 확인',
-            style: TextStyle(color: Colors.white)),
-        content: const Text(
-          '기존 기록을 모두 지우고 임시 데이터를 생성합니다.\n되돌릴 수 없어요.',
-          style: TextStyle(color: Colors.grey),
-        ),
+        title: const Text('데이터 생성 확인'),
+        content: const Text('기존 기록을 모두 지우고 임시 데이터를 생성합니다.\n되돌릴 수 없어요.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('취소', style: TextStyle(color: Colors.grey)),
+            child: const Text('취소'),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
@@ -420,26 +410,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final settings = context.watch<SettingsProvider>();
-    final isDark = settings.appTheme == 'dark';
+    final cs = Theme.of(context).colorScheme;
 
-    final bgColor = isDark ? Colors.black : const Color(0xFFF2F4F7);
-    final panelColor = isDark ? Colors.grey[900]! : Colors.white;
-    final titleColor = isDark ? Colors.white : Colors.black87;
-    final subtitleColor = isDark ? Colors.grey : Colors.grey[600]!;
-    final sectionColor = isDark ? Colors.grey : Colors.grey[500]!;
-    final btnBgOff = isDark ? Colors.grey[800]! : Colors.grey[200]!;
-    final btnBorderOff = isDark ? Colors.grey[700]! : Colors.grey[300]!;
-    final btnTextOff = isDark ? Colors.grey : Colors.grey[600]!;
+    final panelColor = cs.surfaceContainer;
+    final titleColor = cs.onSurface;
+    final subtitleColor = cs.onSurfaceVariant;
+    final sectionColor = cs.outline;
+    final btnBgOff = cs.surfaceContainerHighest;
+    final btnBorderOff = cs.outlineVariant;
+    final btnTextOff = cs.onSurfaceVariant;
 
     return Scaffold(
-      backgroundColor: bgColor,
       body: SafeArea(
         bottom: false,
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
             _sectionTitle('테마', sectionColor),
-            _themeSelector(settings, isDark, panelColor, titleColor, subtitleColor, btnBgOff, btnBorderOff, btnTextOff),
+            _themeSelector(settings, panelColor, titleColor, subtitleColor, btnBgOff, btnBorderOff, btnTextOff),
             const SizedBox(height: 24),
 
             _sectionTitle('주행', sectionColor),
@@ -491,10 +479,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
               panelColor: panelColor,
               titleColor: titleColor,
               subtitleColor: subtitleColor,
-              isDark: isDark,
             ),
             const SizedBox(height: 10),
-            _speedAlertTile(settings, panelColor, titleColor, subtitleColor, btnBgOff, isDark),
+            _speedAlertTile(settings, panelColor, titleColor, subtitleColor, btnBgOff),
             const SizedBox(height: 24),
 
             _sectionTitle('주행 화면', sectionColor),
@@ -515,7 +502,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               iconColor: Colors.teal,
               title: '백업 / 내보내기',
               subtitle: '주행 기록을 파일로 저장 · 복원',
-              onTap: () => _showBackupSheet(isDark, panelColor),
+              onTap: () => _showBackupSheet(),
               isLoading: _isExporting || _isImporting || _isSharingExport || _isExportingGpx,
               loadingColor: Colors.teal,
               panelColor: panelColor,
@@ -530,7 +517,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               iconColor: Colors.grey,
               title: '앱 정보',
               subtitle: _appVersion.isEmpty ? _kAppName : '$_kAppName  v$_appVersion',
-              onTap: () => _showAppInfoDialog(isDark),
+              onTap: () => _showAppInfoDialog(),
               isLoading: false,
               loadingColor: Colors.grey,
               panelColor: panelColor,
@@ -1133,7 +1120,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _speedAlertTile(SettingsProvider settings, Color panelColor,
-      Color titleColor, Color subtitleColor, Color btnBgOff, bool isDark) {
+      Color titleColor, Color subtitleColor, Color btnBgOff) {
+    final inactiveTrackColor = Theme.of(context).colorScheme.outlineVariant;
     final isOn = settings.speedAlertKmh != null;
     final currentKmh = settings.speedAlertKmh?.toInt() ?? 30;
 
@@ -1186,7 +1174,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 },
                 activeThumbColor: Colors.amber,
                 activeTrackColor: Colors.amber.withOpacity(0.4),
-                inactiveTrackColor: isDark ? Colors.grey[700] : Colors.grey[300],
+                inactiveTrackColor: inactiveTrackColor,
               ),
             ],
           ),
@@ -1361,8 +1349,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     required Color panelColor,
     required Color titleColor,
     required Color subtitleColor,
-    required bool isDark,
   }) {
+    final inactiveTrackColor = Theme.of(context).colorScheme.outlineVariant;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
@@ -1404,14 +1392,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
             },
             activeThumbColor: Colors.blue,
             activeTrackColor: Colors.blue.withOpacity(0.4),
-            inactiveTrackColor: isDark ? Colors.grey[700] : Colors.grey[300],
+            inactiveTrackColor: inactiveTrackColor,
           ),
         ],
       ),
     );
   }
 
-  Widget _themeSelector(SettingsProvider settings, bool isDark,
+  Widget _themeSelector(SettingsProvider settings,
       Color panelColor, Color titleColor, Color subtitleColor,
       Color btnBgOff, Color btnBorderOff, Color btnTextOff) {
     return Container(

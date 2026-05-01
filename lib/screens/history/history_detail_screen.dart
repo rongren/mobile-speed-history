@@ -27,7 +27,7 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen>
 
   Future<void> _pickDateFromCalendar() async {
     final records = context.read<RideProvider>().records;
-    final isDark = context.read<SettingsProvider>().appTheme == 'dark';
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final sheetBg = isDark ? const Color(0xFF1e1e1e) : Colors.white;
     final dialogBg = isDark ? const Color(0xFF1e1e1e) : Colors.white;
     final dropdownBg = isDark ? const Color(0xFF2a2a2a) : Colors.grey[100]!;
@@ -241,7 +241,7 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen>
   }
 
   void _showSelectPicker() {
-    final isDark = context.read<SettingsProvider>().appTheme == 'dark';
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final sheetBg = isDark ? const Color(0xFF1e1e1e) : Colors.white;
     final textColor = isDark ? Colors.white : Colors.black87;
     final dropdownBg = isDark ? const Color(0xFF2a2a2a) : Colors.grey[100]!;
@@ -406,7 +406,7 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen>
     final settings = context.watch<SettingsProvider>();
     final useKmh = settings.useKmh;
     final weightKg = settings.weightKg;
-    final isDark = settings.appTheme == 'dark';
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final bgColor = isDark ? Colors.black : const Color(0xFFF2F4F7);
     final cardColor = isDark ? Colors.grey[900]! : Colors.white;
@@ -753,7 +753,7 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen>
                 const SizedBox(height: 16),
                 GestureDetector(
                   onTap: () async {
-                    await showMemoBottomSheet(ctx, controller: ctrl, isDark: isDark);
+                    await showMemoBottomSheet(ctx, controller: ctrl);
                     if (ctx.mounted) {
                       if (record.id != null) {
                         await ride.updateMemo(record.id!, ctrl.text.trim());

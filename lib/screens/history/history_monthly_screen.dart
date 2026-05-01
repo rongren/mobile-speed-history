@@ -39,7 +39,7 @@ class _HistoryMonthlyScreenState extends State<HistoryMonthlyScreen>
     final records = context.watch<RideProvider>().records;
     final settings = context.watch<SettingsProvider>();
     final useKmh = settings.useKmh;
-    final isDark = settings.appTheme == 'dark';
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final cardColor = isDark ? const Color(0xFF1e1e1e) : Colors.white;
     final panelColor = isDark ? Colors.grey[900]! : const Color(0xFFEEF0F3);

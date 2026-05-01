@@ -30,10 +30,10 @@ class _MapScreenState extends State<MapScreen> {
     final ride = context.watch<RideProvider>();
     final settings = context.watch<SettingsProvider>();
     final useKmh = settings.useKmh;
-    final isDark = settings.appTheme == 'dark';
-    final cardColor = isDark ? Colors.grey[900]! : Colors.white;
-    final textColor = isDark ? Colors.white : Colors.black87;
-    final dividerColor = isDark ? Colors.grey[700]! : Colors.grey[300]!;
+    final cs = Theme.of(context).colorScheme;
+    final cardColor = cs.surfaceContainer;
+    final textColor = cs.onSurface;
+    final dividerColor = cs.outlineVariant;
 
     if (_mapController != null && ride.pathPoints.isNotEmpty) {
       _drawPath(ride.pathPoints);
@@ -41,7 +41,6 @@ class _MapScreenState extends State<MapScreen> {
     }
 
     return Scaffold(
-      backgroundColor: isDark ? Colors.black : const Color(0xFFF2F4F7),
       body: SafeArea(
         bottom: false,
         child: Column(

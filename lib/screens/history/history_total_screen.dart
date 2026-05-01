@@ -63,7 +63,7 @@ class _HistoryTotalScreenState extends State<HistoryTotalScreen>
   }
 
   void _showSortOptions() {
-    final isDark = context.read<SettingsProvider>().appTheme == 'dark';
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final sheetBg = isDark ? const Color(0xFF1e1e1e) : Colors.white;
     final textColor = isDark ? Colors.white : Colors.black87;
 
@@ -229,7 +229,7 @@ class _HistoryTotalScreenState extends State<HistoryTotalScreen>
     final settings = context.watch<SettingsProvider>();
     final useKmh = settings.useKmh;
     final weightKg = settings.weightKg;
-    final isDark = settings.appTheme == 'dark';
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final cardColor = isDark ? Colors.grey[900]! : Colors.white;
     final panelColor = isDark ? Colors.grey[900]! : Colors.white;
@@ -644,7 +644,7 @@ class _HistoryTotalScreenState extends State<HistoryTotalScreen>
                 const SizedBox(height: 16),
                 GestureDetector(
                   onTap: () async {
-                    await showMemoBottomSheet(ctx, controller: ctrl, isDark: isDark);
+                    await showMemoBottomSheet(ctx, controller: ctrl);
                     if (ctx.mounted) {
                       if (record.id != null) {
                         await ride.updateMemo(record.id!, ctrl.text.trim());

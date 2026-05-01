@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/ride_provider.dart';
-import '../../providers/settings_provider.dart';
 import 'history_detail_screen.dart';
 import 'history_yearly_screen.dart';
 import 'history_monthly_screen.dart';
@@ -37,22 +36,13 @@ class _HistoryScreenState extends State<HistoryScreen>
 
   @override
   Widget build(BuildContext context) {
-    final isDark = context.watch<SettingsProvider>().appTheme == 'dark';
-    final bgColor = isDark ? Colors.black : const Color(0xFFF2F4F7);
-    final barColor = isDark ? Colors.black : Colors.white;
-
     return Scaffold(
-      backgroundColor: bgColor,
       appBar: AppBar(
-        backgroundColor: barColor,
         toolbarHeight: 0,
         bottom: TabBar(
           controller: _tabController,
           isScrollable: true,
           tabAlignment: TabAlignment.start,
-          indicatorColor: Colors.blue,
-          labelColor: Colors.blue,
-          unselectedLabelColor: isDark ? Colors.grey : Colors.grey[500],
           tabs: const [
             Tab(text: '평균'),
             Tab(text: '연도별'),

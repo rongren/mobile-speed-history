@@ -27,14 +27,13 @@ class _GoalScreenState extends State<GoalScreen> {
   Widget build(BuildContext context) {
     final settings = context.watch<SettingsProvider>();
     final records = context.watch<RideProvider>().records;
-    final isDark = settings.appTheme == 'dark';
     final useKmh = settings.useKmh;
+    final cs = Theme.of(context).colorScheme;
 
-    final bgColor = isDark ? Colors.black : const Color(0xFFF2F4F7);
-    final cardColor = isDark ? Colors.grey[900]! : Colors.white;
-    final textColor = isDark ? Colors.white : Colors.black87;
-    final subColor = isDark ? Colors.grey : Colors.grey[600]!;
-    final sectionColor = isDark ? Colors.grey : Colors.grey[500]!;
+    final cardColor = cs.surfaceContainer;
+    final textColor = cs.onSurface;
+    final subColor = cs.onSurfaceVariant;
+    final sectionColor = cs.outline;
 
     final now = DateTime.now();
     final ytdDist = records
@@ -55,7 +54,6 @@ class _GoalScreenState extends State<GoalScreen> {
     final streak = _calcStreak(records);
 
     return Scaffold(
-      backgroundColor: bgColor,
       body: SafeArea(
         bottom: false,
         child: ListView(
@@ -162,7 +160,7 @@ class _GoalScreenState extends State<GoalScreen> {
               cardColor: cardColor,
               textColor: textColor,
               subColor: subColor,
-              isDark: isDark,
+              dividerColor: cs.outlineVariant,
             ),
 
             const SizedBox(height: 16),
@@ -499,7 +497,7 @@ class _GoalScreenState extends State<GoalScreen> {
     required Color cardColor,
     required Color textColor,
     required Color subColor,
-    required bool isDark,
+    required Color dividerColor,
   }) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
@@ -548,7 +546,7 @@ class _GoalScreenState extends State<GoalScreen> {
           Container(
             width: 1,
             height: 56,
-            color: isDark ? Colors.grey[700] : Colors.grey[300],
+            color: dividerColor,
           ),
           Expanded(
             child: Column(
