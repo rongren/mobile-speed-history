@@ -20,7 +20,7 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  static const _kAppName = 'Speed';
+  static const _kAppName = '모바일 속도계';
   static const _kUpdateDate = '2026-04-29';
   static const _kDeveloperName = '김정훈';
   static const _kDeveloperEmail = 'kimjunghun816@gmail.com';
@@ -476,6 +476,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
               subtitle: '정지 감지 시 타이머 자동 일시정지',
               value: settings.autoPause,
               onChanged: (v) => settings.setAutoPause(v),
+              panelColor: panelColor,
+              titleColor: titleColor,
+              subtitleColor: subtitleColor,
+            ),
+            const SizedBox(height: 10),
+            _switchTile(
+              icon: Icons.directions_run,
+              iconColor: Colors.deepOrange,
+              title: '저속 모드',
+              subtitle: '런닝·워킹용 — 느린 이동도 거리로 정확하게 측정',
+              value: settings.lowSpeedMode,
+              onChanged: (v) => settings.setLowSpeedMode(v),
               panelColor: panelColor,
               titleColor: titleColor,
               subtitleColor: subtitleColor,

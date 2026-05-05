@@ -204,6 +204,7 @@ class _SpeedometerScreenState extends State<SpeedometerScreen> {
                   gpsHighAccuracy: settings.gpsHighAccuracy,
                   autoPause: settings.autoPause,
                   speedAlertKmh: settings.speedAlertKmh,
+                  lowSpeedMode: settings.lowSpeedMode,
                 );
               }
             },

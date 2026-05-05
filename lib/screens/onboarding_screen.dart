@@ -25,7 +25,7 @@ class _PageData {
 class _OnboardingScreenState extends State<OnboardingScreen> {
   final _controller = PageController();
   int _currentPage = 0;
-  bool _neverShowAgain = true;
+  bool _neverShowAgain = false;
 
   static const _pages = [
     _PageData(
@@ -157,7 +157,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         Checkbox(
                           value: _neverShowAgain,
                           onChanged: (v) =>
-                              setState(() => _neverShowAgain = v ?? true),
+                              setState(() => _neverShowAgain = v ?? false),
                           activeColor: Colors.blue,
                         ),
                         GestureDetector(
