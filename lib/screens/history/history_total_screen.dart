@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../models/ride_record.dart';
 import '../../providers/ride_provider.dart';
@@ -401,8 +402,10 @@ class _HistoryTotalScreenState extends State<HistoryTotalScreen>
                             GestureDetector(
                               onTap: isPending
                                   ? null
-                                  : () => _showRecordDetail(
-                                      context, record, useKmh, weightKg, isDark),
+                                  : () {
+                                      SystemSound.play(SystemSoundType.click);
+                                      _showRecordDetail(context, record, useKmh, weightKg, isDark);
+                                    },
                               child: AnimatedOpacity(
                                 duration: const Duration(milliseconds: 200),
                                 opacity: isPending ? 0.35 : 1.0,
@@ -464,6 +467,7 @@ class _HistoryTotalScreenState extends State<HistoryTotalScreen>
                               child: GestureDetector(
                                 onTap: () {
                                   if (record.id == null) return;
+                                  SystemSound.play(SystemSoundType.click);
                                   setState(() {
                                     if (isPending) {
                                       _pendingDeleteIds.remove(record.id);

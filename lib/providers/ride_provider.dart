@@ -18,7 +18,7 @@ class RideProvider extends ChangeNotifier {
   double _totalDistance = 0.0;
   bool _isRiding = false;
   int _interpolationStep = 0;
-  static const int _interpolationSteps = 5;
+  static const int _interpolationSteps = 20;
 
   DateTime? _startTime;
   int _lastDuration = 0;
@@ -129,7 +129,7 @@ class RideProvider extends ChangeNotifier {
 
     // 0.2초마다 타이머 — 속도 보간 + UI 갱신
     _durationTimer =
-        Timer.periodic(const Duration(milliseconds: 200), (_) {
+        Timer.periodic(Duration(milliseconds: 1000 ~/ _interpolationSteps), (_) {
           _interpolateSpeed();
           notifyListeners();
         });

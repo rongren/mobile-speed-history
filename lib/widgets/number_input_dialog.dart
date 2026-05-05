@@ -32,7 +32,7 @@ class NumberInputDialog extends StatefulWidget {
   }) {
     return showGeneralDialog<double>(
       context: context,
-      barrierDismissible: false,
+      barrierDismissible: true,
       barrierColor: Colors.black54,
       barrierLabel: '',
       transitionDuration: const Duration(milliseconds: 80),
@@ -132,10 +132,11 @@ class _NumberInputDialogState extends State<NumberInputDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     final isEmpty = _input.isEmpty;
 
     return Dialog(
-      backgroundColor: const Color(0xFF1e1e1e),
+      backgroundColor: cs.surfaceContainer,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(24, 28, 24, 20),
@@ -144,8 +145,8 @@ class _NumberInputDialogState extends State<NumberInputDialog> {
           children: [
             Text(
               widget.title,
-              style: const TextStyle(
-                  color: Colors.white,
+              style: TextStyle(
+                  color: cs.onSurface,
                   fontSize: 16,
                   fontWeight: FontWeight.bold),
             ),
@@ -158,7 +159,7 @@ class _NumberInputDialogState extends State<NumberInputDialog> {
                 Text(
                   isEmpty ? '--' : _input,
                   style: TextStyle(
-                    color: isEmpty ? Colors.grey[600] : Colors.white,
+                    color: isEmpty ? cs.onSurfaceVariant : cs.onSurface,
                     fontSize: 52,
                     fontWeight: FontWeight.bold,
                     letterSpacing: 2,
@@ -169,14 +170,14 @@ class _NumberInputDialogState extends State<NumberInputDialog> {
                   padding: const EdgeInsets.only(bottom: 10),
                   child: Text(
                     widget.unit,
-                    style: const TextStyle(color: Colors.grey, fontSize: 22),
+                    style: TextStyle(color: cs.onSurfaceVariant, fontSize: 22),
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 24),
 
-            _buildKeypad(),
+            _buildKeypad(cs),
             const SizedBox(height: 20),
 
             Row(
@@ -190,13 +191,13 @@ class _NumberInputDialogState extends State<NumberInputDialog> {
                     child: Container(
                       height: 48,
                       decoration: BoxDecoration(
-                        color: Colors.grey[850],
+                        color: cs.surfaceContainerHighest,
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Center(
+                      child: Center(
                         child: Text('취소',
                             style: TextStyle(
-                                color: Colors.grey,
+                                color: cs.onSurfaceVariant,
                                 fontSize: 15,
                                 fontWeight: FontWeight.bold)),
                       ),
@@ -214,16 +215,14 @@ class _NumberInputDialogState extends State<NumberInputDialog> {
                       duration: const Duration(milliseconds: 150),
                       height: 48,
                       decoration: BoxDecoration(
-                        color: _isValid ? Colors.blue : Colors.grey[800],
+                        color: _isValid ? Colors.blue : cs.surfaceContainerHighest,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Center(
                         child: Text(
                           '확인',
                           style: TextStyle(
-                              color: _isValid
-                                  ? Colors.white
-                                  : Colors.grey[600],
+                              color: _isValid ? Colors.white : cs.onSurfaceVariant,
                               fontSize: 15,
                               fontWeight: FontWeight.bold),
                         ),
@@ -239,33 +238,32 @@ class _NumberInputDialogState extends State<NumberInputDialog> {
     );
   }
 
-  Widget _buildKeypad() {
+  Widget _buildKeypad(ColorScheme cs) {
     return Column(
       children: [
-        _keyRow(['1', '2', '3']),
-        _keyRow(['4', '5', '6']),
-        _keyRow(['7', '8', '9']),
+        _keyRow(['1', '2', '3'], cs),
+        _keyRow(['4', '5', '6'], cs),
+        _keyRow(['7', '8', '9'], cs),
         Row(
           children: [
             Expanded(
               child: widget.allowDecimal
-                  ? _keyButton(
-                      '.',
+                  ? _keyButton('.',
                       onTap: _onDecimalPoint,
-                      textColor: _input.contains('.')
-                          ? Colors.grey[700]!
-                          : Colors.blue,
+                      textColor: _input.contains('.') ? cs.outlineVariant : Colors.blue,
+                      cs: cs,
                     )
                   : const SizedBox(),
             ),
             const SizedBox(width: 6),
-            Expanded(child: _keyButton('0', onTap: () => _onDigit('0'))),
+            Expanded(child: _keyButton('0', onTap: () => _onDigit('0'), cs: cs)),
             const SizedBox(width: 6),
             Expanded(
               child: _keyButton('⌫',
                   onTap: _onBackspace,
                   textColor: Colors.orange,
-                  fontSize: 22),
+                  fontSize: 22,
+                  cs: cs),
             ),
           ],
         ),
@@ -273,7 +271,7 @@ class _NumberInputDialogState extends State<NumberInputDialog> {
     );
   }
 
-  Widget _keyRow(List<String> digits) {
+  Widget _keyRow(List<String> digits, ColorScheme cs) {
     return Row(
       children: digits.asMap().entries.map((e) {
         return Expanded(
@@ -282,7 +280,7 @@ class _NumberInputDialogState extends State<NumberInputDialog> {
               right: e.key < digits.length - 1 ? 6 : 0,
               bottom: 6,
             ),
-            child: _keyButton(e.value, onTap: () => _onDigit(e.value)),
+            child: _keyButton(e.value, onTap: () => _onDigit(e.value), cs: cs),
           ),
         );
       }).toList(),
@@ -292,6 +290,7 @@ class _NumberInputDialogState extends State<NumberInputDialog> {
   Widget _keyButton(
     String label, {
     required VoidCallback onTap,
+    required ColorScheme cs,
     Color? textColor,
     double fontSize = 20,
   }) {
@@ -303,14 +302,14 @@ class _NumberInputDialogState extends State<NumberInputDialog> {
       child: Container(
         height: 52,
         decoration: BoxDecoration(
-          color: Colors.grey[850],
+          color: cs.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(10),
         ),
         child: Center(
           child: Text(
             label,
             style: TextStyle(
-              color: textColor ?? Colors.white,
+              color: textColor ?? cs.onSurface,
               fontSize: fontSize,
               fontWeight: FontWeight.bold,
             ),

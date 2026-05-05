@@ -1,5 +1,6 @@
 ﻿import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../providers/ride_provider.dart';
 import '../providers/settings_provider.dart';
@@ -174,6 +175,7 @@ class _SpeedometerScreenState extends State<SpeedometerScreen> {
           // 시작/정지 버튼
           GestureDetector(
             onTap: () async {
+              SystemSound.play(SystemSoundType.click);
               if (ride.isRiding) {
                 final useKmh = settings.useKmh;
                 final weightKg = settings.weightKg;
