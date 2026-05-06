@@ -11,6 +11,12 @@ class ForegroundServiceHelper {
     const initSettings =
     InitializationSettings(android: androidSettings);
     await _plugin.initialize(initSettings);
+
+    // 채널 설정이 바뀐 경우를 대비해 재생성
+    final android = _plugin.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>();
+    await android?.deleteNotificationChannel('bike_speedometer');
+    await android?.deleteNotificationChannel('bike_speedometer_ride');
   }
 
   static Future<void> requestPermission() async {
