@@ -29,18 +29,19 @@ class ForegroundServiceHelper {
   }
 
   static Future<void> start() async {
-    const androidDetails = AndroidNotificationDetails(
-      'bike_speedometer',
-      '자전거 속도계',
-      channelDescription: '주행 중 상태를 표시합니다',
-      importance: Importance.low,
-      priority: Priority.low,
+    final androidDetails = AndroidNotificationDetails(
+      'bike_speedometer_ride',
+      '모바일 속도계',
+      channelDescription: '주행 시작 및 측정 중 상태',
+      importance: Importance.high,
+      priority: Priority.high,
       ongoing: true,
       autoCancel: false,
-      playSound: false,
-      enableVibration: false,
+      playSound: true,
+      enableVibration: true,
+      vibrationPattern: Int64List.fromList([0, 300]),
     );
-    const details = NotificationDetails(android: androidDetails);
+    final details = NotificationDetails(android: androidDetails);
     await _plugin.show(
       1000,
       '🚴 모바일 속도계',
