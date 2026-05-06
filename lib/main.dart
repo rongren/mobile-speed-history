@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
@@ -121,7 +122,7 @@ class _MainScreenState extends State<MainScreen> {
             ),
           );
         } else {
-          SystemNavigator.pop();
+          if (Platform.isAndroid) SystemNavigator.pop();
         }
       },
       child: Scaffold(
