@@ -22,6 +22,7 @@ class _HistoryMonthlyScreenState extends State<HistoryMonthlyScreen>
 
   int _selectedIndex = -1;
   bool _showHeatmap = true;
+  int _selectedYear = DateTime.now().year;
 
   Color _heatmapColor(double value, double maxValue, bool isDark) {
     if (value <= 0) return isDark ? Colors.grey[850]! : Colors.grey[200]!;
@@ -47,8 +48,17 @@ class _HistoryMonthlyScreenState extends State<HistoryMonthlyScreen>
     final dividerColor = isDark ? Colors.grey[800]! : Colors.grey[300]!;
     final borderColor = isDark ? Colors.grey[800]! : Colors.grey[300]!;
 
+    final allYears = records.map((r) => r.year).toSet().toList()..sort();
+    if (allYears.isNotEmpty && !allYears.contains(_selectedYear)) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        setState(() => _selectedYear = allYears.last);
+      });
+    }
+    final hasPrev = allYears.any((y) => y < _selectedYear);
+    final hasNext = allYears.any((y) => y > _selectedYear);
+
     final Map<String, List<RideRecord>> grouped = {};
-    for (final r in records) {
+    for (final r in records.where((r) => r.year == _selectedYear)) {
       final key = '${r.year}-${r.month.toString().padLeft(2, '0')}';
       grouped.putIfAbsent(key, () => []).add(r);
     }
@@ -56,7 +66,7 @@ class _HistoryMonthlyScreenState extends State<HistoryMonthlyScreen>
 
     final labels = keys.map((k) {
       final parts = k.split('-');
-      return '${parts[0]}\n${int.parse(parts[1])}월';
+      return '${int.parse(parts[1])}월';
     }).toList();
 
     final distanceData = keys.map((k) =>
@@ -103,6 +113,50 @@ class _HistoryMonthlyScreenState extends State<HistoryMonthlyScreen>
 
     return Column(
       children: [
+        // 연도 네비게이션
+        Container(
+          color: panelColor,
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              GestureDetector(
+                onTap: hasPrev ? () {
+                  SystemSound.play(SystemSoundType.click);
+                  setState(() {
+                    _selectedYear = allYears.lastWhere((y) => y < _selectedYear);
+                    _selectedIndex = -1;
+                  });
+                } : null,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  child: Icon(Icons.chevron_left,
+                      color: hasPrev ? textColor : dividerColor, size: 24),
+                ),
+              ),
+              Text(
+                '$_selectedYear년',
+                style: TextStyle(
+                    color: textColor, fontSize: 15, fontWeight: FontWeight.bold),
+              ),
+              GestureDetector(
+                onTap: hasNext ? () {
+                  SystemSound.play(SystemSoundType.click);
+                  setState(() {
+                    _selectedYear = allYears.firstWhere((y) => y > _selectedYear);
+                    _selectedIndex = -1;
+                  });
+                } : null,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  child: Icon(Icons.chevron_right,
+                      color: hasNext ? textColor : dividerColor, size: 24),
+                ),
+              ),
+            ],
+          ),
+        ),
+
         SizedBox(
           height: 300,
           child: BarChartWidget(

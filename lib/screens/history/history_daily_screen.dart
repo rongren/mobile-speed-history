@@ -25,6 +25,7 @@ class _HistoryDailyScreenState extends State<HistoryDailyScreen>
   int _selectedIndex = -1;
   int? _recentDays;
   bool _showWeekdayStats = true;
+  int _selectedYear = DateTime.now().year;
 
   Map<int, Map<String, double>> _getWeekdayStats(
       Map<String, List<RideRecord>> grouped) {
@@ -109,8 +110,17 @@ class _HistoryDailyScreenState extends State<HistoryDailyScreen>
     final dividerColor = isDark ? Colors.grey[800]! : Colors.grey[300]!;
     final borderColor = isDark ? Colors.grey[800]! : Colors.grey[300]!;
 
+    final allYears = records.map((r) => r.year).toSet().toList()..sort();
+    if (allYears.isNotEmpty && !allYears.contains(_selectedYear)) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        setState(() => _selectedYear = allYears.last);
+      });
+    }
+    final hasPrev = allYears.any((y) => y < _selectedYear);
+    final hasNext = allYears.any((y) => y > _selectedYear);
+
     final Map<String, List<RideRecord>> grouped = {};
-    for (final r in records) {
+    for (final r in records.where((r) => r.year == _selectedYear)) {
       final key =
           '${r.year}-${r.month.toString().padLeft(2, '0')}-${r.day.toString().padLeft(2, '0')}';
       grouped.putIfAbsent(key, () => []).add(r);
@@ -185,6 +195,52 @@ class _HistoryDailyScreenState extends State<HistoryDailyScreen>
 
     return Column(
       children: [
+        // 연도 네비게이션
+        Container(
+          color: panelColor,
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              GestureDetector(
+                onTap: hasPrev ? () {
+                  SystemSound.play(SystemSoundType.click);
+                  setState(() {
+                    _selectedYear = allYears.lastWhere((y) => y < _selectedYear);
+                    _selectedIndex = -1;
+                    _recentDays = null;
+                  });
+                } : null,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  child: Icon(Icons.chevron_left,
+                      color: hasPrev ? textColor : dividerColor, size: 24),
+                ),
+              ),
+              Text(
+                '$_selectedYear년',
+                style: TextStyle(
+                    color: textColor, fontSize: 15, fontWeight: FontWeight.bold),
+              ),
+              GestureDetector(
+                onTap: hasNext ? () {
+                  SystemSound.play(SystemSoundType.click);
+                  setState(() {
+                    _selectedYear = allYears.firstWhere((y) => y > _selectedYear);
+                    _selectedIndex = -1;
+                    _recentDays = null;
+                  });
+                } : null,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  child: Icon(Icons.chevron_right,
+                      color: hasNext ? textColor : dividerColor, size: 24),
+                ),
+              ),
+            ],
+          ),
+        ),
+
         // 기간 필터
         Container(
           color: panelColor,

@@ -34,6 +34,10 @@ class RideProvider extends ChangeNotifier {
   DateTime? _autoPausedAt;
   int _totalPausedMs = 0;
   int _lowSpeedCount = 0;
+
+  // 수동 일시정지
+  bool _isManuallyPaused = false;
+  DateTime? _manualPausedAt;
   static const double _autoPauseSpeedThreshold = 2.0;
   static const int _autoPauseCountThreshold = 3;
 
@@ -47,6 +51,8 @@ class RideProvider extends ChangeNotifier {
   double get totalDistance => _totalDistance;
   bool get isRiding => _isRiding;
   bool get isAutoPaused => _isAutoPaused;
+  bool get isManuallyPaused => _isManuallyPaused;
+  bool get isPaused => _isManuallyPaused || _isAutoPaused;
 
   // stopRide가 null을 반환할 때의 실패 이유 ('distance' or 'duration')
   String? _stopFailReason;
@@ -58,6 +64,9 @@ class RideProvider extends ChangeNotifier {
       var paused = _totalPausedMs;
       if (_isAutoPaused && _autoPausedAt != null) {
         paused += DateTime.now().difference(_autoPausedAt!).inMilliseconds;
+      }
+      if (_isManuallyPaused && _manualPausedAt != null) {
+        paused += DateTime.now().difference(_manualPausedAt!).inMilliseconds;
       }
       return ((elapsed - paused) / 1000).floor().clamp(0, 999999);
     }
@@ -114,6 +123,8 @@ class RideProvider extends ChangeNotifier {
     _autoPausedAt = null;
     _totalPausedMs = 0;
     _lowSpeedCount = 0;
+    _isManuallyPaused = false;
+    _manualPausedAt = null;
     _speedAlertKmh = speedAlertKmh;
     _wasAboveSpeedAlert = false;
 
@@ -148,6 +159,8 @@ class RideProvider extends ChangeNotifier {
   double _minMovementMeters = 5.0;
 
   void _onPositionUpdate(Position position) {
+    if (_isManuallyPaused) return;
+
     // GPS 정확도가 낮으면 스킵
     if (position.accuracy > _maxAccuracyMeters) return;
 
@@ -294,6 +307,22 @@ class RideProvider extends ChangeNotifier {
       pathPoints: record.pathPoints,
       createdAt: record.createdAt,
     );
+  }
+
+  void pauseRide() {
+    if (!_isRiding || _isManuallyPaused) return;
+    _isManuallyPaused = true;
+    _manualPausedAt = DateTime.now();
+    notifyListeners();
+  }
+
+  void resumeRide() {
+    if (!_isManuallyPaused) return;
+    _totalPausedMs += DateTime.now().difference(_manualPausedAt!).inMilliseconds;
+    _isManuallyPaused = false;
+    _manualPausedAt = null;
+    _lastPosition = null; // 재개 시 이전 위치 초기화로 드리프트 방지
+    notifyListeners();
   }
 
   Future<void> updateMemo(int id, String memo) async {

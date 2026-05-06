@@ -17,6 +17,12 @@ class _MapScreenState extends State<MapScreen> {
   NaverMapController? _mapController;
   NLocationOverlay? _locationOverlay;
 
+  // 마커 보간용
+  NLatLng? _prevLatLng;
+  NLatLng? _targetLatLng;
+  NLatLng? _lastGpsLatLng;   // GPS 변경 감지
+  DateTime? _lastGpsUpdateAt;
+
   NMapType _toNMapType(String type) {
     switch (type) {
       case 'satellite': return NMapType.satellite;
@@ -37,7 +43,27 @@ class _MapScreenState extends State<MapScreen> {
 
     if (_mapController != null && ride.pathPoints.isNotEmpty) {
       _drawPath(ride.pathPoints);
-      _updateLocationMarker(ride.pathPoints.last);
+
+      final last = ride.pathPoints.last;
+      final latLng = NLatLng(last.latitude, last.longitude);
+
+      // 새 GPS 좌표가 왔을 때만 보간 목표 갱신
+      if (_lastGpsLatLng == null ||
+          _lastGpsLatLng!.latitude != latLng.latitude ||
+          _lastGpsLatLng!.longitude != latLng.longitude) {
+        _prevLatLng = _targetLatLng ?? latLng;
+        _targetLatLng = latLng;
+        _lastGpsLatLng = latLng;
+        _lastGpsUpdateAt = DateTime.now();
+      }
+
+      // 경과 시간 기반 보간 (1초에 걸쳐 이동)
+      if (_prevLatLng != null && _targetLatLng != null && _lastGpsUpdateAt != null) {
+        final t = (DateTime.now().difference(_lastGpsUpdateAt!).inMilliseconds / 1000.0).clamp(0.0, 1.0);
+        final interpLat = _prevLatLng!.latitude + (_targetLatLng!.latitude - _prevLatLng!.latitude) * t;
+        final interpLng = _prevLatLng!.longitude + (_targetLatLng!.longitude - _prevLatLng!.longitude) * t;
+        _updateLocationMarker(NLatLng(interpLat, interpLng));
+      }
     }
 
     return Scaffold(
@@ -124,11 +150,8 @@ class _MapScreenState extends State<MapScreen> {
     );
   }
 
-  // 위치 오버레이 업데이트 (주행 중 마커 이동)
-  void _updateLocationMarker(Position position) {
-    _locationOverlay?.setPosition(
-      NLatLng(position.latitude, position.longitude),
-    );
+  void _updateLocationMarker(NLatLng latLng) {
+    _locationOverlay?.setPosition(latLng);
   }
 
   Future<void> _drawPath(List<Position> positions) async {
