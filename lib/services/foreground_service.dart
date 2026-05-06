@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 class ForegroundServiceHelper {
@@ -50,5 +51,25 @@ class ForegroundServiceHelper {
 
   static Future<void> stop() async {
     await _plugin.cancel(1000);
+  }
+
+  static Future<void> showDistanceAlert(int km) async {
+    final androidDetails = AndroidNotificationDetails(
+      'distance_alert',
+      '거리 알림',
+      channelDescription: '설정 거리 도달 시 알림',
+      importance: Importance.high,
+      priority: Priority.high,
+      playSound: true,
+      enableVibration: true,
+      vibrationPattern: Int64List.fromList([0, 400, 200, 400]),
+    );
+    final details = NotificationDetails(android: androidDetails);
+    await _plugin.show(
+      2000,
+      '📍 $km km 달성!',
+      '목표 거리에 도달했어요. 계속 달리세요!',
+      details,
+    );
   }
 }

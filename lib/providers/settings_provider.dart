@@ -24,6 +24,7 @@ class SettingsProvider extends ChangeNotifier {
   static const _keyGoalMaxDurationMin = 'goal_max_duration_min';
   static const _keyOnboardingDone = 'onboarding_done';
   static const _keyLowSpeedMode = 'low_speed_mode';
+  static const _keyDistanceAlertKm = 'distance_alert_km';
 
   bool _useKmh = true;
   bool _gpsHighAccuracy = true;
@@ -47,6 +48,7 @@ class SettingsProvider extends ChangeNotifier {
   bool _onboardingDone = false;
   bool _onboardingSkippedThisSession = false;
   bool _lowSpeedMode = false;
+  int? _distanceAlertKm;
 
   bool get useKmh => _useKmh;
   bool get gpsHighAccuracy => _gpsHighAccuracy;
@@ -71,6 +73,7 @@ class SettingsProvider extends ChangeNotifier {
   int? get goalMaxDurationMin => _goalMaxDurationMin;
   bool get shouldShowOnboarding => !_onboardingDone && !_onboardingSkippedThisSession;
   bool get lowSpeedMode => _lowSpeedMode;
+  int? get distanceAlertKm => _distanceAlertKm;
 
   Future<void> load() async {
     final prefs = await SharedPreferences.getInstance();
@@ -95,6 +98,7 @@ class SettingsProvider extends ChangeNotifier {
     _goalMaxDurationMin = prefs.getInt(_keyGoalMaxDurationMin);
     _onboardingDone = prefs.getBool(_keyOnboardingDone) ?? false;
     _lowSpeedMode = prefs.getBool(_keyLowSpeedMode) ?? false;
+    _distanceAlertKm = prefs.getInt(_keyDistanceAlertKm);
     notifyListeners();
   }
 
@@ -248,6 +252,15 @@ class SettingsProvider extends ChangeNotifier {
     value != null
         ? await prefs.setDouble(_keyGoalMaxDistanceKm, value)
         : await prefs.remove(_keyGoalMaxDistanceKm);
+  }
+
+  Future<void> setDistanceAlertKm(int? value) async {
+    _distanceAlertKm = value != null ? value.clamp(1, 999) : null;
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    _distanceAlertKm != null
+        ? await prefs.setInt(_keyDistanceAlertKm, _distanceAlertKm!)
+        : await prefs.remove(_keyDistanceAlertKm);
   }
 
   Future<void> setLowSpeedMode(bool value) async {

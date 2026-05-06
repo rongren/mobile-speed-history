@@ -494,6 +494,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             const SizedBox(height: 10),
             _speedAlertTile(settings, panelColor, titleColor, subtitleColor, btnBgOff),
+            const SizedBox(height: 10),
+            _distanceAlertTile(settings, panelColor, titleColor, subtitleColor, btnBgOff),
             const SizedBox(height: 24),
 
             _sectionTitle('주행 화면', sectionColor),
@@ -1251,6 +1253,139 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     SystemSound.play(SystemSoundType.click);
                     final next = (currentKmh + 5).clamp(kDebugMode ? 0 : 1, 999);
                     settings.setSpeedAlertKmh(next.toDouble());
+                  },
+                  child: Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: btnBgOff,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(Icons.add, color: titleColor, size: 20),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _distanceAlertTile(SettingsProvider settings, Color panelColor,
+      Color titleColor, Color subtitleColor, Color btnBgOff) {
+    final inactiveTrackColor = Theme.of(context).colorScheme.outlineVariant;
+    final isOn = settings.distanceAlertKm != null;
+    final currentKm = settings.distanceAlertKm ?? 5;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: panelColor,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: Colors.green.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.social_distance_outlined,
+                    color: Colors.green, size: 20),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('거리 알림',
+                        style: TextStyle(
+                            color: titleColor,
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 2),
+                    Text('설정 km 도달마다 알림 · 진동',
+                        style: TextStyle(color: subtitleColor, fontSize: 12)),
+                  ],
+                ),
+              ),
+              Switch(
+                value: isOn,
+                onChanged: (v) {
+                  SystemSound.play(SystemSoundType.click);
+                  settings.setDistanceAlertKm(v ? currentKm : null);
+                },
+                activeThumbColor: Colors.green,
+                activeTrackColor: Colors.green.withOpacity(0.4),
+                inactiveTrackColor: inactiveTrackColor,
+              ),
+            ],
+          ),
+          if (isOn) ...[
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                GestureDetector(
+                  onTap: () {
+                    SystemSound.play(SystemSoundType.click);
+                    settings.setDistanceAlertKm((currentKm - 1).clamp(1, 999));
+                  },
+                  child: Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: btnBgOff,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(Icons.remove, color: titleColor, size: 20),
+                  ),
+                ),
+                const SizedBox(width: 20),
+                GestureDetector(
+                  onTap: () async {
+                    SystemSound.play(SystemSoundType.click);
+                    final result = await NumberInputDialog.show(
+                      context,
+                      title: '거리 알림 기준',
+                      initialValue: currentKm,
+                      unit: 'km',
+                      maxDigits: 3,
+                      allowEmpty: false,
+                      allowDecimal: false,
+                    );
+                    if (result == null) return;
+                    settings.setDistanceAlertKm(result.toInt());
+                  },
+                  child: Container(
+                    width: 90,
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    decoration: BoxDecoration(
+                      color: btnBgOff,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      '$currentKm km',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: titleColor,
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 20),
+                GestureDetector(
+                  onTap: () {
+                    SystemSound.play(SystemSoundType.click);
+                    settings.setDistanceAlertKm((currentKm + 1).clamp(1, 999));
                   },
                   child: Container(
                     width: 40,

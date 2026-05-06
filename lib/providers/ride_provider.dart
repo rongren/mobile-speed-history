@@ -28,6 +28,10 @@ class RideProvider extends ChangeNotifier {
   double? _speedAlertKmh;
   bool _wasAboveSpeedAlert = false;
 
+  // 거리 알림
+  int? _distanceAlertKm;
+  int _lastAlertedKm = 0;
+
   // 자동 일시정지
   bool _autoPauseEnabled = false;
   bool _isAutoPaused = false;
@@ -102,6 +106,7 @@ class RideProvider extends ChangeNotifier {
     bool autoPause = false,
     double? speedAlertKmh,
     bool lowSpeedMode = false,
+    int? distanceAlertKm,
   }) async {
     final hasPermission = await LocationService.requestPermission();
     if (!hasPermission) return;
@@ -127,6 +132,8 @@ class RideProvider extends ChangeNotifier {
     _manualPausedAt = null;
     _speedAlertKmh = speedAlertKmh;
     _wasAboveSpeedAlert = false;
+    _distanceAlertKm = distanceAlertKm;
+    _lastAlertedKm = 0;
 
     _maxAccuracyMeters = lowSpeedMode ? 25.0 : 15.0;
     _minMovementMeters = lowSpeedMode ? 2.0 : 5.0;
@@ -199,6 +206,16 @@ class RideProvider extends ChangeNotifier {
       // 드리프트 방지: 최소 이동 거리 미만이면 거리 누적 안 함
       if (distanceInMeters >= _minMovementMeters) {
         _totalDistance += distanceInMeters / 1000;
+
+        // 거리 알림: 설정 km 배수 도달 시 1회
+        final alertKm = _distanceAlertKm;
+        if (alertKm != null) {
+          final reached = (_totalDistance / alertKm).floor() * alertKm;
+          if (reached > 0 && reached > _lastAlertedKm) {
+            _lastAlertedKm = reached;
+            ForegroundServiceHelper.showDistanceAlert(reached);
+          }
+        }
       }
     }
 
