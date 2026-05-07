@@ -236,6 +236,7 @@ class _SpeedometerScreenState extends State<SpeedometerScreen> {
                         speedAlertKmh: settings.speedAlertKmh,
                         speedMode: settings.speedMode,
                         distanceAlertKm: settings.distanceAlertKm,
+                        useKmh: settings.useKmh,
                       );
                     }
                   },

@@ -46,6 +46,9 @@ class RideProvider extends ChangeNotifier {
   static const double _autoPauseSpeedThreshold = 2.0;
   static const int _autoPauseCountThreshold = 3;
 
+  bool _useKmh = true;
+  int _notificationTick = 0;
+
   List<Position> pathPoints = [];
   List<RideRecord> records = [];
   Position? _lastPosition;
@@ -108,6 +111,7 @@ class RideProvider extends ChangeNotifier {
     double? speedAlertKmh,
     SpeedMode speedMode = SpeedMode.normal,
     int? distanceAlertKm,
+    bool useKmh = true,
   }) async {
     final hasPermission = await LocationService.requestPermission();
     if (!hasPermission) return;
@@ -135,6 +139,8 @@ class RideProvider extends ChangeNotifier {
     _wasAboveSpeedAlert = false;
     _distanceAlertKm = distanceAlertKm;
     _lastAlertedKm = 0;
+    _useKmh = useKmh;
+    _notificationTick = 0;
 
     switch (speedMode) {
       case SpeedMode.lowSpeed:
@@ -260,6 +266,18 @@ class RideProvider extends ChangeNotifier {
           _previousSpeed + (_targetSpeed - _previousSpeed) * t;
     } else {
       _currentSpeed = _targetSpeed;
+    }
+
+    _notificationTick++;
+    if (_notificationTick >= _interpolationSteps) {
+      _notificationTick = 0;
+      ForegroundServiceHelper.updateNotification(
+        speed: formatSpeed(_currentSpeed, _useKmh),
+        speedUnit: speedUnit(_useKmh),
+        distance: formatDistance(_totalDistance, _useKmh),
+        distanceUnit: distanceUnit(_useKmh),
+        duration: formattedDuration,
+      );
     }
   }
 

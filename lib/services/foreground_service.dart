@@ -19,6 +19,15 @@ class _RideTaskHandler extends TaskHandler {
 
   @override
   Future<void> onDestroy(DateTime timestamp, bool isTimeout) async {}
+
+  // Android 14+ / iOS 12+: 알림이 닫히면 즉시 다시 표시
+  @override
+  void onNotificationDismissed() {
+    FlutterForegroundTask.updateService(
+      notificationTitle: '모바일 속도계',
+      notificationText: '측정 중...',
+    );
+  }
 }
 
 class ForegroundServiceHelper {
@@ -41,6 +50,8 @@ class ForegroundServiceHelper {
         .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
     await android?.deleteNotificationChannel('bike_speedometer');
     await android?.deleteNotificationChannel('bike_speedometer_ride');
+    // HIGH importance 채널이 남아있으면 삭제 — LOW로 재생성하기 위함
+    await android?.deleteNotificationChannel('bike_speedometer_fg');
 
     // Android 포그라운드 서비스 초기화
     if (Platform.isAndroid) {
@@ -49,8 +60,8 @@ class ForegroundServiceHelper {
           channelId: 'bike_speedometer_fg',
           channelName: '모바일 속도계',
           channelDescription: '주행 중 백그라운드 GPS 유지',
-          channelImportance: NotificationChannelImportance.HIGH,
-          priority: NotificationPriority.HIGH,
+          channelImportance: NotificationChannelImportance.LOW,
+          priority: NotificationPriority.LOW,
           enableVibration: false,
           playSound: false,
         ),
@@ -96,7 +107,7 @@ class ForegroundServiceHelper {
     if (Platform.isAndroid) {
       await FlutterForegroundTask.startService(
         serviceId: 1000,
-        notificationTitle: '🚴 모바일 속도계',
+        notificationTitle: '모바일 속도계',
         notificationText: '측정 중...',
         callback: _foregroundEntryPoint,
       );
@@ -109,11 +120,25 @@ class ForegroundServiceHelper {
       );
       await _notifications.show(
         1000,
-        '🚴 모바일 속도계',
+        '모바일 속도계',
         '측정 중...',
         const NotificationDetails(iOS: darwinDetails),
       );
     }
+  }
+
+  static Future<void> updateNotification({
+    required String speed,
+    required String speedUnit,
+    required String distance,
+    required String distanceUnit,
+    required String duration,
+  }) async {
+    if (!Platform.isAndroid) return;
+    await FlutterForegroundTask.updateService(
+      notificationTitle: '모바일 속도계',
+      notificationText: '$distance $distanceUnit   $speed $speedUnit   $duration',
+    );
   }
 
   static Future<void> stop() async {
