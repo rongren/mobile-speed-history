@@ -196,8 +196,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                 style: TextStyle(color: cs.onSurface)),
                           ),
                         ),
-                        const SizedBox(width: 12),
+                      ] else ...[
+                        const Expanded(child: SizedBox()),
                       ],
+                        const SizedBox(width: 12),
                       Expanded(
                         child: ElevatedButton(
                           onPressed: _isLastPage ? _start : _goNext,
