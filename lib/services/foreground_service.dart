@@ -1,90 +1,129 @@
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
+// 포그라운드 서비스 진입점 — 별도 isolate에서 실행됨
+@pragma('vm:entry-point')
+void _foregroundEntryPoint() {
+  FlutterForegroundTask.setTaskHandler(_RideTaskHandler());
+}
+
+// 서비스 keepalive 역할만 수행하는 최소 핸들러
+class _RideTaskHandler extends TaskHandler {
+  @override
+  Future<void> onStart(DateTime timestamp, TaskStarter starter) async {}
+
+  @override
+  void onRepeatEvent(DateTime timestamp) {}
+
+  @override
+  Future<void> onDestroy(DateTime timestamp, bool isTimeout) async {}
+}
+
 class ForegroundServiceHelper {
-  static final FlutterLocalNotificationsPlugin _plugin =
-      FlutterLocalNotificationsPlugin();
+  // 거리 알림 전용 (flutter_local_notifications)
+  static final _notifications = FlutterLocalNotificationsPlugin();
 
   static Future<void> initNotifications() async {
-    const androidSettings =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
+    // 거리 알림 채널 초기화
+    const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
     const darwinSettings = DarwinInitializationSettings(
       requestAlertPermission: false,
       requestBadgePermission: false,
       requestSoundPermission: false,
     );
-    const initSettings = InitializationSettings(
-      android: androidSettings,
-      iOS: darwinSettings,
+    await _notifications.initialize(
+      const InitializationSettings(android: androidSettings, iOS: darwinSettings),
     );
-    await _plugin.initialize(initSettings);
 
-    final android = _plugin.resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>();
+    final android = _notifications
+        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
     await android?.deleteNotificationChannel('bike_speedometer');
     await android?.deleteNotificationChannel('bike_speedometer_ride');
+
+    // Android 포그라운드 서비스 초기화
+    if (Platform.isAndroid) {
+      FlutterForegroundTask.init(
+        androidNotificationOptions: AndroidNotificationOptions(
+          channelId: 'bike_speedometer_fg',
+          channelName: '모바일 속도계',
+          channelDescription: '주행 중 백그라운드 GPS 유지',
+          channelImportance: NotificationChannelImportance.HIGH,
+          priority: NotificationPriority.HIGH,
+          enableVibration: false,
+          playSound: false,
+        ),
+        iosNotificationOptions: const IOSNotificationOptions(
+          showNotification: false,
+        ),
+        foregroundTaskOptions: ForegroundTaskOptions(
+          eventAction: ForegroundTaskEventAction.nothing(),
+          autoRunOnBoot: false,
+          allowAutoRestart: false,
+          allowWakeLock: true,
+          allowWifiLock: false,
+        ),
+      );
+    }
   }
 
   static Future<void> requestPermission() async {
     if (Platform.isAndroid) {
-      await _plugin
-          .resolvePlatformSpecificImplementation<
-              AndroidFlutterLocalNotificationsPlugin>()
+      await _notifications
+          .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
           ?.requestNotificationsPermission();
+      // 배터리 최적화 예외 요청 — 없으면 Doze 모드에서 서비스가 제한될 수 있음
+      await FlutterForegroundTask.requestIgnoreBatteryOptimization();
     } else if (Platform.isIOS) {
-      await _plugin
-          .resolvePlatformSpecificImplementation<
-              IOSFlutterLocalNotificationsPlugin>()
+      await _notifications
+          .resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>()
           ?.requestPermissions(alert: true, badge: true, sound: true);
     }
   }
 
   static Future<bool> isAllowed() async {
     if (Platform.isAndroid) {
-      final result = await _plugin
-          .resolvePlatformSpecificImplementation<
-              AndroidFlutterLocalNotificationsPlugin>()
+      final result = await _notifications
+          .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
           ?.areNotificationsEnabled();
       return result ?? false;
-    } else if (Platform.isIOS) {
-      // iOS는 requestPermissions 호출로 런타임에서 권한 요청
-      return true;
     }
-    return false;
+    return true;
   }
 
   static Future<void> start() async {
-    final NotificationDetails details;
     if (Platform.isAndroid) {
-      final androidDetails = AndroidNotificationDetails(
-        'bike_speedometer_ride',
-        '모바일 속도계',
-        channelDescription: '주행 시작 및 측정 중 상태',
-        importance: Importance.high,
-        priority: Priority.high,
-        ongoing: true,
-        autoCancel: false,
-        playSound: true,
-        enableVibration: true,
-        vibrationPattern: Int64List.fromList([0, 300]),
+      await FlutterForegroundTask.startService(
+        serviceId: 1000,
+        notificationTitle: '🚴 모바일 속도계',
+        notificationText: '측정 중...',
+        callback: _foregroundEntryPoint,
       );
-      details = NotificationDetails(android: androidDetails);
     } else {
+      // iOS: 백그라운드 위치는 Info.plist UIBackgroundModes + geolocator 설정으로 동작
       const darwinDetails = DarwinNotificationDetails(
         presentAlert: true,
         presentBadge: false,
         presentSound: true,
       );
-      details = const NotificationDetails(iOS: darwinDetails);
+      await _notifications.show(
+        1000,
+        '🚴 모바일 속도계',
+        '측정 중...',
+        const NotificationDetails(iOS: darwinDetails),
+      );
     }
-    await _plugin.show(1000, '🚴 모바일 속도계', '측정 중...', details);
   }
 
   static Future<void> stop() async {
-    try {
-      await _plugin.cancel(1000);
-    } catch (_) {}
+    if (Platform.isAndroid) {
+      await FlutterForegroundTask.stopService();
+    } else {
+      try {
+        await _notifications.cancel(1000);
+      } catch (_) {}
+    }
   }
 
   static Future<void> showDistanceAlert(int km) async {
@@ -109,7 +148,7 @@ class ForegroundServiceHelper {
       );
       details = const NotificationDetails(iOS: darwinDetails);
     }
-    await _plugin.show(
+    await _notifications.show(
       2000,
       '📍 $km km 달성!',
       '목표 거리에 도달했어요. 계속 달리세요!',

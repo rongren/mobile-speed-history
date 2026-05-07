@@ -53,8 +53,7 @@ dependencies:
   share_plus: ^10.0.0
 
   # 백그라운드 유지
-  # flutter_foreground_task: ^9.2.2
-  # awesome_notifications: ^0.9.3
+  flutter_foreground_task: ^9.2.2
   flutter_local_notifications: ^17.2.3
 
   ## 아이콘 생성
