@@ -67,8 +67,7 @@ class _MyAppState extends State<MyApp> {
 
   Future<void> _requestPermissions() async {
     LocationPermission locationPermission = await Geolocator.checkPermission();
-    if (locationPermission == LocationPermission.denied ||
-        locationPermission == LocationPermission.deniedForever) {
+    if (locationPermission == LocationPermission.denied) {
       await Geolocator.requestPermission();
     }
 

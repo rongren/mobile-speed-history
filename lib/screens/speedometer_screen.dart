@@ -1,6 +1,7 @@
 ﻿import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:provider/provider.dart';
 import '../providers/ride_provider.dart';
 import '../providers/settings_provider.dart';
@@ -17,9 +18,40 @@ class SpeedometerScreen extends StatefulWidget {
   State<SpeedometerScreen> createState() => _SpeedometerScreenState();
 }
 
-class _SpeedometerScreenState extends State<SpeedometerScreen> {
+class _SpeedometerScreenState extends State<SpeedometerScreen>
+    with WidgetsBindingObserver {
   double _maxSpeed = 60;
   bool _initialized = false;
+  bool _locationGranted = true;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _checkLocationPermission();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _checkLocationPermission();
+    }
+  }
+
+  Future<void> _checkLocationPermission() async {
+    final permission = await Geolocator.checkPermission();
+    final granted = permission == LocationPermission.always ||
+        permission == LocationPermission.whileInUse;
+    if (mounted && granted != _locationGranted) {
+      setState(() => _locationGranted = granted);
+    }
+  }
 
   @override
   void didChangeDependencies() {
@@ -63,7 +95,9 @@ class _SpeedometerScreenState extends State<SpeedometerScreen> {
       body: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
         color: bgColor,
-        child: SafeArea(
+        child: Stack(
+        children: [
+        SafeArea(
         bottom: false,
         child: Column(
         mainAxisAlignment: MainAxisAlignment.end,
@@ -230,6 +264,29 @@ class _SpeedometerScreenState extends State<SpeedometerScreen> {
                         _showRideSummary(context, savedRecord, useKmh, weightKg);
                       }
                     } else {
+                      final permission = await Geolocator.checkPermission();
+                      if (!context.mounted) return;
+                      if (permission == LocationPermission.denied ||
+                          permission == LocationPermission.deniedForever) {
+                        final forever = permission == LocationPermission.deniedForever;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(forever
+                                ? '설정에서 위치 권한을 허용해주세요.'
+                                : '위치 권한이 필요합니다.'),
+                            backgroundColor: Colors.red,
+                            duration: const Duration(seconds: 3),
+                            action: forever
+                                ? SnackBarAction(
+                                    label: '설정으로',
+                                    textColor: Colors.white,
+                                    onPressed: () => Geolocator.openAppSettings(),
+                                  )
+                                : null,
+                          ),
+                        );
+                        return;
+                      }
                       ride.startRide(
                         gpsHighAccuracy: settings.gpsHighAccuracy,
                         autoPause: settings.autoPause,
@@ -281,8 +338,17 @@ class _SpeedometerScreenState extends State<SpeedometerScreen> {
         ],
         ),
       ),
+      if (!_locationGranted)
+        Positioned(
+          top: MediaQuery.of(context).padding.top + 8,
+          left: 16,
+          right: 16,
+          child: _permissionBanner(cs),
+        ),
+      ],
       ),
-    );
+    ),
+  );
   }
 
   void _showRideSummary(BuildContext context, RideRecord record,
@@ -386,6 +452,31 @@ class _SpeedometerScreenState extends State<SpeedometerScreen> {
           ),
         ),
       ),
+      ),
+    );
+  }
+
+  Widget _permissionBanner(ColorScheme cs) {
+    return GestureDetector(
+      onTap: () => Geolocator.openAppSettings(),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+          color: Colors.orange.withValues(alpha: 0.95),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: const Row(
+          children: [
+            Icon(Icons.location_off, color: Colors.white, size: 18),
+            SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                '위치 권한이 없습니다. 탭하여 설정에서 허용해주세요.',
+                style: TextStyle(color: Colors.white, fontSize: 13),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
