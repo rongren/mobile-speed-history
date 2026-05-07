@@ -82,7 +82,9 @@ class ForegroundServiceHelper {
   }
 
   static Future<void> stop() async {
-    await _plugin.cancel(1000);
+    try {
+      await _plugin.cancel(1000);
+    } catch (_) {}
   }
 
   static Future<void> showDistanceAlert(int km) async {

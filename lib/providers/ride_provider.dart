@@ -263,6 +263,7 @@ class RideProvider extends ChangeNotifier {
     _isAutoPaused = false;
     _positionSubscription?.cancel();
     _durationTimer?.cancel();
+    notifyListeners(); // 버튼 UI 즉시 갱신
 
     final startedAt = _startTime?.millisecondsSinceEpoch;
     await WakelockPlus.disable();

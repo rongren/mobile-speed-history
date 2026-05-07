@@ -17,6 +17,10 @@ class _MapScreenState extends State<MapScreen> {
   NaverMapController? _mapController;
   NLocationOverlay? _locationOverlay;
 
+  // 경로 오버레이 관리
+  bool _pathOverlayAdded = false;
+  int _lastPathLength = 0;
+
   // 마커 보간용
   NLatLng? _prevLatLng;
   NLatLng? _targetLatLng;
@@ -42,7 +46,10 @@ class _MapScreenState extends State<MapScreen> {
     final dividerColor = cs.outlineVariant;
 
     if (_mapController != null && ride.pathPoints.isNotEmpty) {
-      _drawPath(ride.pathPoints);
+      if (ride.pathPoints.length != _lastPathLength) {
+        _lastPathLength = ride.pathPoints.length;
+        _drawPath(ride.pathPoints);
+      }
 
       final last = ride.pathPoints.last;
       final latLng = NLatLng(last.latitude, last.longitude);
@@ -155,7 +162,16 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   Future<void> _drawPath(List<Position> positions) async {
-    if (_mapController == null || positions.length < 2) return;
+    if (_mapController == null) return;
+
+    if (_pathOverlayAdded) {
+      await _mapController!.deleteOverlay(
+        const NOverlayInfo(type: NOverlayType.polylineOverlay, id: 'ride_path'),
+      );
+      _pathOverlayAdded = false;
+    }
+
+    if (positions.length < 2) return;
 
     final coords = positions
         .map((p) => NLatLng(p.latitude, p.longitude))
@@ -168,7 +184,8 @@ class _MapScreenState extends State<MapScreen> {
       width: 5,
     );
 
-    _mapController!.addOverlay(polyline);
+    await _mapController!.addOverlay(polyline);
+    _pathOverlayAdded = true;
   }
 
   Widget _statCard(String label, String value, IconData icon, Color textColor) {
