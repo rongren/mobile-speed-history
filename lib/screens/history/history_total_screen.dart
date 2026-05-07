@@ -304,11 +304,14 @@ class _HistoryTotalScreenState extends State<HistoryTotalScreen>
                   ),
                   const SizedBox(width: 6),
                   GestureDetector(
-                    onTap: () => setState(() {
-                      _filterYear = null;
-                      _filterMonth = null;
-                      _filterDay = null;
-                    }),
+                    onTap: () {
+                      SystemSound.play(SystemSoundType.click);
+                      setState(() {
+                        _filterYear = null;
+                        _filterMonth = null;
+                        _filterDay = null;
+                      });
+                    },
                     child: Container(
                       width: 44,
                       height: 44,
@@ -516,7 +519,10 @@ class _HistoryTotalScreenState extends State<HistoryTotalScreen>
                   children: [
                     Expanded(
                       child: GestureDetector(
-                        onTap: () => setState(() => _pendingDeleteIds.clear()),
+                        onTap: () {
+                          SystemSound.play(SystemSoundType.click);
+                          setState(() => _pendingDeleteIds.clear());
+                        },
                         child: Container(
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           decoration: BoxDecoration(
@@ -538,7 +544,10 @@ class _HistoryTotalScreenState extends State<HistoryTotalScreen>
                     const SizedBox(width: 12),
                     Expanded(
                       child: GestureDetector(
-                        onTap: () => _confirmDelete(context, isDark),
+                        onTap: () {
+                          SystemSound.play(SystemSoundType.click);
+                          _confirmDelete(context, isDark);
+                        },
                         child: Container(
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           decoration: BoxDecoration(
@@ -614,7 +623,10 @@ class _HistoryTotalScreenState extends State<HistoryTotalScreen>
                       ],
                     ),
                     GestureDetector(
-                      onTap: () => Navigator.pop(ctx),
+                      onTap: () {
+                        SystemSound.play(SystemSoundType.click);
+                        Navigator.pop(ctx);
+                      },
                       child: const Icon(Icons.close, color: Colors.grey, size: 22),
                     ),
                   ],

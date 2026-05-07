@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../models/ride_record.dart';
 import '../../providers/ride_provider.dart';
@@ -448,6 +449,7 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen>
                 children: [
                   GestureDetector(
                     onTap: () {
+                      SystemSound.play(SystemSoundType.click);
                       setState(() {
                         _selectedDate = _selectedDate.subtract(const Duration(days: 1));
                       });
@@ -485,6 +487,7 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen>
                     onTap: isToday
                         ? null
                         : () {
+                      SystemSound.play(SystemSoundType.click);
                       setState(() {
                         _selectedDate = _selectedDate.add(const Duration(days: 1));
                       });
@@ -507,7 +510,10 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen>
                   const SizedBox(width: 8),
 
                   GestureDetector(
-                    onTap: _showSelectPicker,
+                    onTap: () {
+                      SystemSound.play(SystemSoundType.click);
+                      _showSelectPicker();
+                    },
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       decoration: BoxDecoration(
@@ -527,7 +533,10 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen>
                   const SizedBox(width: 8),
 
                   GestureDetector(
-                    onTap: _pickDateFromCalendar,
+                    onTap: () {
+                      SystemSound.play(SystemSoundType.click);
+                      _pickDateFromCalendar();
+                    },
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       decoration: BoxDecoration(
@@ -599,7 +608,10 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen>
                       '${time.minute.toString().padLeft(2, '0')}';
 
                   return GestureDetector(
-                    onTap: () => _showRecordDetail(context, record, useKmh, weightKg, isDark),
+                    onTap: () {
+                      SystemSound.play(SystemSoundType.click);
+                      _showRecordDetail(context, record, useKmh, weightKg, isDark);
+                    },
                     child: Container(
                       margin: const EdgeInsets.only(bottom: 12),
                       padding: const EdgeInsets.all(16),
@@ -719,7 +731,10 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen>
                       ],
                     ),
                     GestureDetector(
-                      onTap: () => Navigator.pop(ctx),
+                      onTap: () {
+                        SystemSound.play(SystemSoundType.click);
+                        Navigator.pop(ctx);
+                      },
                       child: const Icon(Icons.close, color: Colors.grey, size: 22),
                     ),
                   ],

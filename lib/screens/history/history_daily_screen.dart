@@ -62,10 +62,13 @@ class _HistoryDailyScreenState extends State<HistoryDailyScreen>
   Widget _recentButton(String label, int days, bool isDark) {
     final isSelected = _recentDays == days;
     return GestureDetector(
-      onTap: () => setState(() {
-        _recentDays = isSelected ? null : days;
-        _selectedIndex = -1;
-      }),
+      onTap: () {
+        SystemSound.play(SystemSoundType.click);
+        setState(() {
+          _recentDays = isSelected ? null : days;
+          _selectedIndex = -1;
+        });
+      },
       child: Container(
         height: 32,
         alignment: Alignment.center,
@@ -294,7 +297,10 @@ class _HistoryDailyScreenState extends State<HistoryDailyScreen>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               GestureDetector(
-                onTap: () => setState(() => _showWeekdayStats = !_showWeekdayStats),
+                onTap: () {
+                  SystemSound.play(SystemSoundType.click);
+                  setState(() => _showWeekdayStats = !_showWeekdayStats);
+                },
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [

@@ -256,7 +256,10 @@ class _HistoryMonthlyScreenState extends State<HistoryMonthlyScreen>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         GestureDetector(
-                          onTap: () => setState(() => _showHeatmap = !_showHeatmap),
+                          onTap: () {
+                            SystemSound.play(SystemSoundType.click);
+                            setState(() => _showHeatmap = !_showHeatmap);
+                          },
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [

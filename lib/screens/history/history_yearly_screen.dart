@@ -201,8 +201,10 @@ class _HistoryYearlyScreenState extends State<HistoryYearlyScreen>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         GestureDetector(
-                          onTap: () => setState(() =>
-                          _showMonthlyBreakdown = !_showMonthlyBreakdown),
+                          onTap: () {
+                            SystemSound.play(SystemSoundType.click);
+                            setState(() => _showMonthlyBreakdown = !_showMonthlyBreakdown);
+                          },
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [

@@ -8,6 +8,7 @@ import '../models/ride_record.dart';
 import '../utils/format_utils.dart';
 import '../widgets/memo_bottom_sheet.dart';
 import '../widgets/stat_item.dart';
+import '../models/speed_mode.dart';
 
 class SpeedometerScreen extends StatefulWidget {
   const SpeedometerScreen({super.key});
@@ -188,112 +189,91 @@ class _SpeedometerScreenState extends State<SpeedometerScreen> {
 
           const SizedBox(height: 14),
 
-          // 시작/일시정지/정지 버튼
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              if (ride.isRiding) ...[
-                // 일시정지 / 재개 버튼
+          // 시작/정지 버튼 (중앙) + 속도 모드 (좌) + 일시정지 (우)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              children: [
+                // 왼쪽: 속도 모드 배지
+                Expanded(
+                  child: ride.isRiding
+                      ? Center(child: _speedModeBadge(settings.speedMode))
+                      : const SizedBox(),
+                ),
+                // 중앙: 시작/정지 버튼
                 GestureDetector(
-                  onTap: () {
+                  onTap: () async {
                     SystemSound.play(SystemSoundType.click);
-                    if (ride.isManuallyPaused) {
-                      ride.resumeRide();
+                    if (ride.isRiding) {
+                      final useKmh = settings.useKmh;
+                      final weightKg = settings.weightKg;
+                      final minDist = settings.minRecordDistanceKm;
+                      final minDur = settings.minRecordDurationSec;
+                      final savedRecord = await ride.stopRide(
+                        minRecordDistanceKm: minDist,
+                        minRecordDurationSec: minDur,
+                      );
+                      if (!context.mounted) return;
+                      if (savedRecord == null) {
+                        final reason = ride.stopFailReason;
+                        final msg = reason == 'duration'
+                            ? '시간 부족 (최소 ${minDur}초) — 저장 안 됨'
+                            : '거리 부족 (최소 ${formatDouble(minDist, 1)} km) — 저장 안 됨';
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(msg),
+                            backgroundColor: Colors.orange,
+                            duration: const Duration(seconds: 3),
+                          ),
+                        );
+                      } else {
+                        _showRideSummary(context, savedRecord, useKmh, weightKg);
+                      }
                     } else {
-                      ride.pauseRide();
+                      ride.startRide(
+                        gpsHighAccuracy: settings.gpsHighAccuracy,
+                        autoPause: settings.autoPause,
+                        speedAlertKmh: settings.speedAlertKmh,
+                        speedMode: settings.speedMode,
+                        distanceAlertKm: settings.distanceAlertKm,
+                      );
                     }
                   },
                   child: Container(
-                    width: 60,
+                    width: 140,
                     height: 60,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(16),
-                      color: ride.isManuallyPaused ? Colors.green : Colors.orange,
+                      color: ride.isRiding ? Colors.red : Colors.green,
                       boxShadow: [
                         BoxShadow(
-                          color: (ride.isManuallyPaused ? Colors.green : Colors.orange)
+                          color: (ride.isRiding ? Colors.red : Colors.green)
                               .withOpacity(0.4),
-                          blurRadius: 16,
-                          spreadRadius: 3,
+                          blurRadius: 20,
+                          spreadRadius: 4,
                         ),
                       ],
                     ),
-                    child: Icon(
-                      ride.isManuallyPaused ? Icons.play_arrow : Icons.pause,
-                      color: Colors.white,
-                      size: 28,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 16),
-              ],
-              // 시작 / 정지 버튼
-              GestureDetector(
-                onTap: () async {
-                  SystemSound.play(SystemSoundType.click);
-                  if (ride.isRiding) {
-                    final useKmh = settings.useKmh;
-                    final weightKg = settings.weightKg;
-                    final minDist = settings.minRecordDistanceKm;
-                    final minDur = settings.minRecordDurationSec;
-                    final savedRecord = await ride.stopRide(
-                      minRecordDistanceKm: minDist,
-                      minRecordDurationSec: minDur,
-                    );
-                    if (!context.mounted) return;
-                    if (savedRecord == null) {
-                      final reason = ride.stopFailReason;
-                      final msg = reason == 'duration'
-                          ? '시간 부족 (최소 ${minDur}초) — 저장 안 됨'
-                          : '거리 부족 (최소 ${formatDouble(minDist, 1)} km) — 저장 안 됨';
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(msg),
-                          backgroundColor: Colors.orange,
-                          duration: const Duration(seconds: 3),
+                    child: Center(
+                      child: Text(
+                        ride.isRiding ? '정지' : '시작',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
                         ),
-                      );
-                    } else {
-                      _showRideSummary(context, savedRecord, useKmh, weightKg);
-                    }
-                  } else {
-                    ride.startRide(
-                      gpsHighAccuracy: settings.gpsHighAccuracy,
-                      autoPause: settings.autoPause,
-                      speedAlertKmh: settings.speedAlertKmh,
-                      speedMode: settings.speedMode,
-                      distanceAlertKm: settings.distanceAlertKm,
-                    );
-                  }
-                },
-                child: Container(
-                  width: 140,
-                  height: 60,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(16),
-                    color: ride.isRiding ? Colors.red : Colors.green,
-                    boxShadow: [
-                      BoxShadow(
-                        color: (ride.isRiding ? Colors.red : Colors.green)
-                            .withOpacity(0.4),
-                        blurRadius: 20,
-                        spreadRadius: 4,
-                      ),
-                    ],
-                  ),
-                  child: Center(
-                    child: Text(
-                      ride.isRiding ? '정지' : '시작',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
                 ),
-              ),
-            ],
+                // 오른쪽: 일시정지/재개 버튼
+                Expanded(
+                  child: ride.isRiding
+                      ? Center(child: _pauseResumeButton(ride))
+                      : const SizedBox(),
+                ),
+              ],
+            ),
           ),
 
           const SizedBox(height: 20),
@@ -405,6 +385,73 @@ class _SpeedometerScreenState extends State<SpeedometerScreen> {
           ),
         ),
       ),
+      ),
+    );
+  }
+
+  Widget _speedModeBadge(SpeedMode mode) {
+    final (icon, color, label) = switch (mode) {
+      SpeedMode.normal => (Icons.directions_bike, Colors.blue, '일반'),
+      SpeedMode.lowSpeed => (Icons.directions_run, Colors.deepOrange, '저속'),
+      SpeedMode.highSpeed => (Icons.train, Colors.purple, '고속'),
+    };
+    return Container(
+      width: 60,
+      height: 60,
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: color.withOpacity(0.35)),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, color: color, size: 22),
+          const SizedBox(height: 3),
+          Text(
+            label,
+            style: TextStyle(
+              color: color,
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _pauseResumeButton(RideProvider ride) {
+    final isManuallyPaused = ride.isManuallyPaused;
+    final color = isManuallyPaused ? Colors.green : Colors.orange;
+    return GestureDetector(
+      onTap: () {
+        SystemSound.play(SystemSoundType.click);
+        if (isManuallyPaused) {
+          ride.resumeRide();
+        } else {
+          ride.pauseRide();
+        }
+      },
+      child: Container(
+        width: 60,
+        height: 60,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          color: color,
+          boxShadow: [
+            BoxShadow(
+              color: color.withOpacity(0.4),
+              blurRadius: 16,
+              spreadRadius: 3,
+            ),
+          ],
+        ),
+        child: Icon(
+          isManuallyPaused ? Icons.play_arrow : Icons.pause,
+          color: Colors.white,
+          size: 28,
+        ),
       ),
     );
   }
