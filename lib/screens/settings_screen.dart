@@ -11,6 +11,7 @@ import '../widgets/number_input_dialog.dart';
 import '../utils/backup_utils.dart';
 import '../utils/gpx_utils.dart';
 import '../widgets/loading_overlay.dart';
+import '../models/speed_mode.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -481,17 +482,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               subtitleColor: subtitleColor,
             ),
             const SizedBox(height: 10),
-            _switchTile(
-              icon: Icons.directions_run,
-              iconColor: Colors.deepOrange,
-              title: '저속 모드',
-              subtitle: '런닝·워킹용 — 느린 이동도 거리로 정확하게 측정',
-              value: settings.lowSpeedMode,
-              onChanged: (v) => settings.setLowSpeedMode(v),
-              panelColor: panelColor,
-              titleColor: titleColor,
-              subtitleColor: subtitleColor,
-            ),
+            _speedModeTile(settings, panelColor, titleColor, subtitleColor),
             const SizedBox(height: 10),
             _speedAlertTile(settings, panelColor, titleColor, subtitleColor, btnBgOff),
             const SizedBox(height: 10),
@@ -1480,6 +1471,113 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
               );
             }),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _speedModeTile(
+    SettingsProvider settings,
+    Color panelColor,
+    Color titleColor,
+    Color subtitleColor,
+  ) {
+    const modes = SpeedMode.values;
+    final selected = settings.speedMode;
+    final cs = Theme.of(context).colorScheme;
+
+    final modeIcons = {
+      SpeedMode.normal: Icons.directions_bike,
+      SpeedMode.lowSpeed: Icons.directions_run,
+      SpeedMode.highSpeed: Icons.train,
+    };
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: panelColor,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: Colors.blue.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(modeIcons[selected], color: Colors.blue, size: 20),
+              ),
+              const SizedBox(width: 14),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('속도 측정 모드',
+                      style: TextStyle(
+                          color: titleColor,
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 2),
+                  Text(selected.description,
+                      style: TextStyle(color: subtitleColor, fontSize: 12)),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: modes.map((mode) {
+              final isSelected = mode == selected;
+              return Expanded(
+                child: Padding(
+                  padding: EdgeInsets.only(
+                      right: mode != modes.last ? 6 : 0),
+                  child: GestureDetector(
+                    onTap: () {
+                      SystemSound.play(SystemSoundType.click);
+                      settings.setSpeedMode(mode);
+                    },
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 180),
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? Colors.blue
+                            : cs.surfaceContainerHighest,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Column(
+                        children: [
+                          Icon(
+                            modeIcons[mode],
+                            size: 18,
+                            color: isSelected
+                                ? Colors.white
+                                : cs.onSurfaceVariant,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            mode.label,
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: isSelected
+                                  ? Colors.white
+                                  : cs.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
           ),
         ],
       ),

@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../models/speed_mode.dart';
 
 class SettingsProvider extends ChangeNotifier {
   static const _keyUseKmh = 'use_kmh';
@@ -23,7 +24,8 @@ class SettingsProvider extends ChangeNotifier {
   static const _keyGoalMaxDistanceKm = 'goal_max_distance_km';
   static const _keyGoalMaxDurationMin = 'goal_max_duration_min';
   static const _keyOnboardingDone = 'onboarding_done';
-  static const _keyLowSpeedMode = 'low_speed_mode';
+  static const _keyLowSpeedMode = 'low_speed_mode'; // 마이그레이션용 구키
+  static const _keySpeedMode = 'speed_mode';
   static const _keyDistanceAlertKm = 'distance_alert_km';
 
   bool _useKmh = true;
@@ -47,7 +49,7 @@ class SettingsProvider extends ChangeNotifier {
   int? _goalMaxDurationMin;
   bool _onboardingDone = false;
   bool _onboardingSkippedThisSession = false;
-  bool _lowSpeedMode = false;
+  SpeedMode _speedMode = SpeedMode.normal;
   int? _distanceAlertKm;
 
   bool get useKmh => _useKmh;
@@ -72,7 +74,7 @@ class SettingsProvider extends ChangeNotifier {
   double? get goalMaxDistanceKm => _goalMaxDistanceKm;
   int? get goalMaxDurationMin => _goalMaxDurationMin;
   bool get shouldShowOnboarding => !_onboardingDone && !_onboardingSkippedThisSession;
-  bool get lowSpeedMode => _lowSpeedMode;
+  SpeedMode get speedMode => _speedMode;
   int? get distanceAlertKm => _distanceAlertKm;
 
   Future<void> load() async {
@@ -97,7 +99,15 @@ class SettingsProvider extends ChangeNotifier {
     _goalMaxDistanceKm = prefs.getDouble(_keyGoalMaxDistanceKm);
     _goalMaxDurationMin = prefs.getInt(_keyGoalMaxDurationMin);
     _onboardingDone = prefs.getBool(_keyOnboardingDone) ?? false;
-    _lowSpeedMode = prefs.getBool(_keyLowSpeedMode) ?? false;
+    final speedModeStr = prefs.getString(_keySpeedMode);
+    if (speedModeStr != null) {
+      _speedMode = SpeedMode.fromString(speedModeStr);
+    } else {
+      // 구버전 low_speed_mode bool 마이그레이션
+      _speedMode = (prefs.getBool(_keyLowSpeedMode) ?? false)
+          ? SpeedMode.lowSpeed
+          : SpeedMode.normal;
+    }
     _distanceAlertKm = prefs.getInt(_keyDistanceAlertKm);
     notifyListeners();
   }
@@ -263,11 +273,11 @@ class SettingsProvider extends ChangeNotifier {
         : await prefs.remove(_keyDistanceAlertKm);
   }
 
-  Future<void> setLowSpeedMode(bool value) async {
-    _lowSpeedMode = value;
+  Future<void> setSpeedMode(SpeedMode value) async {
+    _speedMode = value;
     notifyListeners();
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(_keyLowSpeedMode, value);
+    await prefs.setString(_keySpeedMode, value.name);
   }
 
   Future<void> setGoalMaxDurationMin(int? value) async {

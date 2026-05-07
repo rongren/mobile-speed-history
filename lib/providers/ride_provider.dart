@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import '../models/ride_record.dart';
+import '../models/speed_mode.dart';
 import '../db/database_helper.dart';
 import '../services/location_service.dart';
 import '../services/foreground_service.dart';
@@ -105,7 +106,7 @@ class RideProvider extends ChangeNotifier {
     bool gpsHighAccuracy = true,
     bool autoPause = false,
     double? speedAlertKmh,
-    bool lowSpeedMode = false,
+    SpeedMode speedMode = SpeedMode.normal,
     int? distanceAlertKm,
   }) async {
     final hasPermission = await LocationService.requestPermission();
@@ -135,8 +136,17 @@ class RideProvider extends ChangeNotifier {
     _distanceAlertKm = distanceAlertKm;
     _lastAlertedKm = 0;
 
-    _maxAccuracyMeters = lowSpeedMode ? 25.0 : 15.0;
-    _minMovementMeters = lowSpeedMode ? 2.0 : 5.0;
+    switch (speedMode) {
+      case SpeedMode.lowSpeed:
+        _maxAccuracyMeters = 25.0;
+        _minMovementMeters = 2.0;
+      case SpeedMode.highSpeed:
+        _maxAccuracyMeters = 50.0;
+        _minMovementMeters = 30.0;
+      case SpeedMode.normal:
+        _maxAccuracyMeters = 15.0;
+        _minMovementMeters = 5.0;
+    }
 
     // GPS 스트림
     _positionSubscription =
