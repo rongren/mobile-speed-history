@@ -7,6 +7,8 @@
         <string>location</string>
         <string>fetch</string>
     </array>
+    <key>NMFClientId</key>
+    <string>ua4rpblyze</string>
     <key>NSLocationWhenInUseUsageDescription</key>
     <string>자전거 주행 속도 및 경로 측정을 위해 위치 정보가 필요합니다</string>
     <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
