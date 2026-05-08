@@ -9,7 +9,10 @@
       "Bash(Get-ChildItem -Path \"C:\\\\flutter-workspace\\\\bus-and-subway\" -Recurse -Name -Include \"*.dart\")",
       "Bash(Select-String \"main|theme\")",
       "Bash(find /c/Users/jungh/AppData/Local/Pub/Cache/hosted/pub.dev/flutter_foreground_task-9.2.2 -name \"*.dart\" 2>/dev/null | head -20)",
-      "Read(//c/Users/jungh/AppData/Local/Pub/Cache/hosted/pub.dev/flutter_foreground_task-9.2.2/**)"
+      "Read(//c/Users/jungh/AppData/Local/Pub/Cache/hosted/pub.dev/flutter_foreground_task-9.2.2/**)",
+      "Bash(Get-ChildItem -Path ios\\\\Runner -Recurse -Include *.plist, *.swift)",
+      "Bash(Select-Object FullName)",
+      "Bash(xargs grep -l \"iOS\\\\|flutter_local_notifications\\\\|geolocator\")"
     ]
   }
 }

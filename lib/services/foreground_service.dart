@@ -100,7 +100,9 @@ class ForegroundServiceHelper {
           ?.areNotificationsEnabled();
       return result ?? false;
     }
-    return true;
+    // iOS: false를 반환해 항상 requestPermission()이 호출되게 함
+    // 이미 허용/거부된 경우 iOS가 조용히 처리하므로 중복 팝업 없음
+    return false;
   }
 
   static Future<void> start() async {

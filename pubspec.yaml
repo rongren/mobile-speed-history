@@ -44,9 +44,6 @@ dependencies:
   # 상태관리
   provider: ^6.1.1
 
-  # 권한처리
-  permission_handler: ^11.1.0
-
   # 백업/내보내기
   path_provider: ^2.1.0
   file_picker: ^8.0.0
