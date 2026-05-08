@@ -20,7 +20,7 @@ class LocationService {
           accuracy: accuracy,
           intervalDuration: const Duration(milliseconds: 1000),
           distanceFilter: 0,
-          forceLocationManager: true,
+          forceLocationManager: false,
         ),
       );
     } else {
