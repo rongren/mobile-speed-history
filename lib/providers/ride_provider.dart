@@ -142,17 +142,8 @@ class RideProvider extends ChangeNotifier {
     _useKmh = useKmh;
     _notificationTick = 0;
 
-    switch (speedMode) {
-      case SpeedMode.lowSpeed:
-        _maxAccuracyMeters = 25.0;
-        _minMovementMeters = 2.0;
-      case SpeedMode.highSpeed:
-        _maxAccuracyMeters = 50.0;
-        _minMovementMeters = 30.0;
-      case SpeedMode.normal:
-        _maxAccuracyMeters = 15.0;
-        _minMovementMeters = 5.0;
-    }
+    _currentSpeedMode = speedMode;
+    _applySpeedMode(speedMode);
 
     // GPS 스트림
     _positionSubscription =
@@ -173,6 +164,27 @@ class RideProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void _applySpeedMode(SpeedMode mode) {
+    switch (mode) {
+      case SpeedMode.lowSpeed:
+        _maxAccuracyMeters = 25.0;
+        _minMovementMeters = 2.0;
+      case SpeedMode.highSpeed:
+        _maxAccuracyMeters = 50.0;
+        _minMovementMeters = 30.0;
+      case SpeedMode.normal:
+        _maxAccuracyMeters = 15.0;
+        _minMovementMeters = 5.0;
+    }
+  }
+
+  void changeSpeedMode(SpeedMode mode) {
+    if (!isRiding) return;
+    _currentSpeedMode = mode;
+    _applySpeedMode(mode);
+    notifyListeners();
+  }
+
   static const double _maxSpeedJumpRatio = 3.0;
   static const double _maxSpeedJumpMinKmh = 20.0;
   static const double _minDisplaySpeedKmh = 1.5;
@@ -180,6 +192,8 @@ class RideProvider extends ChangeNotifier {
   // 모드별 임계값 (startRide 시 설정)
   double _maxAccuracyMeters = 15.0;
   double _minMovementMeters = 5.0;
+  SpeedMode _currentSpeedMode = SpeedMode.normal;
+  SpeedMode get currentSpeedMode => _currentSpeedMode;
 
   void _onPositionUpdate(Position position) {
     if (_isManuallyPaused) return;

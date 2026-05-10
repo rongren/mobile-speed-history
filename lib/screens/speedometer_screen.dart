@@ -228,10 +228,20 @@ class _SpeedometerScreenState extends State<SpeedometerScreen>
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
               children: [
-                // 왼쪽: 속도 모드 배지
+                // 왼쪽: 속도 모드 배지 (탭으로 순환)
                 Expanded(
                   child: ride.isRiding
-                      ? Center(child: _speedModeBadge(settings.speedMode))
+                      ? Center(
+                          child: GestureDetector(
+                            onTap: () {
+                              SystemSound.play(SystemSoundType.click);
+                              final modes = SpeedMode.values;
+                              final next = modes[(ride.currentSpeedMode.index + 1) % modes.length];
+                              ride.changeSpeedMode(next);
+                            },
+                            child: _speedModeBadge(ride.currentSpeedMode),
+                          ),
+                        )
                       : const SizedBox(),
                 ),
                 // 중앙: 시작/정지 버튼
