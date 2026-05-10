@@ -27,6 +27,7 @@ class SettingsProvider extends ChangeNotifier {
   static const _keyLowSpeedMode = 'low_speed_mode'; // 마이그레이션용 구키
   static const _keySpeedMode = 'speed_mode';
   static const _keyDistanceAlertKm = 'distance_alert_km';
+  static const _keyClockDisplay = 'clock_display';
 
   bool _useKmh = true;
   bool _gpsHighAccuracy = true;
@@ -51,6 +52,7 @@ class SettingsProvider extends ChangeNotifier {
   bool _onboardingSkippedThisSession = false;
   SpeedMode _speedMode = SpeedMode.normal;
   int? _distanceAlertKm;
+  String _clockDisplay = 'none';
 
   bool get useKmh => _useKmh;
   bool get gpsHighAccuracy => _gpsHighAccuracy;
@@ -76,6 +78,7 @@ class SettingsProvider extends ChangeNotifier {
   bool get shouldShowOnboarding => !_onboardingDone && !_onboardingSkippedThisSession;
   SpeedMode get speedMode => _speedMode;
   int? get distanceAlertKm => _distanceAlertKm;
+  String get clockDisplay => _clockDisplay;
 
   Future<void> load() async {
     final prefs = await SharedPreferences.getInstance();
@@ -109,6 +112,7 @@ class SettingsProvider extends ChangeNotifier {
           : SpeedMode.normal;
     }
     _distanceAlertKm = prefs.getInt(_keyDistanceAlertKm);
+    _clockDisplay = prefs.getString(_keyClockDisplay) ?? 'none';
     notifyListeners();
   }
 
@@ -271,6 +275,13 @@ class SettingsProvider extends ChangeNotifier {
     _distanceAlertKm != null
         ? await prefs.setInt(_keyDistanceAlertKm, _distanceAlertKm!)
         : await prefs.remove(_keyDistanceAlertKm);
+  }
+
+  Future<void> setClockDisplay(String value) async {
+    _clockDisplay = value;
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_keyClockDisplay, value);
   }
 
   Future<void> setSpeedMode(SpeedMode value) async {

@@ -100,6 +100,36 @@ class _SpeedometerScreenState extends State<SpeedometerScreen>
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
 
+          // 현재 시각
+          if (settings.clockDisplay != 'none')
+            StreamBuilder<DateTime>(
+              stream: Stream.periodic(const Duration(seconds: 1), (_) => DateTime.now()),
+              builder: (context, snapshot) {
+                final now = snapshot.data ?? DateTime.now();
+                final h = settings.clockDisplay == 'h12'
+                    ? (now.hour % 12 == 0 ? 12 : now.hour % 12)
+                    : now.hour;
+                final m = now.minute.toString().padLeft(2, '0');
+                final s = now.second.toString().padLeft(2, '0');
+                final prefix = settings.clockDisplay == 'h12'
+                    ? (now.hour < 12 ? 'AM ' : 'PM ')
+                    : '';
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 6),
+                  child: Text(
+                    '$prefix$h:$m:$s',
+                    style: TextStyle(
+                      color: cs.onSurfaceVariant,
+                      fontSize: 52,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 2,
+                      height: 1.0,
+                    ),
+                  ),
+                );
+              },
+            ),
+
           // 속도계 게이지 (탭으로 최대속도 순환)
           GestureDetector(
             onTap: () {
@@ -149,7 +179,7 @@ class _SpeedometerScreenState extends State<SpeedometerScreen>
             ),
           ),
 
-          const SizedBox(height: 4),
+          const SizedBox(height: 2),
 
           // 통계 카드 (표시 항목 설정 반영)
           _buildStatsRow(ride, settings, useKmh,
