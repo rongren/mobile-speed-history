@@ -79,9 +79,6 @@ class _SpeedometerScreenState extends State<SpeedometerScreen>
     final speedTextColor = isOverAlert ? Colors.red : cs.onSurface;
     final panelColor = cs.surfaceContainer;
     final unitTextColor = cs.onSurfaceVariant;
-    final selectorBgColor = cs.surfaceContainerHighest;
-    final selectorBorderColor = cs.outlineVariant;
-    final selectorTextColor = cs.onSurfaceVariant;
     final dividerColor = cs.outlineVariant;
     final statLabelColor = cs.onSurfaceVariant;
 
@@ -103,83 +100,56 @@ class _SpeedometerScreenState extends State<SpeedometerScreen>
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
 
-          // 최고속도 선택 라디오 버튼
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [60, 120, 180, 240].map((speed) {
-              final isSelected = _maxSpeed == speed.toDouble();
-              return GestureDetector(
-                onTap: () => setState(() => _maxSpeed = speed.toDouble()),
-                child: Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 6),
-                  width: 70,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: isSelected ? Colors.blue : selectorBgColor,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: isSelected ? Colors.blue : selectorBorderColor,
-                    ),
+          // 속도계 게이지 (탭으로 최대속도 순환)
+          GestureDetector(
+            onTap: () {
+              SystemSound.play(SystemSoundType.click);
+              const steps = [60.0, 120.0, 180.0, 240.0];
+              final nextIdx = (steps.indexOf(_maxSpeed) + 1) % steps.length;
+              setState(() => _maxSpeed = steps[nextIdx]);
+            },
+            child: Center(
+              child: SizedBox(
+                width: MediaQuery.of(context).size.width * 0.75,
+                height: MediaQuery.of(context).size.width * 0.75,
+                child: CustomPaint(
+                  painter: SpeedometerPainter(
+                    speed: ride.currentSpeed,
+                    maxSpeed: _maxSpeed,
+                    isDark: isDark,
+                    isOverAlert: isOverAlert,
                   ),
                   child: Center(
-                    child: Text(
-                      '$speed',
-                      style: TextStyle(
-                        color: isSelected ? Colors.white : selectorTextColor,
-                        fontSize: 14,
-                        fontWeight: isSelected
-                            ? FontWeight.bold
-                            : FontWeight.normal,
-                      ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const SizedBox(height: 150),
+                        Text(
+                          formatSpeed(ride.currentSpeed, useKmh),
+                          style: TextStyle(
+                            color: speedTextColor,
+                            fontSize: 64,
+                            fontWeight: FontWeight.bold,
+                            height: 1.0,
+                          ),
+                        ),
+                        Text(
+                          speedUnit(useKmh),
+                          style: TextStyle(
+                            color: unitTextColor,
+                            fontSize: 18,
+                            height: 1.0,
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                ),
-              );
-            }).toList(),
-          ),
-
-          const SizedBox(height: 16),
-
-          // 속도계 게이지
-          Center(
-            child: SizedBox(
-              width: MediaQuery.of(context).size.width * 0.75,
-              height: MediaQuery.of(context).size.width * 0.75,
-              child: CustomPaint(
-                painter: SpeedometerPainter(
-                  speed: ride.currentSpeed,
-                  maxSpeed: _maxSpeed,
-                  isDark: isDark,
-                  isOverAlert: isOverAlert,
-                ),
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const SizedBox(height: 150),
-                      Text(
-                        formatSpeed(ride.currentSpeed, useKmh),
-                        style: TextStyle(
-                          color: speedTextColor,
-                          fontSize: 64,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        speedUnit(useKmh),
-                        style: TextStyle(
-                          color: unitTextColor,
-                          fontSize: 18,
-                        ),
-                      ),
-                    ],
                   ),
                 ),
               ),
             ),
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 4),
 
           // 통계 카드 (표시 항목 설정 반영)
           _buildStatsRow(ride, settings, useKmh,
@@ -221,7 +191,7 @@ class _SpeedometerScreenState extends State<SpeedometerScreen>
             ),
           ),
 
-          const SizedBox(height: 14),
+          const SizedBox(height: 16),
 
           // 시작/정지 버튼 (중앙) + 속도 모드 (좌) + 일시정지 (우)
           Padding(
@@ -344,7 +314,7 @@ class _SpeedometerScreenState extends State<SpeedometerScreen>
             ),
           ),
 
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
         ],
         ),
       ),
