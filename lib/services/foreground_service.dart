@@ -48,10 +48,10 @@ class ForegroundServiceHelper {
 
     final android = _notifications
         .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
-    await android?.deleteNotificationChannel('bike_speedometer');
-    await android?.deleteNotificationChannel('bike_speedometer_ride');
-    // HIGH importance 채널이 남아있으면 삭제 — LOW로 재생성하기 위함
-    await android?.deleteNotificationChannel('bike_speedometer_fg');
+    // 포그라운드 서비스가 살아있는 상태에서 재실행 시 채널 삭제가 SecurityException을 던질 수 있으므로 무시
+    try { await android?.deleteNotificationChannel('bike_speedometer'); } catch (_) {}
+    try { await android?.deleteNotificationChannel('bike_speedometer_ride'); } catch (_) {}
+    try { await android?.deleteNotificationChannel('bike_speedometer_fg'); } catch (_) {}
 
     // Android 포그라운드 서비스 초기화
     if (Platform.isAndroid) {
